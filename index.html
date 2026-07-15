@@ -10,6 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --bg:#0E1420;
@@ -149,6 +151,16 @@
   .water{display:flex;gap:6px;flex-wrap:wrap}
   .water i{width:100%;max-width:30px;height:38px;border:1.5px solid var(--line);border-radius:6px;background:var(--bg2);cursor:pointer;flex:1}
   .water i.on{background:linear-gradient(180deg,#7BC0F0,var(--blue));border-color:var(--blue)}
+  .meal{border:1px solid var(--line);border-radius:12px;background:var(--bg2);padding:12px 13px;margin-bottom:10px;position:relative}
+  .meal:before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:3px;background:var(--gold)}
+  .meal-h{display:flex;align-items:center;gap:9px;margin-bottom:8px;padding-left:6px}
+  .meal-h .hh{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);background:rgba(233,180,76,.12);border:1px solid rgba(233,180,76,.3);border-radius:20px;padding:3px 9px;flex:0 0 auto}
+  .meal-h b{flex:1;font-family:Archivo,sans-serif;font-size:14.5px;font-weight:700}
+  .meal-h .ed{color:var(--dim);font-size:12px;font-weight:600}
+  .meal ul{margin:0;padding-left:24px;list-style:none}
+  .meal li{font-size:13.5px;line-height:1.55;color:var(--txt);position:relative;padding-left:2px}
+  .meal li:before{content:'▸';position:absolute;left:-16px;color:var(--gold);font-size:11px;top:1px}
+  .meal li em{font-style:normal;color:var(--dim);font-size:12px}
 
   .hist{font-size:13.5px;padding:11px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;align-items:center}
   .hist:last-child{border:none}
@@ -174,7 +186,10 @@
 <div class="wrap">
   <header class="top">
     <div class="brand">Caderno<em>.</em></div>
-    <div class="stamp" id="stamp"></div>
+    <div style="text-align:right">
+      <div class="mono" id="cloud" style="font-size:11px;color:var(--dim)">○ local</div>
+      <div class="stamp" id="stamp" style="margin-top:2px"></div>
+    </div>
   </header>
 
   <!-- HOJE -->
@@ -241,8 +256,17 @@
     </div>
     <div class="card">
       <h2>Água <span class="mono" id="agua-n" style="font-size:11px"></span></h2>
+      <div id="agua-meta" class="mono" style="font-size:13px;color:var(--blue);margin-bottom:10px"></div>
       <div class="water" id="water"></div>
+      <div class="bar" style="margin-top:12px"><i id="agua-bar" style="width:0%;background:linear-gradient(90deg,#7BC0F0,var(--blue))"></i></div>
     </div>
+
+    <div class="card">
+      <h2>Cardápio do dia <button class="btn sm dark" id="meal-add" style="flex:0 0 auto;padding:6px 10px;font-size:12px">+ refeição</button></h2>
+      <div class="muted" id="meal-alvo" style="margin-bottom:12px"></div>
+      <div id="meals"></div>
+    </div>
+
     <div class="card">
       <h2>Últimos 14 dias</h2>
       <div id="streak"></div>
@@ -277,6 +301,12 @@
     <button class="btn" id="ex-add">+ Adicionar exercício</button>
 
     <div class="card" style="margin-top:14px">
+      <h2>Sincronizar celular + PC <span class="mono" id="sync-badge" style="font-size:11px"></span></h2>
+      <div class="muted" id="sync-msg" style="margin-bottom:10px"></div>
+      <div id="sync-body"></div>
+    </div>
+
+    <div class="card">
       <h2>Backup</h2>
       <div class="muted">Baixe um arquivo com tudo (treinos, cargas, pesos, comida). Importar substitui os dados.</div>
       <div class="row" style="margin-top:10px">
@@ -307,17 +337,56 @@
 <dialog id="dlg"><div class="dlg" id="dlg-body"></div></dialog>
 
 <script>
-/* ---------- storage: usa o do Claude se existir, senão o do navegador ---------- */
-const KEY='caderno:v1';
-const STG = (typeof window.storage!=='undefined' && window.storage) ? {
-  tipo:'Claude',
-  get: async()=> (await window.storage.get(KEY)).value,
-  set: async v => window.storage.set(KEY,v)
-} : {
-  tipo:'navegador',
-  get: async()=>{ const v=localStorage.getItem(KEY); if(v===null) throw 0; return v; },
-  set: async v => localStorage.setItem(KEY,v)
+/* ============================================================
+   CONFIGURAÇÃO DO FIREBASE  —  cole aqui o que o console te der
+   (Console Firebase → engrenagem → Configurações → seus apps → SDK)
+   Enquanto estiver com "COLE_AQUI", o app funciona só neste aparelho.
+============================================================ */
+const firebaseConfig = {
+  apiKey:            "AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs",
+  authDomain:        "treino-60200.firebaseapp.com",
+  projectId:         "treino-60200",
+  storageBucket:     "treino-60200.firebasestorage.app",
+  messagingSenderId: "5192022297",
+  appId:             "1:5192022297:web:7fb6a89c1a48c977c5ed88"
 };
+/* ============================================================ */
+
+const KEY='caderno:v1';
+const SYNC_KEY='caderno:sync';
+let sync = { code:'' };
+try{ sync = Object.assign(sync, JSON.parse(localStorage.getItem(SYNC_KEY)||'{}')); }catch(e){}
+function saveSync(){ localStorage.setItem(SYNC_KEY, JSON.stringify(sync)); }
+
+let db=null, fbOK=false, syncState='off';
+function fbConfigured(){ return firebaseConfig.apiKey && !firebaseConfig.apiKey.startsWith('COLE_'); }
+function initFB(){
+  if(!fbConfigured() || typeof firebase==='undefined') return false;
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    db=firebase.firestore(); fbOK=true; return true;
+  }catch(e){ console.error('Firebase falhou',e); return false; }
+}
+function setSync(s){ syncState=s; const b=el('cloud'); if(b){
+  b.textContent = {off:'○ local',ok:'● sincronizado',sync:'◍ salvando…',err:'⚠ erro'}[s]||'';
+  b.style.color = {off:'var(--dim)',ok:'var(--ok)',sync:'var(--gold)',err:'var(--acc)'}[s];
+} }
+async function cloudPull(){
+  if(!fbOK || !sync.code) return null;
+  const snap = await db.collection('cadernos').doc(sync.code).get();
+  if(!snap.exists) return null;
+  try{ return JSON.parse(snap.data().payload); }catch(e){ return null; }
+}
+let pushT;
+function cloudPush(){
+  if(!fbOK || !sync.code) return;
+  setSync('sync'); clearTimeout(pushT);
+  pushT=setTimeout(()=>{
+    db.collection('cadernos').doc(sync.code)
+      .set({payload:JSON.stringify(D), _u:D._u||Date.now()})
+      .then(()=>setSync('ok')).catch(e=>{console.error(e);setSync('err');});
+  },700);
+}
 
 const SEED = {
   plans: [
@@ -353,6 +422,33 @@ const SEED = {
     {id:'m4', t:'Proteína no café da manhã', s:'2–3 ovos + whey'},
     {id:'m5', t:'Lanche âncora (~16h)', s:'Fruta, castanha, ovo ou iogurte — protege o jantar.'}
   ],
+  refVer: 2,
+  refeicoes: [
+    {id:'r1', hora:'09:00', nome:'Café da manhã', itens:[
+      '2–3 ovos mexidos ~ 15g',
+      'Pão ou tapioca',
+      '1 scoop de whey junto (não no lugar dos ovos) ~ 25g',
+      'Café · fruta se tiver'
+    ]},
+    {id:'r2', hora:'12:30', nome:'Almoço', itens:[
+      'O que manda: 200g de frango/carne/peixe ~ 40g',
+      'Metade do prato de salada / vegetais',
+      'Arroz + feijão (2 conchas de feijão)',
+      'Prato de ~400g está ótimo — come até saciar'
+    ]},
+    {id:'r3', hora:'16:00', nome:'Lanche âncora', itens:[
+      'Escolha 1: iogurte + fruta ~ 12g',
+      'ou fruta + castanhas',
+      'ou 1 scoop de whey ~ 25g',
+      'Existe pra você não chegar faminto no jantar'
+    ]},
+    {id:'r4', hora:'21:30', nome:'Jantar (pós-bola)', itens:[
+      'O que manda: proteína boa ~ 35g',
+      'Frango, carne, ovos ou 1 lata de sardinha',
+      'Metade do prato de vegetais + arroz/feijão à vontade',
+      'Comer bem depois de jogar é certo, não "furar dieta"'
+    ]}
+  ],
   sessions: [], pesos: [], dias: {}
 };
 
@@ -364,11 +460,45 @@ const esc=s=>String(s).replace(/[<>&"']/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'
 const yt=n=>'https://www.youtube.com/results?search_query='+encodeURIComponent(n+' execução correta academia');
 const br=d=>d.split('-').reverse().slice(0,2).join('/');
 
-async function load(){
-  try{ D=JSON.parse(await STG.get()); }catch(e){ D=structuredClone(SEED); }
+function defaults(){
   for(const k in SEED) if(D[k]===undefined) D[k]=structuredClone(SEED[k]);
+  if(D._u===undefined) D._u=0;
+  // atualiza o cardápio padrão quando ele é revisado (só se você não mexeu nele)
+  if((D.refVer||0) < SEED.refVer){ D.refeicoes=structuredClone(SEED.refeicoes); D.refVer=SEED.refVer; }
 }
-let sT; function save(){ clearTimeout(sT); sT=setTimeout(()=>STG.set(JSON.stringify(D)).catch(e=>console.error(e)),200); }
+async function load(){
+  try{ D=JSON.parse(localStorage.getItem(KEY)); if(!D) throw 0; }catch(e){ D=structuredClone(SEED); D._u=0; }
+  defaults();
+  initFB();
+  if(fbOK && sync.code){
+    try{
+      const cloud = await cloudPull();
+      if(cloud && (cloud._u||0) > (D._u||0)){        // nuvem mais nova → usa ela
+        D=cloud; defaults(); localStorage.setItem(KEY,JSON.stringify(D)); setSync('ok');
+      } else if(cloud){ setSync('ok'); cloudPush(); }  // local igual/mais novo → sobe
+      else cloudPush();                                // nuvem vazia → cria
+    }catch(e){ console.error(e); setSync('err'); }
+  }
+}
+let sT;
+function save(){
+  D._u = Date.now();
+  clearTimeout(sT);
+  sT=setTimeout(()=>localStorage.setItem(KEY,JSON.stringify(D)),150);
+  cloudPush();
+}
+async function syncAgora(){
+  if(!fbOK){ alert('Firebase ainda não configurado.'); return; }
+  if(!sync.code){ alert('Defina um código de sincronização primeiro.'); return; }
+  setSync('sync');
+  try{
+    const cloud=await cloudPull();
+    if(cloud && (cloud._u||0) > (D._u||0)){ D=cloud; defaults(); localStorage.setItem(KEY,JSON.stringify(D)); }
+    else { db.collection('cadernos').doc(sync.code).set({payload:JSON.stringify(D),_u:D._u||Date.now()}); }
+    setSync('ok'); plano=proximo(); renderHoje(); renderEdit();
+    alert('Sincronizado.');
+  }catch(e){ setSync('err'); alert('Não deu pra sincronizar. Confira a conexão e o código.'); }
+}
 
 /* nav */
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
@@ -594,11 +724,32 @@ function renderComida(){
   el('meta-bar').style.width=pct+'%';
   el('meta-n').textContent=`${d.feito.length}/${D.metas.length}`;
 
-  el('water').innerHTML=Array.from({length:10},(_,i)=>`<i class="${i<d.agua?'on':''}" data-w="${i+1}"></i>`).join('');
-  el('agua-n').textContent=`${d.agua}/10 copos`;
+  // água: 35 ml/kg do peso mais recente (padrão 70kg). +500ml em dia de bola.
+  const COPO=250;
+  const peso=D.pesos.length?D.pesos[D.pesos.length-1].kg:70;
+  const dia_=new Date().getDay(), bola=(dia_===2||dia_===6);
+  let metaMl=Math.round(peso*35/50)*50 + (bola?500:0);
+  const copos=Math.max(6,Math.round(metaMl/COPO));
+  metaMl=copos*COPO;
+  const litros=v=>(v/1000).toFixed(1).replace('.',',');
+  el('water').innerHTML=Array.from({length:copos},(_,i)=>`<i class="${i<d.agua?'on':''}" data-w="${i+1}"></i>`).join('');
+  el('agua-n').textContent=`${litros(d.agua*COPO)} / ${litros(metaMl)} L`;
+  el('agua-meta').textContent=`Meta: ${litros(metaMl)} L por dia · ${copos} copos de 250 ml${bola?' (dia de bola: +0,5 L)':''}`;
+  el('agua-bar').style.width=Math.min(100,d.agua/copos*100)+'%';
   document.querySelectorAll('[data-w]').forEach(w=>w.onclick=()=>{
     const n=+w.dataset.w; d.agua=(d.agua===n)?n-1:n; save(); renderComida();
   });
+
+  // cardápio
+  const alvoProt=Math.round(peso*1.7);
+  el('meal-alvo').innerHTML=`Alvo do dia: <b style="color:var(--txt)">~${alvoProt}g de proteína</b> e ~2.000–2.200 kcal. Os números ao lado de cada item são a proteína aproximada.`;
+  el('meals').innerHTML=D.refeicoes.map(r=>`
+    <div class="meal">
+      <div class="meal-h"><span class="hh">${esc(r.hora||'')}</span><b>${esc(r.nome)}</b>
+        <button class="ed" data-meal="${r.id}">editar</button></div>
+      <ul>${r.itens.map(it=>`<li>${esc(it).replace(/~\s*(\d+g)/,'<em>~ $1</em>')}</li>`).join('')}</ul>
+    </div>`).join('')||'<div class="muted">Sem refeições. Toque em “+ refeição”.</div>';
+  document.querySelectorAll('[data-meal]').forEach(b=>b.onclick=()=>editMeal(b.dataset.meal));
 
   el('nota').value=d.nota||'';
   el('nota').oninput=e=>{d.nota=e.target.value;save();};
@@ -622,11 +773,85 @@ el('meta-add').onclick=()=>{
   D.metas.push({id:uid(),t:v,s:''}); el('meta-new').value=''; save(); renderComida();
 };
 
+function editMeal(id){
+  const r=D.refeicoes.find(x=>x.id===id); if(!r)return;
+  el('dlg-body').innerHTML=`<h3>Editar refeição</h3>
+    <div class="row" style="margin-top:8px">
+      <div style="flex:0 0 92px"><label class="f">Horário</label><input id="m-h" value="${esc(r.hora||'')}" placeholder="12:30"></div>
+      <div><label class="f">Nome</label><input id="m-n" value="${esc(r.nome)}"></div>
+    </div>
+    <label class="f" style="margin-top:10px">Itens (um por linha)</label>
+    <textarea id="m-i" rows="6">${esc(r.itens.join('\n'))}</textarea>
+    <div class="muted" style="margin-top:6px">Dica: pra mostrar a proteína, escreva "~ 25g" no fim da linha.</div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" id="m-ok" style="flex:1">Salvar</button>
+      <button class="btn dark sm" id="m-del" style="flex:0 0 auto;color:var(--acc)">Excluir</button>
+    </div>
+    <button class="btn ghost sm" id="m-x" style="width:100%;margin-top:8px">Cancelar</button>`;
+  el('dlg').showModal();
+  el('m-ok').onclick=()=>{
+    r.hora=el('m-h').value.trim();
+    r.nome=el('m-n').value.trim()||'Refeição';
+    r.itens=el('m-i').value.split('\n').map(s=>s.trim()).filter(Boolean);
+    D.refeicoes.sort((a,b)=>(a.hora||'').localeCompare(b.hora||''));
+    save(); el('dlg').close(); renderComida();
+  };
+  el('m-del').onclick=()=>{
+    if(!confirm('Excluir esta refeição?'))return;
+    D.refeicoes=D.refeicoes.filter(x=>x.id!==id); save(); el('dlg').close(); renderComida();
+  };
+  el('m-x').onclick=()=>el('dlg').close();
+}
+el('meal-add').onclick=()=>{
+  const r={id:uid(),hora:'',nome:'Nova refeição',itens:[]};
+  D.refeicoes.push(r); save(); renderComida(); editMeal(r.id);
+};
+
 /* ---------- EDITAR ---------- */
+function renderSync(){
+  const badge=el('sync-badge'), msg=el('sync-msg'), body=el('sync-body');
+  if(!fbConfigured()){
+    badge.textContent=''; 
+    msg.innerHTML='Ainda sem nuvem. Os dados ficam só neste aparelho. Para sincronizar, cole a configuração do Firebase no topo do arquivo <span class="mono">index.html</span> (as instruções estão no chat).';
+    body.innerHTML=''; return;
+  }
+  if(!fbOK){ badge.textContent='⚠'; msg.textContent='Configuração colada, mas o Firebase não conectou. Confira se copiou tudo certo.'; body.innerHTML=''; return; }
+  if(sync.code){
+    badge.textContent='● ativo'; badge.style.color='var(--ok)';
+    msg.innerHTML=`Sincronizando com o código <b class="mono">${esc(sync.code)}</b>. Use o mesmo código no outro aparelho.`;
+    body.innerHTML=`<div class="row">
+        <button class="btn sm" id="sync-now" style="flex:1">Sincronizar agora</button>
+        <button class="btn dark sm" id="sync-out" style="flex:0 0 auto">Trocar código</button>
+      </div>`;
+    el('sync-now').onclick=syncAgora;
+    el('sync-out').onclick=()=>{ if(confirm('Desconectar deste código? Os dados locais continuam.')){ sync.code=''; saveSync(); setSync('off'); renderSync(); } };
+  } else {
+    badge.textContent='○ inativo'; badge.style.color='var(--dim)';
+    msg.textContent='Escolha um código secreto (funciona como senha). Digite o MESMO código no celular e no PC para eles compartilharem os dados. Use algo difícil de adivinhar.';
+    body.innerHTML=`<div class="row">
+        <input id="sync-code" placeholder="ex: paulo-treino-9f3x" autocapitalize="none" autocomplete="off">
+        <button class="btn sm" id="sync-go" style="flex:0 0 auto">Ativar</button>
+      </div>`;
+    el('sync-go').onclick=async()=>{
+      const c=el('sync-code').value.trim().replace(/[^a-zA-Z0-9_-]/g,'');
+      if(c.length<6){ alert('Use pelo menos 6 caracteres (letras, números, - ou _).'); return; }
+      sync.code=c; saveSync(); setSync('sync');
+      const cloud=await cloudPull().catch(()=>null);
+      if(cloud && (cloud._u||0) > (D._u||0)){
+        if(confirm('Já existem dados salvos nesse código. Puxar eles pra este aparelho? (Cancela = manter os deste aparelho e sobrescrever a nuvem.)')){
+          D=cloud; defaults(); localStorage.setItem(KEY,JSON.stringify(D)); plano=proximo();
+        } else cloudPush();
+      } else cloudPush();
+      setSync('ok'); renderSync(); renderHoje();
+      alert('Sincronização ativada. Agora abra o app no outro aparelho e ative o MESMO código.');
+    };
+  }
+}
 function renderEdit(){
-  el('stg').textContent = STG.tipo==='Claude'
-    ? 'Salvando no armazenamento do Claude. Se hospedar o arquivo, ele passa a salvar no navegador — leve o backup junto.'
-    : 'Salvando no armazenamento deste navegador. Baixe o backup de vez em quando.';
+  renderSync();
+  el('stg').textContent = fbOK && sync.code
+    ? 'Salvando neste aparelho e na nuvem.'
+    : 'Salvando só no navegador deste aparelho. Baixe o backup de vez em quando.';
   if(!D.plans.find(p=>p.id===editP)) editP=D.plans[0]?.id;
   el('plan-sel').innerHTML=D.plans.map(p=>`<option value="${esc(p.id)}" ${p.id===editP?'selected':''}>${esc(p.id)} — ${esc(p.nome)}</option>`).join('');
   el('plan-sel').onchange=e=>{editP=e.target.value;renderEdit();};
@@ -726,6 +951,7 @@ el('reset').onclick=()=>{
   plano=proximo();
   el('stamp').innerHTML=new Date().toLocaleDateString('pt-BR',{weekday:'long'}).replace('-feira','')
     +'<br>'+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});
+  if(!fbOK || !sync.code) setSync('off');
   renderHoje();
 })();
 </script>
