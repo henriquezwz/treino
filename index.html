@@ -161,6 +161,15 @@
   .meal li{font-size:13.5px;line-height:1.55;color:var(--txt);position:relative;padding-left:2px}
   .meal li:before{content:'▸';position:absolute;left:-16px;color:var(--gold);font-size:11px;top:1px}
   .meal li em{font-style:normal;color:var(--dim);font-size:12px}
+  .fi{display:flex;align-items:center;gap:10px;padding:9px 6px 9px 6px;border-top:1px solid var(--line)}
+  .fi:first-of-type{border-top:none}
+  .fbox{width:22px;height:22px;flex:0 0 22px;border:1.5px solid var(--line);border-radius:6px;background:var(--card);display:flex;align-items:center;justify-content:center;color:transparent;font-size:13px}
+  .fi.on .fbox{background:var(--ok);border-color:var(--ok);color:#0E1420;font-weight:700}
+  .ft{flex:1;font-size:13.5px;line-height:1.35}
+  .fi.on .ft{color:var(--dim);text-decoration:line-through}
+  .fp{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--gold);flex:0 0 auto}
+  .fi.on .fp{color:var(--ok)}
+  .fx{color:var(--acc);font-size:13px;flex:0 0 auto;padding:0 2px}
 
   .hist{font-size:13.5px;padding:11px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;align-items:center}
   .hist:last-child{border:none}
@@ -265,6 +274,11 @@
       <h2>Cardápio do dia <button class="btn sm dark" id="meal-add" style="flex:0 0 auto;padding:6px 10px;font-size:12px">+ refeição</button></h2>
       <div class="muted" id="meal-alvo" style="margin-bottom:12px"></div>
       <div id="meals"></div>
+      <div class="row" style="margin-top:12px">
+        <input id="extra-t" placeholder="Comi algo fora do plano...">
+        <input id="extra-p" type="number" inputmode="numeric" placeholder="g prot" style="flex:0 0 78px">
+        <button class="btn sm" id="extra-add" style="flex:0 0 auto">Add</button>
+      </div>
     </div>
 
     <div class="card">
@@ -708,7 +722,7 @@ el('peso-add').onclick=()=>{
 };
 
 /* ---------- COMIDA ---------- */
-function dia(){ return D.dias[hoje()]||(D.dias[hoje()]={feito:[],agua:0,nota:''}); }
+function dia(){ const d=D.dias[hoje()]||(D.dias[hoje()]={feito:[],agua:0,nota:''}); if(!d.comido)d.comido=[]; if(!d.extra)d.extra=[]; return d; }
 function renderComida(){
   const d=dia();
   el('checklist').innerHTML=D.metas.map(m=>`
@@ -724,32 +738,84 @@ function renderComida(){
   el('meta-bar').style.width=pct+'%';
   el('meta-n').textContent=`${d.feito.length}/${D.metas.length}`;
 
-  // água: 35 ml/kg do peso mais recente (padrão 70kg). +500ml em dia de bola.
-  const COPO=250;
-  const peso=D.pesos.length?D.pesos[D.pesos.length-1].kg:70;
-  const dia_=new Date().getDay(), bola=(dia_===2||dia_===6);
-  let metaMl=Math.round(peso*35/50)*50 + (bola?500:0);
-  const copos=Math.max(6,Math.round(metaMl/COPO));
-  metaMl=copos*COPO;
+  // água: meta fixa de 2,4 L (8 copos de 300 ml)
+  const COPO=300, metaMl=2400, copos=8;
   const litros=v=>(v/1000).toFixed(1).replace('.',',');
   el('water').innerHTML=Array.from({length:copos},(_,i)=>`<i class="${i<d.agua?'on':''}" data-w="${i+1}"></i>`).join('');
-  el('agua-n').textContent=`${litros(d.agua*COPO)} / ${litros(metaMl)} L`;
-  el('agua-meta').textContent=`Meta: ${litros(metaMl)} L por dia · ${copos} copos de 250 ml${bola?' (dia de bola: +0,5 L)':''}`;
+  el('agua-n').textContent=`${litros(Math.min(d.agua,copos)*COPO)} / ${litros(metaMl)} L`;
+  el('agua-meta').textContent=`Meta: ${litros(metaMl)} L por dia · ${copos} copos de 300 ml`;
   el('agua-bar').style.width=Math.min(100,d.agua/copos*100)+'%';
   document.querySelectorAll('[data-w]').forEach(w=>w.onclick=()=>{
     const n=+w.dataset.w; d.agua=(d.agua===n)?n-1:n; save(); renderComida();
   });
 
-  // cardápio
-  const alvoProt=Math.round(peso*1.7);
-  el('meal-alvo').innerHTML=`Alvo do dia: <b style="color:var(--txt)">~${alvoProt}g de proteína</b> e ~2.000–2.200 kcal. Os números ao lado de cada item são a proteína aproximada.`;
-  el('meals').innerHTML=D.refeicoes.map(r=>`
-    <div class="meal">
+  // ---- cardápio + contagem de proteína ----
+  const alvoProt = D.protAlvo || 120;
+  const protDe = t => { const m=String(t).match(/~\s*(\d+)\s*g/); return m?+m[1]:0; };
+  d.comido = d.comido||[];        // itens do plano marcados: "mealId#i"
+  d.extra  = d.extra ||[];        // itens avulsos: {id,t,p}
+
+  let comido=0, faltaItens=[];
+  d.extra.forEach(x=>comido+=(+x.p||0));
+  D.refeicoes.forEach(r=>r.itens.forEach((it,i)=>{
+    const p=protDe(it), key=r.id+'#'+i;
+    if(d.comido.includes(key)) comido+=p;
+    else if(p>0) faltaItens.push({nome:it.replace(/\s*~.*/,''), p, hora:r.hora});
+  }));
+  const falta=Math.max(0,alvoProt-comido);
+  const pctP=Math.min(100,Math.round(comido/alvoProt*100));
+
+  el('meal-alvo').innerHTML=`
+    <div style="display:flex;align-items:baseline;justify-content:space-between">
+      <span class="mono" style="font-size:22px;color:var(--txt)"><b style="color:${comido>=alvoProt?'var(--ok)':'var(--gold)'}">${comido}</b> / ${alvoProt} g</span>
+      <span class="mono" style="font-size:12px;color:var(--dim)">${falta>0?`faltam ${falta} g`:'meta batida ✓'}</span>
+    </div>
+    <div class="bar" style="margin-top:8px"><i style="width:${pctP}%;background:linear-gradient(90deg,var(--acc),var(--gold))"></i></div>
+    <div class="muted" style="margin-top:6px">Proteína do dia. Marque o que já comeu — o app soma sozinho. Alvo ~2.000–2.200 kcal.</div>`;
+
+  el('meals').innerHTML=D.refeicoes.map(r=>{
+    const itens=r.itens.map((it,i)=>{
+      const p=protDe(it), key=r.id+'#'+i, on=d.comido.includes(key);
+      const txt=esc(it.replace(/\s*~\s*\d+\s*g/,''));
+      return `<div class="fi ${on?'on':''}" data-eat="${key}">
+        <div class="fbox">✓</div>
+        <div class="ft">${txt}</div>
+        ${p>0?`<span class="fp">${p}g</span>`:''}
+      </div>`;
+    }).join('');
+    return `<div class="meal">
       <div class="meal-h"><span class="hh">${esc(r.hora||'')}</span><b>${esc(r.nome)}</b>
         <button class="ed" data-meal="${r.id}">editar</button></div>
-      <ul>${r.itens.map(it=>`<li>${esc(it).replace(/~\s*(\d+g)/,'<em>~ $1</em>')}</li>`).join('')}</ul>
-    </div>`).join('')||'<div class="muted">Sem refeições. Toque em “+ refeição”.</div>';
+      ${itens}
+    </div>`;
+  }).join('')||'<div class="muted">Sem refeições. Toque em “+ refeição”.</div>';
+
+  // extras avulsos de hoje
+  if(d.extra.length){
+    el('meals').innerHTML += `<div class="meal"><div class="meal-h"><span class="hh">extra</span><b>Fora do plano (hoje)</b></div>`
+      + d.extra.map(x=>`<div class="fi on"><div class="fbox">✓</div><div class="ft">${esc(x.t)}</div><span class="fp">${+x.p||0}g</span><button class="fx" data-xrm="${x.id}">✕</button></div>`).join('')
+      + `</div>`;
+  }
+  // resumo do que falta
+  el('meals').innerHTML += faltaItens.length
+    ? `<div class="muted" style="margin-top:4px"><b style="color:var(--txt)">Ainda falta comer:</b> ${faltaItens.map(f=>esc(f.nome)+` <span class="mono" style="color:var(--gold)">${f.p}g</span>`).join(' · ')}</div>`
+    : `<div class="muted" style="margin-top:4px">Tudo do plano marcado. 👊</div>`;
+
+  document.querySelectorAll('[data-eat]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.eat, i=d.comido.indexOf(k);
+    i>=0?d.comido.splice(i,1):d.comido.push(k);
+    save(); renderComida();
+  });
   document.querySelectorAll('[data-meal]').forEach(b=>b.onclick=()=>editMeal(b.dataset.meal));
+  document.querySelectorAll('[data-xrm]').forEach(b=>b.onclick=()=>{
+    d.extra=d.extra.filter(x=>x.id!==b.dataset.xrm); save(); renderComida();
+  });
+  el('extra-add').onclick=()=>{
+    const t=el('extra-t').value.trim(), p=parseInt(el('extra-p').value)||0;
+    if(!t){ alert('Escreva o que comeu.'); return; }
+    d.extra.push({id:uid(),t,p}); el('extra-t').value=''; el('extra-p').value='';
+    save(); renderComida();
+  };
 
   el('nota').value=d.nota||'';
   el('nota').oninput=e=>{d.nota=e.target.value;save();};
