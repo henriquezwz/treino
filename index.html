@@ -187,6 +187,18 @@
   .er .fp{color:var(--ok)}
   .eaddrow{display:flex;gap:6px;padding:6px 6px 2px}
   .eaddrow input{padding:8px 9px;font-size:13px}
+  .infobox{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13.5px;line-height:1.5}
+  .infobox.err{border-color:rgba(255,90,60,.4)}
+  .infobox .il{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--gold);font-weight:600;margin-bottom:4px}
+  .infobox.err .il{color:var(--acc)}
+  .il{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--dim);font-weight:600}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .cal-dow{text-align:center;font-size:10px;color:var(--dim);font-family:'IBM Plex Mono',monospace;padding-bottom:2px}
+  .cal-d{aspect-ratio:1;border:1px solid var(--line);border-radius:8px;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;position:relative;color:var(--dim)}
+  .cal-d.has{background:linear-gradient(150deg,var(--card2),var(--card));color:var(--txt);border-color:var(--acc);cursor:pointer}
+  .cal-d.today{outline:2px solid var(--blue);outline-offset:-2px}
+  .cal-d .pl{position:absolute;bottom:3px;font-family:Archivo;font-weight:800;font-size:9px;color:var(--acc);letter-spacing:.02em}
+  .cal-d.empty{border:none;background:none}
 
   .hist{font-size:13.5px;padding:11px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:8px;align-items:center}
   .hist:last-child{border:none}
@@ -274,6 +286,15 @@
     </div>
 
     <div class="card">
+      <div class="daybar" style="margin-bottom:12px;border:none;padding:0">
+        <button id="cal-prev" aria-label="Mês anterior">‹</button>
+        <div class="daybar-c"><b id="cal-label"></b><small>toque num dia treinado</small></div>
+        <button id="cal-next" aria-label="Próximo mês">›</button>
+      </div>
+      <div id="calendar"></div>
+    </div>
+
+    <div class="card">
       <h2>Histórico — toque para o relatório</h2>
       <div id="hist"></div>
     </div>
@@ -302,6 +323,15 @@
       <h2>Cardápio <button class="btn sm dark" id="meal-add" style="flex:0 0 auto;padding:6px 10px;font-size:12px">+ refeição</button></h2>
       <div class="muted" id="meal-alvo" style="margin-bottom:12px"></div>
       <div id="meals"></div>
+    </div>
+
+    <div class="card">
+      <h2>Gasto estimado do dia</h2>
+      <div id="burn"></div>
+      <div class="row" style="margin-top:10px">
+        <input id="burn-extra" type="number" inputmode="numeric" placeholder="kcal de bola/corrida/extra">
+        <button class="btn sm" id="burn-add" style="flex:0 0 auto">Salvar</button>
+      </div>
     </div>
 
     <div class="card">
@@ -428,30 +458,31 @@ function cloudPush(){
 const SEED = {
   plans: [
     { id:'A', nome:'Peito / Ombro / Tríceps', ex:[
-      {id:'a1', nome:'Supino inclinado com halteres', series:4, reps:'8–12', rest:120, nota:'Principal do peito. Inclinação leve (15–30°) — pega o peito superior, que é o que mais falta e o que enche a camisa na frente.', alts:['Supino inclinado máquina','Supino inclinado barra','Supino reto halteres','Supino reto barra']},
-      {id:'a2', nome:'Elevação lateral', series:4, reps:'12–15', rest:60, nota:'Largura de ombro = camisa cai reta por cima da barriga. Capricha, é estratégico pra você.', alts:['Elevação lateral polia','Elevação lateral máquina']},
-      {id:'a3', nome:'Desenvolvimento halteres sentado', series:3, reps:'8–12', rest:90, nota:'', alts:['Desenvolvimento máquina','Desenvolvimento Arnold','Barra pela frente']},
-      {id:'a4', nome:'Crucifixo máquina / cross over', series:3, reps:'12–15', rest:60, nota:'Desça devagar e alonga bem o peito — o alongamento sob carga é onde o peito mais cresce.', alts:['Cross over polia','Crucifixo halteres banco','Peck deck']},
-      {id:'a5', nome:'Tríceps polia corda', series:3, reps:'10–12', rest:60, nota:'', alts:['Tríceps testa','Tríceps francês','Mergulho no banco']},
-      {id:'a7', nome:'Tríceps testa (barra W)', series:3, reps:'10–12', rest:60, nota:'Segundo exercício de tríceps — pega a cabeça longa, que a corda pega menos.', alts:['Tríceps francês halter','Tríceps coice','Mergulho entre bancos']},
+      {id:'a1', nome:'Supino inclinado com halteres', series:4, reps:'8–12', rest:150, nota:'Principal do peito. Inclinação leve (15–30°) — pega o peito superior, que é o que mais falta e o que enche a camisa na frente.', alts:['Supino inclinado máquina','Supino inclinado barra','Supino reto halteres','Supino reto barra']},
+      {id:'a2', nome:'Elevação lateral', series:4, reps:'12–15', rest:75, nota:'Largura de ombro = camisa cai reta por cima da barriga. Capricha, é estratégico pra você.', alts:['Elevação lateral polia','Elevação lateral máquina']},
+      {id:'a3', nome:'Desenvolvimento halteres sentado', series:3, reps:'8–12', rest:120, nota:'', alts:['Desenvolvimento máquina','Desenvolvimento Arnold','Barra pela frente']},
+      {id:'a4', nome:'Crucifixo máquina / cross over', series:3, reps:'12–15', rest:90, nota:'Desça devagar e alonga bem o peito — o alongamento sob carga é onde o peito mais cresce.', alts:['Cross over polia','Crucifixo halteres banco','Peck deck (apoio antebraço)']},
+      {id:'a5', nome:'Tríceps polia corda', series:3, reps:'10–12', rest:90, nota:'', alts:['Tríceps testa','Tríceps francês','Mergulho no banco']},
+      {id:'a7', nome:'Tríceps testa (barra W)', series:3, reps:'10–12', rest:90, nota:'Segundo exercício de tríceps — pega a cabeça longa, que a corda pega menos. Tríceps é ~2/3 do braço.', alts:['Tríceps francês halter','Tríceps coice','Mergulho entre bancos']},
       {id:'a6', nome:'Flexão de braço', series:2, reps:'até quase falhar', rest:90, bw:true, nota:'Prova do EAF — treina a prova.', alts:['Flexão joelhos','Flexão inclinada']}
     ]},
     { id:'B', nome:'Costas / Bíceps / Core', ex:[
-      {id:'b1', nome:'Puxada máquina', series:4, reps:'8–12', rest:90, nota:'Puxada abre a largura das costas — é o que mais faz a silhueta em V e ajuda a camisa a assentar.', alts:['Puxada aberta','Puxada supinada','Barra fixa assistida']},
-      {id:'b2', nome:'Remada curvada com barra', series:3, reps:'8–10', rest:120, nota:'Costas neutras. Se a lombar reclamar, troca por remada máquina com apoio no peito.', alts:['Remada máquina apoio peito','Remada baixa polia','Remada halter unilateral']},
-      {id:'b3', nome:'Remada baixa na polia', series:3, reps:'10–12', rest:60, nota:'Espessura das costas. Puxa até o umbigo, aperta as escápulas.', alts:['Puxada polia triângulo','Pulldown braço reto','Remada máquina']},
-      {id:'b4', nome:'Crucifixo invertido / face pull', series:3, reps:'15–20', rest:45, nota:'Ombro pra trás e postura ereta. Sozinho já melhora o caimento da camisa e abre o peito.', alts:['Face pull na polia','Crucifixo invertido máquina','Crucifixo invertido halteres']},
-      {id:'b5', nome:'Rosca barra W', series:3, reps:'10–12', rest:60, nota:'', alts:['Rosca halteres','Rosca scott','Rosca martelo']},
-      {id:'b6', nome:'Prancha', series:3, reps:'30–45s', rest:45, bw:true, nota:'Core forte segura a parede abdominal.', alts:['Prancha lateral','Prancha com joelhos']},
+      {id:'b1', nome:'Puxada máquina', series:4, reps:'8–12', rest:120, nota:'Puxada abre a largura das costas — é o que mais faz a silhueta em V e ajuda a camisa a assentar.', alts:['Puxada aberta','Puxada supinada','Barra fixa assistida']},
+      {id:'b2', nome:'Remada curvada (pegada supinada)', series:3, reps:'8–10', rest:150, nota:'Pegada supinada (palmas pra cima): pega mais dorsal e bíceps, e deixa puxar mais carga. Costas SEMPRE neutras — se a lombar reclamar (dor, não cansaço), troca já pela remada com apoio no peito.', alts:['Remada máquina apoio peito','Remada baixa polia','Remada halter unilateral','Remada cavalinho']},
+      {id:'b3', nome:'Remada baixa na polia', series:3, reps:'10–12', rest:90, nota:'Espessura das costas. Puxa até o umbigo, aperta as escápulas.', alts:['Puxada polia triângulo','Pulldown braço reto','Remada máquina']},
+      {id:'b4', nome:'Crucifixo invertido / face pull', series:3, reps:'15–20', rest:60, nota:'Ombro pra trás e postura ereta. Sozinho já melhora o caimento da camisa e abre o peito.', alts:['Face pull na polia','Crucifixo invertido máquina','Crucifixo invertido halteres']},
+      {id:'b5', nome:'Rosca direta (barra W)', series:3, reps:'10–12', rest:90, nota:'Construtor principal do bíceps — o "pico".', alts:['Rosca halteres','Rosca scott','Rosca direta barra reta']},
+      {id:'b8', nome:'Rosca martelo', series:3, reps:'10–12', rest:90, nota:'Segundo de bíceps: pega o braquial e o braquiorradial, que dão GROSSURA ao braço visto de lado — não só o pico.', alts:['Rosca martelo polia corda','Rosca inversa','Rosca martelo no banco inclinado']},
+      {id:'b6', nome:'Prancha', series:3, reps:'40', rest:60, bw:true, tempo:true, nota:'Core forte segura a parede abdominal. Marque o tempo em segundos.', alts:['Prancha lateral','Prancha com joelhos']},
       {id:'b7', nome:'Abdominal remador', series:3, reps:'15–20', rest:45, bw:true, nota:'Segunda prova do EAF.', alts:['Abdominal máquina','Abdominal supra no solo','Elevação de pernas']}
     ]},
     { id:'C', nome:'Perna / Canela', ex:[
-      {id:'c1', nome:'Agachamento livre ou Smith', series:3, reps:'8–10', rest:120, nota:'', alts:['Agachamento Smith','Hack machine','Agachamento goblet']},
-      {id:'c2', nome:'Leg press 45', series:3, reps:'10–12', rest:90, nota:'', alts:['Leg press horizontal','Cadeira extensora']},
-      {id:'c3', nome:'Mesa flexora', series:3, reps:'10–12', rest:60, nota:'', alts:['Stiff halteres','Flexora em pé','Cadeira flexora']},
+      {id:'c1', nome:'Agachamento livre ou Smith', series:3, reps:'8–10', rest:180, nota:'', alts:['Agachamento Smith','Hack machine','Agachamento goblet']},
+      {id:'c2', nome:'Leg press 45', series:3, reps:'10–12', rest:120, nota:'', alts:['Leg press horizontal','Cadeira extensora']},
+      {id:'c3', nome:'Mesa flexora', series:3, reps:'10–12', rest:90, nota:'', alts:['Stiff halteres','Flexora em pé','Cadeira flexora']},
       {id:'c4', nome:'Afundo com halter', series:2, reps:'10 por perna', rest:90, nota:'', alts:['Búlgaro','Passada','Step up no banco']},
       {id:'c5', nome:'Panturrilha em pé', series:4, reps:'12–15', rest:60, nota:'Amortece o impacto que hoje vai direto pro osso.', alts:['Panturrilha sentado','Panturrilha no leg press']},
-      {id:'c6', nome:'Tibial anterior', series:3, reps:'15–20', rest:45, nota:'Tratamento da canelite. Não pula.', alts:['Tibial com anilha no pé','Tibial na parede','Tibial com elástico']}
+      {id:'c6', nome:'Tibial anterior', series:3, reps:'15–20', rest:45, bw:true, nota:'Tratamento da canelite. Não pula.', alts:['Tibial com anilha no pé','Tibial na parede','Tibial com elástico']}
     ]}
   ],
   metas: [
@@ -462,7 +493,7 @@ const SEED = {
     {id:'m5', t:'Lanche âncora (~16h)', s:'Fruta, castanha, ovo ou iogurte — protege o jantar.'}
   ],
   refVer: 2,
-  planVer: 3,
+  planVer: 4,
   refeicoes: [
     {id:'r1', hora:'09:00', nome:'Café da manhã', itens:[
       '2–3 ovos mexidos ~ 15g',
@@ -490,6 +521,31 @@ const SEED = {
     ]}
   ],
   sessions: [], pesos: [], dias: {}
+};
+
+/* metadados por id de exercício: por que faço, o que ativa, erro comum */
+const INFO = {
+  a1:{porque:'Principal do peito, com foco na porção superior — a mais atrasada na maioria e a que projeta a camisa pra frente.', ativa:'Peito (parte de cima), com ajuda de ombro anterior e tríceps.', erro:'Inclinar o banco demais (vira exercício de ombro) ou não descer o halter o suficiente. Use 15–30° e desça até sentir o peito alongar.'},
+  a2:{porque:'Largura de ombro é o que mais muda sua silhueta e faz a camisa cair reta.', ativa:'Deltoide lateral (a "bola" de fora do ombro).', erro:'Subir com impulso e o trapézio "encolhendo" os ombros. Suba pelos cotovelos, sem balançar, ombro longe da orelha.'},
+  a3:{porque:'Massa geral do ombro e força de empurrar acima da cabeça.', ativa:'Deltoide anterior e lateral, tríceps.', erro:'Arquear a lombar pra empurrar. Contraia o abdômen e não passe a barra/halter atrás da cabeça.'},
+  a4:{porque:'Isola a função de "fechar" o peito (adução) e alonga sob carga — gatilho forte de crescimento.', ativa:'Peito (adução), sem ombro/tríceps atrapalhando.', erro:'Estender e dobrar o cotovelo (vira empurrão) e agarrar forte (acende o antebraço). Trave o cotovelo levemente e pegue leve.'},
+  a5:{porque:'Tríceps é ~2/3 do braço: engrossa mais que o bíceps.', ativa:'Tríceps, ênfase nas cabeças lateral e medial.', erro:'Cotovelo abrindo e subindo. Cole os cotovelos ao corpo e mova só o antebraço.'},
+  a7:{porque:'Segundo ângulo de tríceps: pega a cabeça longa, que a corda pega pouco (braço acima da cabeça).', ativa:'Cabeça longa do tríceps (a de dentro/baixo).', erro:'Deixar o cotovelo abrir e ir pra frente. Mantenha o cotovelo apontado pro teto e fixo.'},
+  a6:{porque:'É uma das duas provas do EAF — treinar o movimento é treinar a prova.', ativa:'Peito, tríceps, ombro e core como estabilizador.', erro:'Quadril subindo ou lombar cedendo. Corpo reto como prancha, desça o peito até quase o chão.'},
+  b1:{porque:'Abre a LARGURA das costas — o maior responsável pela silhueta em V.', ativa:'Dorsal (grande dorsal), com bíceps ajudando.', erro:'Puxar com os braços e balançar o tronco. Puxe com os cotovelos pra baixo, peito pra cima, sem "dar tranco".'},
+  b2:{porque:'Espessura e densidade das costas, e um dos melhores construtores de "meio das costas" e postura. Supinada ainda soma bíceps.', ativa:'Dorsal, trapézio médio, romboides, bíceps.', erro:'Arredondar a lombar (risco de lesão). Coluna neutra sempre; se não segura reta, o peso está alto.'},
+  b3:{porque:'Espessura da parte central das costas, complementa a largura da puxada.', ativa:'Meio das costas, trapézio médio, romboides.', erro:'Deixar o ombro ir junto pra frente. Puxe até o umbigo e aperte as escápulas no fim.'},
+  b4:{porque:'Puxa o ombro pra trás, corrige postura e equilibra o excesso de "empurrar". Melhora o caimento da camisa.', ativa:'Deltoide posterior e trapézio inferior.', erro:'Usar peso demais e virar remada. Peso leve, movimento controlado, foco em "abrir".'},
+  b5:{porque:'Construtor principal do bíceps — o pico do braço.', ativa:'Bíceps (as duas cabeças).', erro:'Balançar o corpo e mover o cotovelo pra frente. Cotovelo fixo ao lado do corpo, sobe só o antebraço.'},
+  b8:{porque:'Dá GROSSURA ao braço visto de lado (não só o pico) e engrossa o antebraço.', ativa:'Braquial e braquiorradial, além do bíceps.', erro:'Girar o punho. Mantenha a pegada neutra (martelo) o movimento todo.'},
+  b6:{porque:'Core forte segura a parede abdominal e protege a coluna nas remadas e no dia a dia.', ativa:'Transverso e reto abdominal, lombar como estabilizador.', erro:'Quadril alto ou baixo demais. Corpo numa linha reta dos calcanhares à cabeça; não deixe a lombar afundar.'},
+  b7:{porque:'Segunda prova do EAF; abdômen visível também depende de perder gordura, mas força ajuda na prova.', ativa:'Reto abdominal.', erro:'Puxar o pescoço com as mãos. Olhe pra cima, suba pela contração da barriga.'},
+  c1:{porque:'O maior construtor de perna e de hormônios/força geral. Base de tudo.', ativa:'Quadríceps, glúteo, posterior e core.', erro:'Joelho pra dentro e calcanhar saindo do chão. Joelho na direção do pé, peso no meio do pé, desça controlado.'},
+  c2:{porque:'Muito volume de perna com menos exigência da lombar que o agachamento.', ativa:'Quadríceps e glúteo.', erro:'Descer até a lombar "descolar" do apoio. Pare antes disso pra proteger a coluna.'},
+  c3:{porque:'Equilibra o posterior de coxa com o quadríceps — importante pro joelho e pra correr.', ativa:'Isquiotibiais (posterior da coxa).', erro:'Levantar o quadril do apoio pra puxar mais. Quadril firme, movimento só do joelho.'},
+  c4:{porque:'Trabalho unilateral: corrige diferença entre as pernas e recruta glúteo e estabilizadores.', ativa:'Quadríceps, glúteo, estabilizadores do quadril.', erro:'Joelho passando muito à frente do pé e tronco caindo. Passo firme, tronco ereto.'},
+  c5:{porque:'Panturrilha forte amortece o impacto que hoje vai direto pro osso — prevenção da sua canelite.', ativa:'Gastrocnêmio e sóleo.', erro:'Meia amplitude e pulando. Suba no talo e desça bem, alongando, sem quicar.'},
+  c6:{porque:'Fortalece o músculo da canela (o que trava a shin splint). Prioridade preventiva pra você, não acessório.', ativa:'Tibial anterior (frente da canela).', erro:'Fazer rápido e sem amplitude. Puxe o pé pra cima devagar até sentir a canela queimar.'}
 };
 
 let D=null, plano='A', log={}, swaps={}, notas={}, editP='A';
@@ -601,11 +657,11 @@ function renderHoje(){
       <div class="ex-h">
         <div class="ex-n">${String(i+1).padStart(2,'0')}</div>
         <div class="ex-t">
-          <b>${esc(nome)}</b>
+          <b data-info="${e.id}" style="cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px">${esc(nome)} <span style="color:var(--dim);font-size:11px">ⓘ</span></b>
           <div class="tags">
-            <span class="tag">${e.series}×${esc(e.reps)}</span>
-            <span class="tag">⏱ ${e.rest}s</span>
-            ${e.bw?'<span class="tag">peso do corpo</span>':''}
+            <span class="tag">${e.series}×${esc(e.reps)}${e.tempo?'s':''}</span>
+            <span class="tag">⏱ desc ${e.rest}s</span>
+            ${e.tempo?'<span class="tag">por tempo</span>':(e.bw?'<span class="tag">peso do corpo</span>':'')}
             ${swaps[e.id]?'<span class="tag hot">trocado</span>':''}
             ${n>0?`<span class="tag ${n>=ns?'':'hot'}">${n}/${ns}</span>`:''}
           </div>
@@ -620,12 +676,15 @@ function renderHoje(){
     h+='<div class="sets">';
     for(let s=0;s<ns;s++){
       const v=sets[s]||{}, sg=sugSet(nome,s);
+      const kgVal = v.kg!=null ? v.kg : (sg.kg!=null ? sg.kg : '');
+      const repVal = v.reps!=null ? v.reps : (sg.reps!=null ? sg.reps : '');
       const kgField = e.bw ? '' :
-        `<input inputmode="decimal" placeholder="${sg.kg!=null?sg.kg:'kg'}" data-in="${e.id}" data-s="${s}" data-f="kg" value="${v.kg??''}">`;
+        `<input inputmode="decimal" placeholder="kg" data-in="${e.id}" data-s="${s}" data-f="kg" value="${kgVal}">`;
+      const repPh = e.tempo?'seg':(e.bw?'reps':'reps');
       h+=`<div class="set ${e.bw?'bw':''}">
         <div class="lbl">${s+1}</div>
         ${kgField}
-        <input inputmode="numeric" placeholder="${sg.reps!=null?sg.reps:(e.bw?'reps/seg':'reps')}" data-in="${e.id}" data-s="${s}" data-f="reps" value="${v.reps??''}">
+        <input inputmode="numeric" placeholder="${repPh}" data-in="${e.id}" data-s="${s}" data-f="reps" value="${repVal}">
         <button class="tick ${v.ok?'on':''}" data-ok="${e.id}" data-s="${s}" data-rest="${e.rest}" aria-label="Concluir série ${s+1}">✓</button>
       </div>`;
     }
@@ -647,17 +706,20 @@ function renderHoje(){
     log[id]=log[id]||[]; log[id][s]=log[id][s]||{}; log[id][s][f]=i.value; persist();
   });
   document.querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>{
-    const {ok:id,s,rest}=b.dataset, e=p.ex.find(x=>x.id===id), nome=swaps[id]||e.nome;
+    const {ok:id,s,rest}=b.dataset, e=p.ex.find(x=>x.id===id);
     log[id]=log[id]||[]; log[id][s]=log[id][s]||{};
     const willOn=!log[id][s].ok;
     log[id][s].ok=willOn;
-    if(willOn){ const sg=sugSet(nome,+s);   // adota sugestão se deixou vazio
-      if(!e.bw && (log[id][s].kg==null||log[id][s].kg==='') && sg.kg!=null) log[id][s].kg=sg.kg;
-      if((log[id][s].reps==null||log[id][s].reps==='') && sg.reps!=null) log[id][s].reps=sg.reps;
+    if(willOn){   // captura o que está nos campos (digitado ou sugerido/pré-preenchido)
+      const kgI=document.querySelector(`[data-in="${id}"][data-s="${s}"][data-f="kg"]`);
+      const rI =document.querySelector(`[data-in="${id}"][data-s="${s}"][data-f="reps"]`);
+      if(kgI && kgI.value!=='') log[id][s].kg=kgI.value;
+      if(rI && rI.value!=='')  log[id][s].reps=rI.value;
       startTimer(+rest);
     }
     persist(); renderHoje();
   });
+  document.querySelectorAll('[data-info]').forEach(b=>b.onclick=()=>exInfo(b.dataset.info));
   document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
     const id=b.dataset.add; log[id]=log[id]||[]; if(log[id].length<nSeries(p.ex.find(x=>x.id===id))) log[id].length=nSeries(p.ex.find(x=>x.id===id)); log[id].push({}); persist(); renderHoje();
   });
@@ -697,6 +759,56 @@ function abrirSwap(exId){
     swaps[exId]=v; if(!e.alts.includes(v)){e.alts.push(v);save();}
     el('dlg').close(); renderHoje();
   };
+  el('dx').onclick=()=>el('dlg').close();
+}
+function exInfo(exId){
+  const e=getPlan(plano).ex.find(x=>x.id===exId); if(!e)return;
+  const nome=swaps[exId]||e.nome;
+  const info=INFO[exId]||{porque:'Exercício do seu treino.',ativa:'—',erro:'Foque na técnica e amplitude completa.'};
+  // histórico deste exercício (por nome)
+  const hist=[];
+  D.sessions.forEach(s=>s.itens.filter(i=>i.nome===nome).forEach(i=>{
+    const top=Math.max(0,...i.sets.map(x=>x.kg||0));
+    const reps=i.sets.map(x=>e.bw?`${x.reps??'–'}`:`${x.kg??'–'}×${x.reps??'–'}`).join(' · ');
+    hist.push({data:s.data, top, reps});
+  }));
+  const pts=hist.filter(h=>h.top>0).map(h=>({x:h.data,y:h.top}));
+
+  // análise de progressão
+  let analise='';
+  if(pts.length>=2){
+    const d=pts[pts.length-1].y - pts[0].y;
+    const rec=Math.max(...pts.map(p=>p.y));
+    analise = d>0
+      ? `Você saiu de ${pts[0].y} kg e está em ${pts[pts.length-1].y} kg — <b style="color:var(--ok)">+${d.toFixed(1)} kg de evolução</b>. Recorde: ${rec} kg. Está progredindo, mantenha.`
+      : d<0
+      ? `A carga caiu de ${pts[0].y} para ${pts[pts.length-1].y} kg. Pode ser fadiga, sono ou pouca comida na semana. Não tem problema pontual — se persistir 2–3 treinos, revise descanso e proteína.`
+      : `A carga está estável em ${pts[pts.length-1].y} kg. Se você já fecha o topo das reps em todas as séries, é hora de subir o peso no próximo treino.`;
+  } else if(pts.length===1){
+    analise=`Primeiro registro com carga (${pts[0].y} kg). A partir do segundo treino a linha de evolução aparece aqui.`;
+  } else {
+    analise=`Sem carga registrada ainda. Faça o exercício e marque as séries com o ✓ pra começar a acompanhar a evolução.`;
+  }
+  const objetivo = e.tempo?'aguentar mais tempo':(e.bw?'fazer mais repetições':'subir a carga mantendo a técnica');
+
+  el('dlg-body').innerHTML=`<h3>${esc(nome)}</h3>
+    <div style="margin-bottom:12px"><a class="yt" href="${yt(nome)}" target="_blank" rel="noopener" style="display:inline-block">▶ ver execução no vídeo</a></div>
+
+    <div class="infobox"><span class="il">Por que você faz</span>${esc(info.porque)}</div>
+    <div class="infobox"><span class="il">O que deve ativar</span>${esc(info.ativa)}</div>
+    <div class="infobox err"><span class="il">Erro comum de execução</span>${esc(info.erro)}</div>
+    <div class="infobox"><span class="il">Objetivo aqui</span>Progredir = ${objetivo}. Alvo de ${e.series}×${esc(e.reps)}${e.tempo?'s':''}, descanso de ${e.rest}s.</div>
+
+    <div class="infobox" style="border-color:var(--acc)"><span class="il" style="color:var(--acc)">Sua análise</span>${analise}</div>
+
+    ${pts.length>=2?`<svg class="chart" id="chart-ex" style="height:150px"></svg>`:''}
+
+    <div class="il" style="margin:10px 0 4px">Histórico (${hist.length})</div>
+    <div style="max-height:190px;overflow:auto">${hist.length?[...hist].reverse().map(h=>`<div class="hist"><span class="mono" style="font-size:12.5px;color:var(--blue)">${esc(h.reps)}</span><span class="d">${br(h.data)}</span></div>`).join(''):'<div class="muted">Ainda sem registros deste exercício.</div>'}</div>
+
+    <button class="btn ghost" id="dx" style="margin-top:14px">Fechar</button>`;
+  el('dlg').showModal();
+  if(pts.length>=2) linha('chart-ex',pts,'kg','#FF5A3C');
   el('dx').onclick=()=>el('dlg').close();
 }
 el('finish').onclick=()=>{
@@ -758,7 +870,43 @@ function renderProg(){
       <span class="d">${br(s.data)}<br>${Math.round(v)} kg vol</span></div>`;
   }).join(''):'<div class="muted">Encerre um treino na aba Hoje e ele aparece aqui.</div>';
   document.querySelectorAll('[data-rep]').forEach(b=>b.onclick=()=>relatorio(b.dataset.rep));
+  renderCal();
 }
+let calMes = new Date();
+function renderCal(){
+  const y=calMes.getFullYear(), m=calMes.getMonth();
+  el('cal-label').textContent = calMes.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  const prim=new Date(y,m,1).getDay();          // dia da semana do dia 1
+  const nDias=new Date(y,m+1,0).getDate();
+  const porDia={};
+  D.sessions.forEach(s=>{ const dt=new Date(s.data+'T12:00:00'); if(dt.getFullYear()===y&&dt.getMonth()===m) (porDia[dt.getDate()]=porDia[dt.getDate()]||[]).push(s); });
+  const dows=['D','S','T','Q','Q','S','S'];
+  let h='<div class="cal-grid">'+dows.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<prim;i++) h+='<div class="cal-d empty"></div>';
+  const hj=hoje();
+  for(let dia=1;dia<=nDias;dia++){
+    const k=`${y}-${String(m+1).padStart(2,'0')}-${String(dia).padStart(2,'0')}`;
+    const ss=porDia[dia];
+    h+=`<div class="cal-d ${ss?'has':''} ${k===hj?'today':''}" ${ss?`data-cal="${k}"`:''}>
+      ${dia}${ss?`<span class="pl">${ss.map(s=>s.plano).join('')}</span>`:''}</div>`;
+  }
+  el('calendar').innerHTML=h+'</div>';
+  document.querySelectorAll('[data-cal]').forEach(b=>b.onclick=()=>{
+    const ss=D.sessions.filter(s=>s.data===b.dataset.cal);
+    if(ss.length===1) relatorio(ss[0].id);
+    else diaMenu(ss);
+  });
+}
+function diaMenu(ss){
+  el('dlg-body').innerHTML=`<h3>${br(ss[0].data)} · ${ss.length} treinos</h3>
+    ${ss.map(s=>`<button class="opt" data-r="${s.id}"><span>Treino ${esc(s.plano)} — ${s.itens.length} exercícios</span><span class="mono">›</span></button>`).join('')}
+    <button class="btn ghost" id="dx" style="margin-top:10px">Fechar</button>`;
+  el('dlg').showModal();
+  document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>relatorio(b.dataset.r));
+  el('dx').onclick=()=>el('dlg').close();
+}
+el('cal-prev').onclick=()=>{ calMes.setMonth(calMes.getMonth()-1); renderCal(); };
+el('cal-next').onclick=()=>{ calMes.setMonth(calMes.getMonth()+1); renderCal(); };
 function relatorio(id){
   const s=D.sessions.find(x=>x.id===id); if(!s)return;
   const vol=Math.round(s.itens.reduce((a,i)=>a+i.sets.reduce((b,x)=>b+((x.kg||0)*(x.reps||0)),0),0));
@@ -825,7 +973,7 @@ el('peso-add').onclick=()=>{
 let verData = hoje();
 function diaDe(k){
   const d=D.dias[k]||(D.dias[k]={feito:[],agua:0,nota:''});
-  if(!d.comido)d.comido=[]; if(!d.extra)d.extra=[]; if(!d.mealEat)d.mealEat={};
+  if(!d.comido)d.comido=[]; if(!d.extra)d.extra=[]; if(!d.mealEat)d.mealEat={}; if(d.kcalExtra===undefined)d.kcalExtra=0;
   return d;
 }
 function labelData(k){
@@ -952,6 +1100,27 @@ function renderComida(){
 
   el('nota').value=d.nota||'';
   el('nota').oninput=e=>{d.nota=e.target.value;save();};
+
+  // gasto calórico estimado do dia
+  const pesoAtual=D.pesos.length?D.pesos[D.pesos.length-1].kg:70;
+  const sessDia=D.sessions.filter(x=>x.data===k);
+  let kcalTreino=0;
+  sessDia.forEach(x=>{
+    const nSets=x.itens.reduce((a,i)=>a+i.sets.length,0);
+    const min=Math.max(15, nSets*2.2);          // ~2,2 min por série (com descanso)
+    kcalTreino += (6*3.5*pesoAtual/200)*min;     // MET ~6 (musculação vigorosa)
+  });
+  kcalTreino=Math.round(kcalTreino);
+  const extra=+(d.kcalExtra||0);
+  const total=kcalTreino+extra;
+  el('burn').innerHTML=`
+    <div style="display:flex;align-items:baseline;justify-content:space-between">
+      <span class="mono" style="font-size:22px;color:var(--txt)">${total>0?'≈ '+total:'—'} <span style="font-size:13px;color:var(--dim)">kcal</span></span>
+      <span class="mono" style="font-size:11px;color:var(--dim)">${sessDia.length?`treino ${kcalTreino}`:'sem treino salvo'}${extra?` + extra ${extra}`:''}</span>
+    </div>
+    <div class="muted" style="margin-top:6px">Estimativa do gasto no exercício (não inclui o basal do corpo). O treino é calculado do que você registrou; some bola/corrida no campo abaixo (1h de futebol ≈ 500–700 kcal).</div>`;
+  el('burn-extra').value=d.kcalExtra||'';
+  el('burn-add').onclick=()=>{ d.kcalExtra=parseInt(el('burn-extra').value)||0; save(); renderComida(); };
 
   let out='<div style="display:flex;gap:3px">';
   for(let i=13;i>=0;i--){
