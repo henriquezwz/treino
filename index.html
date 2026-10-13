@@ -10,7 +10,7 @@
 <title>Caderno de Treino</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect x=%222%22 y=%2212%22 width=%226%22 height=%228%22 rx=%222%22 fill=%22%23FF6A2B%22/%3E%3Crect x=%2224%22 y=%2212%22 width=%226%22 height=%228%22 rx=%222%22 fill=%22%23FF6A2B%22/%3E%3Crect x=%226%22 y=%2214.5%22 width=%2220%22 height=%223%22 rx=%221.5%22 fill=%22%232D5BFF%22/%3E%3C/svg%3E">
+<link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
@@ -53,11 +53,8 @@ button{cursor:pointer;background:none;border:0;padding:0}
 
 /* topo */
 .top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:19px;letter-spacing:-.01em}
-.brand i{width:28px;height:18px;position:relative;display:inline-block}
-.brand i:before,.brand i:after{content:"";position:absolute;top:2px;width:7px;height:14px;border-radius:3px;background:var(--tang)}
-.brand i:before{left:0}.brand i:after{right:0}
-.brand i b{position:absolute;left:5px;right:5px;top:7px;height:4px;border-radius:2px;background:var(--blue)}
+.brand{display:flex;align-items:center;gap:14px;font-weight:800;font-size:19px;letter-spacing:-.02em}
+.brand i{width:18px;height:18px;border-radius:5px;background:var(--tang);box-shadow:7px 0 0 -2px var(--blue);display:inline-block}
 .sync{font:600 12px var(--f-num);color:var(--muted);display:flex;align-items:center;gap:5px}
 .sync .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
 .sync.ok .dot{background:var(--mint)}.sync.sv .dot{background:var(--amber)}.sync.er .dot{background:var(--danger)}
@@ -116,10 +113,7 @@ label.f{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:1
 .inl button{border-radius:8px;background:var(--blue);color:#fff;font-weight:700;padding:5px 9px;font-size:13px}
 
 /* hero do treino */
-.hero{display:flex;gap:16px;align-items:center}
-.ring{position:relative;flex:0 0 76px;height:76px}.ring svg{transform:rotate(-90deg)}
-.ring b{position:absolute;inset:0;display:grid;place-items:center;font:700 17px var(--f-num)}
-.hero h3{margin:2px 0 4px;font-size:19px;line-height:1.2}
+
 .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tang)}
 .chips{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
 .pchip{flex:1;min-width:64px;border:1.5px solid var(--line);border-radius:14px;padding:9px 6px;text-align:center;background:var(--surface);position:relative}
@@ -242,23 +236,49 @@ nav.tabs button{flex:1;display:grid;justify-items:center;gap:2px;padding:6px 2px
 nav.tabs button svg{width:22px;height:22px}
 nav.tabs button[aria-current="page"]{color:var(--tang);background:var(--tang-soft)}
 
+/* ===== topo no padrão da Caderneta ===== */
+.hero{background:var(--surface);border-radius:20px;padding:20px 18px 16px;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(20,27,52,.05),0 10px 30px -16px rgba(20,27,52,.18)}
+:root[data-tema="escuro"] .hero{border:1px solid var(--line)}
+.confete{position:absolute;right:16px;top:16px;display:flex}
+.confete i{width:22px;height:22px;border-radius:50%;margin-left:-7px;border:3px solid var(--surface)}
+.eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.big{display:flex;align-items:baseline;gap:10px;margin:8px 0 6px;font-weight:800;letter-spacing:-.035em;line-height:1}
+.big>span:first-child{font-size:clamp(52px,14vw,72px)}
+.big .de{font-size:18px;letter-spacing:0;font-weight:700;color:var(--blue)}
+.big .de button{color:var(--blue);text-decoration:underline dotted;text-underline-offset:4px;font-weight:800}
+.hero .sub{color:var(--muted);margin:0;font-size:14.5px}.hero .sub b{color:var(--ink)}
+.split{display:flex;height:12px;border-radius:999px;overflow:hidden;margin:16px 0 8px;gap:3px}
+.split span{flex:1;border-radius:999px;background:var(--blue)}.split span.vz{background:var(--sunk)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:10px;height:10px;border-radius:50%}
+.dias7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:14px}
+.dias7>div{display:grid;justify-items:center;gap:4px}.dias7 small{font-size:11px;font-weight:700;color:var(--muted)}
+.dias7 span{width:100%;max-width:38px;aspect-ratio:1;border-radius:11px;border:1.5px solid var(--line);display:grid;place-items:center;font:800 13px var(--f-num)}
+.dias7 .hoje span{border-color:var(--tang);border-width:2px}.dias7 .hoje small{color:var(--tang)}.dias7 .fut span{border-style:dashed}
+.dias7 em{display:flex;gap:3px;height:6px}.dias7 em i{width:6px;height:6px;border-radius:50%}.dias7 em i.r{background:var(--tang)}.dias7 em i.f{background:var(--mint)}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0 0}
+.kpis div{border-radius:12px;padding:10px 10px 9px;min-width:0}
+.kpis dt{font-size:12px;color:var(--muted);font-weight:600}.kpis dd{margin:3px 0 0;font-weight:800;font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpis small{display:block;font-size:11.5px;color:var(--muted)}
+.kpis div:nth-child(1){background:var(--amber-soft)}.kpis div:nth-child(1) dd{color:color-mix(in srgb,var(--amber) 75%,var(--ink))}
+.kpis div:nth-child(2){background:var(--tang-soft)}.kpis div:nth-child(2) dd{color:var(--tang)}
+.kpis div:nth-child(3){background:var(--mint-soft)}.kpis div:nth-child(3) dd{color:var(--mint)}
 /* ===== cartão do treino de hoje ===== */
-.panel.treino{padding:0;overflow:hidden}
-.tr-top{background:linear-gradient(135deg,var(--blue) 0%,var(--blue-deep) 70%,#3B2BD9 100%);color:#fff;padding:16px 16px 12px;position:relative;overflow:hidden}
-.tr-top:after{content:"";position:absolute;right:-50px;top:-60px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,106,43,.45),transparent 65%)}
-.tr-head{display:flex;gap:12px;align-items:center;justify-content:space-between;position:relative;z-index:1}
-.tr-eye{font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#FFD3BF}
-.tr-head h3{margin:2px 0 3px;font-size:21px;line-height:1.15;letter-spacing:-.01em}
-.tr-meta{font-size:13px;opacity:.85}
-.tr-ring{position:relative;flex:0 0 64px;height:64px}.tr-ring b{position:absolute;inset:0;display:grid;place-items:center;font:700 15px var(--f-num)}
-.tr-msg{position:relative;z-index:1;margin-top:10px;background:rgba(255,255,255,.14);border-radius:12px;padding:8px 10px;font-size:13.5px}
-.tr-msg button{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:3px}
-.tr-seg{position:relative;z-index:1;display:flex;gap:6px;margin-top:12px;overflow-x:auto;scrollbar-width:none}
-.tr-seg button{flex:1 0 auto;min-width:62px;border-radius:12px;padding:7px 10px;background:rgba(255,255,255,.12);color:#fff;font-weight:800;font-size:15px;text-align:left;line-height:1.1}
-.tr-seg button small{display:block;font-weight:600;font-size:11px;opacity:.8;max-width:96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tr-seg button[aria-selected="true"]{background:#fff;color:var(--blue-deep)}
-.tr-seg button.feito:after{content:" ✓";color:#9DF2CF}
-.tr-lista{padding:6px 10px}
+.panel.treino{padding:16px}
+.tr-head{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.tr-head h3{margin:0 0 3px;font-size:21px;line-height:1.15;letter-spacing:-.015em}
+.tr-meta{font-size:13px;color:var(--muted)}
+.tr-ring{--p:0;--cc:var(--blue);flex:0 0 58px;width:58px;height:58px;border-radius:50%;background:conic-gradient(var(--cc) calc(var(--p)*1%),var(--sunk) 0);display:grid;place-items:center;position:relative}
+.tr-ring:before{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--surface)}.tr-ring b{position:relative;font:700 13px var(--f-num)}
+.tr-msg{margin-top:10px;background:var(--violet-soft);border-radius:12px;padding:8px 10px;font-size:13.5px}
+.tr-msg button{color:var(--violet);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.tr-seg{display:flex;gap:8px;margin:14px 0 4px}
+.tr-seg button{flex:1;min-width:0;border-radius:14px;padding:9px 10px;border:1.5px solid var(--line);background:var(--surface);text-align:left}
+.tr-seg button b{display:block;font-size:18px;font-weight:800;color:var(--cc)}
+.tr-seg button small{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-seg button[aria-selected="true"]{background:var(--cc);border-color:var(--cc)}.tr-seg button[aria-selected="true"] b,.tr-seg button[aria-selected="true"] small{color:#fff}
+.tr-seg button.feito b:after{content:" ✓";font-size:13px}
+.tr-lista{padding:4px 0}
 .tr-ex{display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;text-align:left;padding:10px 6px;border-bottom:1px solid var(--line)}
 .tr-ex:last-child{border-bottom:0}
 .tr-n{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--sunk);font:700 14px var(--f-num);color:var(--muted)}
@@ -268,7 +288,7 @@ nav.tabs button[aria-current="page"]{color:var(--tang);background:var(--tang-sof
 .tr-t em{font-style:normal;font-family:var(--f-ui);font-weight:700;color:var(--mint);background:var(--mint-soft);border-radius:999px;padding:1px 7px;margin-left:4px}
 .tr-t em.volta{color:var(--violet);background:var(--violet-soft)}
 .tr-dots{display:flex;gap:4px}.tr-dots i{width:8px;height:8px;border-radius:50%;background:var(--line)}.tr-dots i.on{background:var(--mint)}
-.tr-acoes{display:grid;gap:8px;justify-items:center;padding:4px 16px 16px}
+.tr-acoes{display:grid;gap:8px;justify-items:center;padding-top:6px}
 .btn.big{padding:15px 16px;font-size:16px;border-radius:14px}
 .panel.conta{border-left:5px solid var(--blue)}.panel.aviso{border-left:5px solid var(--danger)}
 
@@ -341,13 +361,14 @@ body.focando #timer{display:none!important}
 .evo-s b.up{color:var(--mint)}.evo-s b.dn{color:var(--danger)}.evo-s i{font-style:normal;font-size:11px}
 .evo-ia{font-size:13.5px;background:var(--violet-soft);border-radius:12px;padding:8px 10px}.evo-ia:empty{display:none}.evo-ia b{color:var(--violet);display:inline-flex;gap:4px;align-items:center}
 .evo>.lnk{justify-self:start}
+.passos{padding-left:20px;margin:10px 0}.passos li{margin:8px 0;font-size:15px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="brand"><i><b></b></i>Treino</div>
+    <div class="brand"><i></i>Treino</div>
     <div id="sync" class="sync" title="Sincronização"><span class="dot"></span><span id="syncT">local</span></div>
     <span class="sp"></span>
     <button class="ib" id="temaBtn" aria-label="Trocar tema">☀</button>
@@ -369,7 +390,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 17:45";
+const VERSAO = "13/10 18:05";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -582,7 +603,7 @@ function toast(msg, desfazer, ms){ const t=$('#toast'); $('#toastT').textContent
 /* ---------- treino do dia ---------- */
 const getPlan = id => (D.hojeCustom && D.hojeCustom.data===hoje() && id===D.hojeCustom.plano.id) ? D.hojeCustom.plano : (D.plans.find(p=>p.id===id)||D.plans[0]);
 const planosVisiveis = () => (D.hojeCustom && D.hojeCustom.data===hoje()) ? [D.hojeCustom.plano, ...D.plans] : D.plans;
-function proximo(){ const ult=[...D.sessions].reverse().find(s=>D.plans.some(p=>p.id===s.plano)); const ord=D.plans.map(p=>p.id); if(!ult) return ord[0]; return ord[(ord.indexOf(ult.plano)+1)%ord.length]; }
+function proximo(){ const ult=[...D.sessions].filter(s=>D.plans.some(p=>p.id===s.plano)).sort((a,b)=>a.data===b.data?(a.ts||0)-(b.ts||0):(a.data<b.data?-1:1)).pop(); const ord=D.plans.map(p=>p.id); if(!ult) return ord[0]; return ord[(ord.indexOf(ult.plano)+1)%ord.length]; }
 function nSeries(e){ return Math.max(e.series, (log[e.id]||[]).length); }
 function sugSet(nome,s){ for(let i=D.sessions.length-1;i>=0;i--){ const it=D.sessions[i].itens.find(x=>x.nome===nome); if(it&&it.sets.length){ const v=it.sets[s]||it.sets[it.sets.length-1]; return {kg:v.kg,reps:v.reps}; } } return {}; }
 function ultima(nome){ for(let i=D.sessions.length-1;i>=0;i--){ const it=D.sessions[i].itens.find(x=>x.nome===nome); if(it&&it.sets.length) return {txt: it.sets.map(s=>it.bw?`${s.reps??'–'}`:`${s.kg??'–'}×${s.reps??'–'}`).join('  ')+`  (${br(D.sessions[i].data)})`, it, data:D.sessions[i].data}; } return null; }
@@ -701,7 +722,7 @@ function contextoTreino(curto){
   const ativ = D.atividades.slice(-30).map(a=>`${a.data} ${a.esporte}${a.km?` ${a.km}km`:''}${a.min?` ${Math.round(a.min)}min`:''}${a.nota?` (${a.nota})`:''}`).join('\n');
   const pesos = D.pesos.slice(-12).map(p=>`${p.data} ${p.kg}kg`).join(', ');
   const dias = []; for (let i=13;i>=0;i--){ const k = addDias(hoje(),-i), d = D.dias[k]; if (d) dias.push(`${k}: água ${d.agua||0} copos, proteína ${protDia(k)}g, metas ${(d.feito||[]).length}/${D.metas.length}${d.sono?`, sono ${d.sono}h`:''}${d.nota?`, nota "${d.nota}"`:''}`); }
-  const ultimo = D.sessions[D.sessions.length-1]; const parado = ultimo ? Math.round((Date.now()-new Date(ultimo.data+'T12:00:00'))/864e5) : null;
+  const ultimo = [...D.sessions].sort((a,b)=>a.data<b.data?-1:1).pop(); const parado = ultimo ? Math.round((Date.now()-new Date(ultimo.data+'T12:00:00'))/864e5) : null;
   return `Hoje: ${hoje()} (${diaSem(hoje())}). Último treino de musculação: ${ultimo?`${ultimo.data} (há ${parado} dias)`:'nenhum'}. Próximo da sequência: ${proximo()}.
 Semana atual: musculação ${sd.musc}/${mt.treinos}, corrida ${f1(sd.km)}/${mt.km} km, futebol ${sd.bola}/${mt.bola}, água média ${f1(sd.agua)}/${mt.agua} copos, proteína média ${Math.round(sd.prot)}/${mt.prot} g.
 Contexto da pessoa: faz musculação A/B/C, joga futebol, corre, se prepara para teste físico (EAF: flexão e abdominal), já teve canelite.
@@ -838,7 +859,7 @@ function render(){
 }
 
 /* ---------- HOJE ---------- */
-function viewHoje(){ return `<div class="grid two"><div class="col">${blocoConta()}${blocoPlanoNovo()}${blocoSemana()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}${blocoProteina()}</div></div>`; }
+function viewHoje(){ return `<div class="grid two"><div class="col">${blocoSemana()}${blocoConta()}${blocoPlanoNovo()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}${blocoProteina()}</div></div>`; }
 
 function blocoPlanoNovo(){ const n = D.planNovo; if (!n || n.visto) return '';
   return `<section class="panel novo"><div class="sm-eye" style="color:var(--violet)">Treino ajustado pelo Claude</div><b style="font-size:17px">${D.plans.map(p=>esc(p.id)).join(' → ')} girando · ${metaSemana().treinos}× por semana</b>
@@ -852,20 +873,32 @@ function blocoProteina(){ const k = hoje(); const usa = Object.keys(D.dias).some
 function blocoConta(){ if (S.user || !S.authPronto) return S.contaErro==='permissao' ? `<section class="panel aviso"><b>A nuvem recusou salvar o treino.</b><p class="note">Seus treinos estão salvos neste aparelho. Me avise no chat do Claude que eu libero o espaço do treino na sua conta.</p></section>` : '';
   return `<section class="panel conta"><div><b>Seus treinos estão só neste aparelho</b><p class="note" style="margin:2px 0 0">Entre com a mesma conta da Caderneta e tudo fica salvo na nuvem, no celular e no PC.</p></div>
     <div class="btns"><button class="btn p" data-act="entrarGoogle">Entrar com Google</button><button class="btn" data-act="entrarEmail">Entrar com e-mail</button></div></section>`; }
-/* ---------- semana: compacta, os 7 dias à vista ---------- */
+/* ---------- topo no padrão da Caderneta: número grande da semana ---------- */
+const COR_PLANO = {A:'var(--blue)', B:'var(--tang)', C:'var(--mint)', D:'var(--violet)', E:'var(--amber)', Hoje:'var(--pink)'};
+const corPlano = id => COR_PLANO[id] || 'var(--sky)';
 function blocoSemana(){
   const w = segunda(), sd = semanaDados(w), mt = metaSemana(), ed = memo.get('edMeta');
-  const dias = Array.from({length:7}, (_,i)=>{ const k = addDias(w,i); return {k, l:'STQQSSD'[i], musc: D.sessions.filter(s=>s.data===k), at: D.atividades.filter(a=>a.data===k)}; });
-  const usaProt = Object.keys(D.dias).some(k=>k>=addDias(hoje(),-7) && protDia(k)>0);
-  const chips = [sd.km ? `${ic('corre',14)} ${f1(sd.km)} km` : '', sd.bola ? `${ic('bola',14)} futebol ${sd.bola}×` : '', usaProt ? `${ic('prot',14)} ${Math.round(sd.prot)} g prot/dia` : ''].filter(Boolean);
-  const pct = mt.treinos ? Math.min(1, sd.musc/mt.treinos) : 0;
-  return `<section class="panel semana">
-    <div class="sm-top"><div><div class="sm-eye">Esta semana</div>
-      <div class="sm-big"><b class="num">${sd.musc}</b><span>de ${ed==='treinos' ? `<span class="inl"><input id="metaIn" inputmode="numeric" value="${mt.treinos}"><button data-act="metaOk:treinos">OK</button></span>` : `<button data-act="metaEd:treinos" title="Mudar a meta">${mt.treinos}</button>`} treinos</span></div></div>
-      <div class="sm-ring" style="--p:${(pct*100).toFixed(0)}"><span>${sd.musc>=mt.treinos?ic('check',20):Math.max(0,mt.treinos-sd.musc)}</span><small>${sd.musc>=mt.treinos?'meta':'faltam'}</small></div></div>
-    <div class="sm-dias">${dias.map(d=>{ const fut = d.k>hoje(); const pl = d.musc.map(s=>s.plano==='Hoje'?'★':s.plano).join('');
-      return `<div class="sm-d ${d.k===hoje()?'hoje':''} ${fut?'fut':''}"><small>${d.l}</small><span class="sm-c ${d.musc.length?'m':''}">${d.musc.length?esc(pl):''}</span><span class="sm-x">${d.at.some(ehCorre)?'<i class="r"></i>':''}${d.at.some(ehBola)?'<i class="f"></i>':''}</span></div>`; }).join('')}</div>
-    ${chips.length?`<div class="sm-chips">${chips.map(c=>`<span>${c}</span>`).join('')}</div>`:''}
+  const sess = D.sessions.filter(s=>s.data>=w && s.data<=addDias(w,6)).sort((a,b)=>a.data<b.data?-1:1);
+  const prox = getPlan(proximo());
+  const mes = hoje().slice(0,7); let recs = 0; const melhores = {};
+  [...D.sessions].sort((a,b)=>a.data<b.data?-1:1).forEach(s=>s.itens.forEach(i=>{ const v = Math.max(0,...i.sets.map(x=>e1rm(x.kg||0,x.reps||0))); if (v>0){ if (melhores[i.nome] && v > melhores[i.nome] + 0.01 && s.data.startsWith(mes)) recs++; melhores[i.nome] = Math.max(melhores[i.nome]||0, v); } }));
+  const ult = [...D.sessions].sort((a,b)=>a.data<b.data?-1:1).pop(); const diasDesde = ult ? Math.round((Date.now()-new Date(ult.data+'T12:00:00'))/864e5) : null;
+  const fim = addDias(w,6), rot = `${br(w)} a ${br(fim)}`;
+  const segs = Array.from({length: Math.max(mt.treinos, sess.length)}, (_,i)=> sess[i] ? `<span style="background:${corPlano(sess[i].plano)}"></span>` : `<span class="vz"></span>`).join('');
+  const dias = Array.from({length:7}, (_,i)=>{ const k = addDias(w,i); return {k, l:'STQQSSD'[i], m: D.sessions.filter(s=>s.data===k), at: D.atividades.filter(a=>a.data===k)}; });
+  return `<section class="hero">
+    <div class="confete" aria-hidden="true"><i style="background:var(--blue)"></i><i style="background:var(--tang)"></i><i style="background:var(--amber)"></i><i style="background:var(--mint)"></i><i style="background:var(--pink)"></i></div>
+    <div class="eyebrow">Esta semana · ${rot}</div>
+    <div class="big"><span>${sd.musc}</span><span class="de">de ${ed==='treinos' ? `<span class="inl"><input id="metaIn" inputmode="numeric" value="${mt.treinos}"><button data-act="metaOk:treinos">OK</button></span>` : `<button data-act="metaEd:treinos" title="Mudar a meta">${mt.treinos}</button>`} treinos</span></div>
+    <p class="sub">${sd.musc>=mt.treinos ? '<b>Meta da semana batida.</b> O resto é bônus.' : `Próximo: <b>${esc(prox.id)} · ${esc(prox.nome)}</b>, uns ${minutosTreino(prox)} min.`}${diasDesde!=null && diasDesde>3 ? ` Último treino há ${diasDesde} dias.` : ''}</p>
+    <div class="split" role="img" aria-label="Treinos feitos na semana">${segs}</div>
+    <div class="legend">${D.plans.map(p=>`<span><i style="background:${corPlano(p.id)}"></i>${esc(p.id)} · ${esc(p.nome.split('/')[0].trim())}</span>`).join('')}</div>
+    <div class="dias7">${dias.map(d=>`<div class="${d.k===hoje()?'hoje':''} ${d.k>hoje()?'fut':''}"><small>${d.l}</small><span style="${d.m.length?`background:${corPlano(d.m[0].plano)};color:#fff;border-color:transparent`:''}">${d.m.map(s=>s.plano==='Hoje'?'★':esc(s.plano)).join('')}</span><em>${d.at.some(ehCorre)?'<i class="r"></i>':''}${d.at.some(ehBola)?'<i class="f"></i>':''}</em></div>`).join('')}</div>
+    <dl class="kpis">
+      <div><dt>Recordes</dt><dd>${recs}</dd><small>neste mês</small></div>
+      <div><dt>Corrida</dt><dd>${f1(sd.km)} km</dd><small>${sd.bola?`+ futebol ${sd.bola}×`:'nesta semana'}</small></div>
+      <div><dt>Séries</dt><dd>${sum(sess, s=>s.itens.reduce((a,i)=>a+i.sets.length,0))}</dd><small>nesta semana</small></div>
+    </dl>
   </section>`;
 }
 
@@ -928,7 +961,7 @@ function blocoTreino(){
   const p = getPlan(plano), feitos = D.sessions.filter(s=>s.data===hoje()).map(s=>s.plano);
   const tot = sum(p.ex, e=>progressoEx(e).ns), ok = sum(p.ex, e=>progressoEx(e).n), pct = tot ? Math.round(ok/tot*100) : 0;
   const custom = D.hojeCustom && D.hojeCustom.data===hoje() && plano==='Hoje';
-  const ult = [...D.sessions].reverse().find(s=>s.plano===p.id); const parado = (()=>{ const u = D.sessions[D.sessions.length-1]; return u ? Math.round((Date.now()-new Date(u.data+'T12:00:00'))/864e5) : null; })();
+  const ult = [...D.sessions].reverse().find(s=>s.plano===p.id); const parado = (()=>{ const u = [...D.sessions].sort((a,b)=>a.data<b.data?-1:1).pop(); return u ? Math.round((Date.now()-new Date(u.data+'T12:00:00'))/864e5) : null; })();
   const R = 26, C = 2*Math.PI*R;
   const linhas = p.ex.map((e,i)=>{ const nome = swaps[e.id]||e.nome, pr = progressoEx(e), sg = sugestaoCarga(e, nome), v0 = valorSerie(e, 0);
     const alvo = `${e.series}×${e.reps}${e.tempo?'s':''}${!e.bw && v0.kg ? ` · ${f1(v0.kg)} kg` : e.bw ? ' · corpo' : ''}`;
@@ -938,14 +971,11 @@ function blocoTreino(){
       <span class="tr-dots">${Array.from({length:pr.ns},(_,k)=>`<i class="${k<pr.n?'on':''}"></i>`).join('')}</span></button>`; }).join('');
   const comecou = ok > 0, acabou = tot && ok >= tot;
   return `<section class="panel treino">
-    <div class="tr-top">
-      <div class="tr-head"><div style="min-width:0"><div class="tr-eye">${feitos.includes(p.id)?'Já registrado hoje':custom?'Montado pelo coach':'Treino de hoje'}</div>
-        <h3>${esc(p.id==='Hoje'?p.nome:p.nome)}</h3>
-        <div class="tr-meta">${p.ex.length} exercícios · ~${minutosTreino(p)} min${ult?` · último em ${br(ult.data)}`:''}</div></div>
-        <div class="tr-ring"><svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="${R}" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="7"/><circle cx="32" cy="32" r="${R}" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C - C*pct/100}" transform="rotate(-90 32 32)"/></svg><b>${pct}%</b></div></div>
-      ${custom && D.hojeCustom.motivo ? `<div class="tr-msg">${esc(D.hojeCustom.motivo)}</div>` : parado!=null && parado>14 && !comecou ? `<div class="tr-msg">Faz ${parado} dias do último treino. <button data-act="perg:Voltei depois de ${parado} dias parado. Monta meu treino de hoje.">Pedir um treino de volta ao coach</button></div>` : ''}
-      <div class="tr-seg" role="tablist">${vis.map(x=>`<button role="tab" aria-selected="${x.id===plano}" data-act="plano:${esc(x.id)}" class="${feitos.includes(x.id)?'feito':''}">${x.id==='Hoje'?'★ Coach':esc(x.id)}<small>${esc(x.id==='Hoje'?'hoje':x.nome.split('/')[0].trim())}</small></button>`).join('')}</div>
-    </div>
+    <div class="ph"><h2 style="--hc:${corPlano(p.id)}">${feitos.includes(p.id)?'Já registrado hoje':custom?'Treino do coach':'Treino de hoje'}</h2><span class="num note" style="margin:0">${ok}/${tot} séries</span></div>
+    <div class="tr-head"><div style="min-width:0"><h3>${esc(p.id==='Hoje'?p.nome:`${p.id} · ${p.nome}`)}</h3><div class="tr-meta">${p.ex.length} exercícios · ~${minutosTreino(p)} min${ult?` · último em ${br(ult.data)}`:''}</div></div>
+      <div class="tr-ring" style="--p:${pct};--cc:${corPlano(p.id)}"><b>${pct}%</b></div></div>
+    ${custom && D.hojeCustom.motivo ? `<div class="tr-msg">${esc(D.hojeCustom.motivo)}</div>` : parado!=null && parado>14 && !comecou ? `<div class="tr-msg">Faz ${parado} dias do último treino. <button data-act="perg:Voltei depois de ${parado} dias parado. Quais cargas uso hoje?">Pedir as cargas de volta ao coach</button></div>` : ''}
+    <div class="tr-seg" role="tablist">${vis.map(x=>`<button role="tab" aria-selected="${x.id===plano}" style="--cc:${corPlano(x.id)}" data-act="plano:${esc(x.id)}" class="${feitos.includes(x.id)?'feito':''}"><b>${x.id==='Hoje'?'★':esc(x.id)}</b><small>${esc(x.id==='Hoje'?'coach':x.nome.split('/')[0].trim())}</small></button>`).join('')}</div>
     <div class="tr-lista">${linhas || '<p class="note">Sem exercícios neste treino. Ajuste em Treinos.</p>'}</div>
     <div class="tr-acoes">
       ${acabou ? `<button class="btn o w big" data-act="encerrar">Encerrar e salvar treino</button>` : `<button class="btn p w big" data-act="foco:${Math.max(0, p.ex.findIndex(e=>progressoEx(e).n < progressoEx(e).ns))}">${comecou?`Continuar · ${ok} de ${tot} séries`:'Começar treino'}</button>`}
@@ -1309,7 +1339,8 @@ addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); pedidoInstalar 
   if (!lsGet('caderno:instalar') && !matchMedia('(display-mode: standalone)').matches) setTimeout(()=>{ if (!pedidoInstalar || $('#convApp')) return; const d = document.createElement('div'); d.id='convApp'; d.className='conv'; d.innerHTML = `<span><b>Quer o Treino como app?</b> Abre direto da tela inicial.</span><button data-act="instalarApp">Instalar</button><button class="x" data-act="naoInstalar">Agora não</button>`; document.body.appendChild(d); }, 4000); });
 addEventListener('appinstalled', ()=>{ lsSet('caderno:instalar','feito'); $('#convApp')?.remove(); toast('Pronto: o Treino está na sua tela inicial.'); });
 async function instalarApp(){ $('#convApp')?.remove(); if (pedidoInstalar){ pedidoInstalar.prompt(); const r = await pedidoInstalar.userChoice.catch(()=>({})); lsSet('caderno:instalar', r.outcome==='accepted'?'feito':'nao'); pedidoInstalar = null; }
-  else toast(/iphone|ipad/i.test(navigator.userAgent) ? 'No Safari: Compartilhar → Adicionar à Tela de Início.' : 'No Chrome: menu ⋮ → Instalar app (ou Adicionar à tela inicial).', null, 8000); }
+  else abrirFolha(/iphone|ipad/i.test(navigator.userAgent) ? `<h3>Pôr na tela inicial</h3><ol class="passos"><li>No Safari, toque em <b>Compartilhar</b> (quadrado com seta).</li><li>Toque em <b>Adicionar à Tela de Início</b>.</li><li>Confirme em <b>Adicionar</b>.</li></ol><div class="btns"><button class="btn p w" data-act="fechar">Entendi</button></div>`
+    : `<h3>Pôr na tela inicial</h3><ol class="passos"><li>Abra este endereço no <b>Chrome</b> (não dentro do WhatsApp ou do Instagram).</li><li>Toque nos <b>3 pontinhos ⋮</b> no canto de cima.</li><li>Toque em <b>Instalar app</b>. Se não aparecer, toque em <b>Adicionar à tela inicial</b> e depois em <b>Instalar</b>.</li><li>O ícone laranja e azul aparece na tela inicial e na lista de apps, com o nome <b>Treino</b>.</li></ol><p class="note">Se já tinha um atalho antigo do Treino, apague-o antes e instale de novo.</p><div class="btns"><button class="btn p w" data-act="fechar">Entendi</button></div>`); }
 const abertoEm = Date.now(); let avisouVersao = false;
 async function procurarVersao(manual){ if (!/github\.io$/.test(location.hostname)){ if (manual) toast('A atualização automática funciona no site.'); return; }
   try{ const r = await fetch('version.json?t='+Date.now(), {cache:'no-store'}); const j = await r.json();
