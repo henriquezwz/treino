@@ -425,7 +425,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 20:05";
+const VERSAO = "13/10 20:20";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -699,7 +699,7 @@ function protDia(k){ const d = D.dias[k]; if (!d) return 0; let p = sum(d.comida
 function refeicaoAgora(){ const h = new Date().getHours()*60+new Date().getMinutes(); const rs = D.refeicoes.map(r=>{ const [hh,mm] = String(r.hora||'12:00').split(':').map(Number); return {r, d: Math.abs((hh*60+(mm||0))-h)}; }).sort((a,b)=>a.d-b.d); return rs[0]?.r || D.refeicoes[0]; }
 
 /* ---------- barra: entende o que você escreve ---------- */
-const ESPORTES = [[/corr(i|ida|er)|trot|run\b/,'Corrida'],[/camin(hei|hada)/,'Caminhada'],[/futebol|bola|pelada|futsal|society/,'Futebol'],[/pedal|bike|bicicleta|ciclismo/,'Bike'],[/nad(ei|ar|o)|natac/,'Natação'],[/funcional|crossfit/,'Funcional'],[/alonga|yoga|mobilidade/,'Alongamento']];
+const ESPORTES = [[/\bcorr(i|ida|er)|\btrot|\brun\b/,'Corrida'],[/\bcamin(hei|hada)/,'Caminhada'],[/\b(futebol|bola|pelada|futsal|society)\b/,'Futebol'],[/\b(pedal|bike|bicicleta|ciclismo)/,'Bike'],[/\bnad(ei|ar|o)\b|\bnatac/,'Natação'],[/\b(funcional|crossfit)/,'Funcional'],[/\b(alonga|yoga|mobilidade)/,'Alongamento']];
 function acharExercicio(txt){ const n = norm(txt); const p = getPlan(plano); const todos = [...p.ex, ...D.plans.flatMap(x=>x.ex)];
   let best = null, bs = 0;
   for (const e of todos){ const nome = norm(swaps[e.id]||e.nome); const ws = nome.split(/[^a-z0-9]+/).filter(w=>w.length>2 && !['com','sem','para','livre','maquina','barra','halteres','halter','sentado','polia'].includes(w));
@@ -713,7 +713,7 @@ function parseLinha(raw){
   if ((m = n.match(/\b(peso|pesei|balanca)\b[^\d]*(\d{2,3}(?:[.,]\d+)?)/)) || (m = n.match(/^(\d{2,3}[.,]\d)\s*kg$/))) return {tipo:'peso', kg: num(m[2]||m[1]), txt:t};
   if (/\bagua\b|\bcopos?\b|\bgarrafa/.test(n)){ let c = 1; if ((m = n.match(/(\d+[.,]?\d*)\s*(l|litros?)\b/))) c = Math.round(num(m[1])*1000/300); else if ((m = n.match(/(\d+)\s*ml/))) c = Math.round(+m[1]/300); else if ((m = n.match(/(\d+)\s*(copos?|garrafas?)/))) c = +m[1] * (/garraf/.test(m[2]) ? 2 : 1); else if ((m = n.match(/(\d+)/))) c = +m[1]; return {tipo:'agua', copos: Math.max(1, Math.min(12, c)), txt:t}; }
   if ((m = n.match(/\bdormi\b[^\d]*(\d+[.,]?\d*)\s*h?/))) return {tipo:'sono', h: num(m[1]), txt:t};
-  for (const [re, esporte] of ESPORTES) if (re.test(n)){ const km = (m = n.match(/(\d+[.,]?\d*)\s*km/)) ? num(m[1]) : null; const min = parseDur(n.replace(/(\d+[.,]?\d*)\s*km/,'')); const kcal = (m = n.match(/(\d+)\s*kcal/)) ? +m[1] : null; if (!km && !min) return {tipo:'atividade', esporte, min: esporte==='Futebol'?60:null, km:null, txt:t, incompleto:true}; return {tipo:'atividade', esporte, km, min, kcal, txt:t}; }
+  for (const [re, esporte] of ESPORTES) if (re.test(n) && !(/\d\s*kg|\d\s*[x×]\s*\d/.test(n) && acharExercicio(t))){ const km = (m = n.match(/(\d+[.,]?\d*)\s*km/)) ? num(m[1]) : null; const min = parseDur(n.replace(/(\d+[.,]?\d*)\s*km/,'')); const kcal = (m = n.match(/(\d+)\s*kcal/)) ? +m[1] : null; if (!km && !min) return {tipo:'atividade', esporte, min: esporte==='Futebol'?60:null, km:null, txt:t, incompleto:true}; return {tipo:'atividade', esporte, km, min, kcal, txt:t}; }
   if ((/\b(comi|almocei|jantei|lanchei|cafe da manha|tomei|whey|ovos?|frango|carne|peixe)\b/.test(n) || ALIMENTOS.some(([re])=>re.test(n)) || UNIDADES.some(([re])=>re.test(n))) && !/\b\d+\s*kg\b/.test(n) && !acharExercicio(t)){ const p = (m = n.match(/(\d+)\s*g\s*(de\s*)?(prot|proteina)/)) ? +m[1] : (m = n.match(/~\s*(\d+)\s*g/)) ? +m[1] : null; return {tipo:'comida', t: t.replace(/^(comi|almocei|jantei|lanchei|tomei)\s+/i,''), p, txt:t}; }
   const ex = acharExercicio(t);
   if (ex){ const sets = []; let kgBase = null;
@@ -726,7 +726,7 @@ function parseLinha(raw){
   }
   return null;
 }
-function parseTexto(v){ const partes = String(v||'').split(/\n|;|\s+e\s+(?=[a-zà-ú])|,\s*(?=[a-zà-ú]{3,})/i).map(x=>x.trim()).filter(Boolean); const itens = [], falhas = []; for (const p of partes){ const r = parseLinha(p); if (r) itens.push(r); else falhas.push(p); } return {itens, falhas}; }
+function parseTexto(v){ const partes = String(v||'').split(/\n|;|\s*[·•|]\s*|\s+e\s+(?=[a-zà-ú])|,\s*(?=[a-zà-ú]{3,})/i).map(x=>x.trim()).filter(Boolean); const itens = [], falhas = []; for (const p of partes){ const r = parseLinha(p); if (r) itens.push(r); else falhas.push(p); } return {itens, falhas}; }
 function descItem(it){ return it.tipo==='peso' ? `peso ${f1(it.kg)} kg` : it.tipo==='agua' ? `+${it.copos} ${it.copos>1?'copos':'copo'} de água` : it.tipo==='sono' ? `dormiu ${f1(it.h)} h` : it.tipo==='atividade' ? `${it.esporte}${it.km?` ${f1(it.km)} km`:''}${it.min?` ${Math.round(it.min)} min`:''}${it.km&&it.min&&ehCorre(it)?` · ${ritmo(it.min,it.km)}/km`:''}` : it.tipo==='comida' ? `comeu ${it.t}${it.p?` · ${it.p} g prot`:''}` : `${swaps[it.ex.id]||it.ex.nome}: ${it.sets.map(s=>it.ex.bw||s.kg==null?`${s.reps??'?'}`:`${f1(s.kg)}×${s.reps??'?'}`).join(' ')}`; }
 const ritmo = (min, km) => { const p = min/km; const mm = Math.floor(p), ss = Math.round((p-mm)*60); return `${mm}:${pad(ss)}`; };
 function aplicarItens(itens){
