@@ -433,7 +433,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 20:45";
+const VERSAO = "13/10 21:05";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -808,6 +808,7 @@ const FORMATO_ACOES = `"acoes" é uma lista (pode ser vazia) de mudanças que o 
 {"tipo":"meta_semana","treinos":4,"km":10,"bola":2,"motivo":""}
 {"tipo":"ajustar_exercicio","exercicio":"nome exato","series":3,"reps":"10–12","descanso":90,"kg":20,"trocar_por":null,"escopo":"hoje|plano","motivo":"1 frase"}  → muda UM exercício (só os campos que mudam; "trocar_por" troca por um equivalente): "hoje" vale só no treino de hoje, "plano" muda de vez
 {"tipo":"remover_exercicios","exercicios":["nome exato"],"escopo":"hoje|plano","motivo":"1 frase"}  → tira exercícios: "hoje" só do treino de hoje (pressa, cansaço, dor, "chega de ombro"); "plano" tira do plano de vez. Se já fez séries de um deles, as feitas ficam salvas.
+{"tipo":"encerrar_treino","salvar":true,"nota":"opcional, curta","motivo":"1 frase"}  → termina o treino de hoje AGORA: "salvar":true guarda as séries já feitas (o resto fica de fora); "salvar":false descarta o treino de hoje sem salvar nada. Use quando a pessoa disser que vai parar, abortar, encerrar, terminar, ir embora já, ou "pula o resto".
 Você pode mudar QUALQUER parte do treino, não só o exercício em que a pessoa está. Se ela quiser ir embora, tire o que falta de menos importante e diga o que fazer para fechar.
 {"tipo":"cargas_hoje","plano":"A","percentual":85,"itens":[{"nome":"nome exato do exercício","kg":20,"reps":"10"}],"motivo":"1 frase"}  → preenche as cargas do treino de hoje (percentual aplicado sobre a última carga de cada exercício; "itens" sobrepõe exercícios específicos; pode mandar só um dos dois)
 SEMPRE que sugerir cargas, percentual ou repetições para hoje, inclua "cargas_hoje" para a pessoa aplicar com um toque. Se sugerir trocar exercícios só hoje, use "treino_hoje" com "kg" em cada exercício.`;
@@ -838,6 +839,7 @@ function aplicarAcao(a){
       if (a.escopo==='plano'){ for (const p of D.plans) p.ex = p.ex.filter(x=>x.id!==e.id); } }
     if (S.foco){ const n = getPlan(plano).ex.length; if (!n) S.foco = null; else if (S.foco.i >= n) S.foco.i = n-1; }
     persist(); return `${a.escopo==='plano'?'Tirado do plano':'Fora de hoje'}: ${nomesOk.join(', ')}`; }
+  if (a.tipo==='encerrar_treino') return encerrarTreino(a.salvar!==false, a.nota);
   if (a.tipo==='meta_semana'){ const m = Object.assign({}, metaSemana()); ['treinos','km','bola','agua','prot'].forEach(k=>{ if (a[k]!=null && isFinite(+a[k])) m[k] = +a[k]; }); D.metaSem = m; return 'Plano da semana ajustado'; }
   return null;
 }
@@ -848,12 +850,25 @@ function previaCargas(a){ const alvo = a.plano && D.plans.some(p=>p.id===String(
     return `<li>${esc(nome)}: ${top&&kg!=null?`${f1(top)} → `:''}<b>${kg!=null?f1(kg)+' kg':''}</b>${x&&x.reps?` × ${esc(x.reps)}`:''}</li>`; }).filter(Boolean);
   return linhas.length ? `<div class="note" style="margin-top:4px">Treino ${esc(alvo)}${a.percentual?` · ${a.percentual}% da última carga`:''}</div><ul style="margin:6px 0 0;padding-left:18px">${linhas.join('')}</ul>` : '<div class="note">Sem cargas anteriores para calcular.</div>'; }
 function cartaoAcao(a, i, ci, botoes){ const ex = a.tipo==='remover_exercicios' ? [] : (a.exercicios||[]);
-  const tit = a.tipo==='cargas_hoje' ? 'Aplicar cargas no treino de hoje' : a.tipo==='treino_hoje' ? `Treino de hoje: ${a.nome||''}` : a.tipo==='alterar_plano' ? `Alterar o treino ${a.plano}${a.nome?` (${a.nome})`:''}` : a.tipo==='novo_plano' ? `Novo treino ${a.plano||''} ${a.nome||''}` : a.tipo==='meta_semana' ? 'Ajustar o plano da semana' : a.tipo==='ajustar_exercicio' ? `Ajustar ${a.exercicio||'exercício'}${a.escopo==='plano'?' (no plano)':' (só hoje)'}` : a.tipo==='remover_exercicios' ? `${a.escopo==='plano'?'Tirar do plano':'Tirar do treino de hoje'}: ${(a.exercicios||[]).join(', ')}` : a.tipo;
+  const tit = a.tipo==='cargas_hoje' ? 'Aplicar cargas no treino de hoje' : a.tipo==='treino_hoje' ? `Treino de hoje: ${a.nome||''}` : a.tipo==='alterar_plano' ? `Alterar o treino ${a.plano}${a.nome?` (${a.nome})`:''}` : a.tipo==='novo_plano' ? `Novo treino ${a.plano||''} ${a.nome||''}` : a.tipo==='meta_semana' ? 'Ajustar o plano da semana' : a.tipo==='ajustar_exercicio' ? `Ajustar ${a.exercicio||'exercício'}${a.escopo==='plano'?' (no plano)':' (só hoje)'}` : a.tipo==='remover_exercicios' ? `${a.escopo==='plano'?'Tirar do plano':'Tirar do treino de hoje'}: ${(a.exercicios||[]).join(', ')}` : a.tipo==='encerrar_treino' ? (a.salvar===false ? 'Descartar o treino de hoje' : 'Encerrar o treino agora') : a.tipo;
   return `<div class="box-i ia"><span class="il">${esc(tit)}</span>${a.motivo?`<div>${esc(a.motivo)}</div>`:''}
     ${ex.length?`<ol style="margin:6px 0 0;padding-left:20px">${ex.map(x=>`<li>${esc(x.nome)} — ${esc(x.series)}×${esc(x.reps)}${x.kg?` · ${esc(x.kg)} kg`:''}${x.nota?` <small style="color:var(--muted)">(${esc(x.nota)})</small>`:''}</li>`).join('')}</ol>`:''}
-    ${a.tipo==='cargas_hoje'?previaCargas(a):''}${a.tipo==='ajustar_exercicio'?`<div class="exc-ch">${esc(mudancasTxt(a))}</div>`:''}
+    ${a.tipo==='encerrar_treino'?`<div class="exc-ch">${esc(previaEncerrar(a))}</div>`:''}${a.tipo==='cargas_hoje'?previaCargas(a):''}${a.tipo==='ajustar_exercicio'?`<div class="exc-ch">${esc(mudancasTxt(a))}</div>`:''}
     ${a.tipo==='meta_semana'?`<div class="note">${['treinos','km','bola','agua','prot'].filter(k=>a[k]!=null).map(k=>`${k} ${a[k]}`).join(' · ')}</div>`:''}
     <div class="btns">${a._ok?`<span class="pill g">Aplicado ✓</span>`: botoes || `<button class="btn p sm" data-act="aplicar:${ci}:${i}">Aplicar</button>`}</div></div>`; }
+/* encerrar o treino (pelo botão ou pelo coach): salva as séries feitas, o resto fica de fora */
+function itensFeitos(){ const p = getPlanBase(plano); return p.ex.map(e=>({nome:swaps[e.id]||e.nome, bw:!!e.bw, sets:(log[e.id]||[]).filter(s=>s&&s.ok).map(s=>({kg:e.bw?null:(num(s.kg)), reps:parseInt(s.reps)||null})), nota:(notas[e.id]||'').trim()})).filter(i=>i.sets.length||i.nota); }
+function previaEncerrar(a){ const it = itensFeitos(), n = sum(it, i=>i.sets.length), p = getPlanBase(plano), fora = p.ex.filter(e=>!(log[e.id]||[]).some(s=>s&&s.ok)).map(e=>swaps[e.id]||e.nome);
+  if (a.salvar===false || !n) return n ? `Apaga as ${n} séries marcadas hoje (não salva nada).` : 'Nenhuma série feita: o treino de hoje é descartado.';
+  return `Salva ${n} ${n>1?'séries':'série'} de ${it.filter(i=>i.sets.length).length} exercício(s)${fora.length?` · fica de fora: ${fora.join(', ')}`:''}`; }
+let ultimaSessao = null;
+function encerrarTreino(salvar, nota){ if (S.foco){ S.foco = null; document.body.classList.remove('focando'); $('#foco').hidden = true; $('#foco').innerHTML = ''; } stopTimer(false);
+  const p = getPlanBase(plano), itens = itensFeitos(), dur = relogio ? Math.round((Date.now()-relogio.inicio)/60000) : null, mt = relogio ? relogio.meta : null;
+  const limpa = () => { relogio = null; D.rascunho = null; D.fechadoEm = Date.now(); log = {}; swaps = {}; notas = {}; ajustes = {}; if (p.id==='Hoje') D.hojeCustom = null; plano = proximo(); };
+  if (!salvar || !itens.some(i=>i.sets.length)){ limpa(); return 'Treino de hoje descartado'; }
+  const id = uid(); D.sessions.push({id, data:hoje(), plano:p.id, itens, ts:Date.now(), ...(nota?{nota:String(nota).slice(0,200)}:{}), ...(dur!=null?{min:dur, meta:mt}:{})}); ultimaSessao = id; limpa();
+  setTimeout(()=>revisarSessao(id), 1500);
+  return `Treino salvo: ${itens.length} ${itens.length>1?'exercícios':'exercício'}${dur!=null?` em ${dur} min${dur<=mt?' · dentro da meta':` · ${dur-mt} min acima da meta`}`:`, ${Math.round(sum(itens,i=>sum(i.sets,x=>(x.kg||0)*(x.reps||0))))} kg de volume`}`; }
 /* como está o treino de hoje agora (para o coach decidir com o que falta) */
 function estadoHoje(){ const p = getPlanBase(plano); if (!p) return ''; const lin = p.ex.map(e=>{ const a = ef(e), feitas = (log[e.id]||[]).filter(s=>s&&s.ok).length; return `${swaps[e.id]||e.nome}: ${pulado(e)?'TIRADO HOJE':`${feitas}/${nSeries(e)} séries feitas, ${a.reps} reps, desc ${a.rest}s`}`; });
   const rel = relogio ? ` Relógio: ${Math.round((Date.now()-relogio.inicio)/60000)} de ${relogio.meta} min.` : '';
@@ -1054,7 +1069,7 @@ function blocoExCoach(e){ const msgs = S.exChat[e.id]||[]; if (S.excAberto!==e.i
     return `<div class="exc-card"><div class="exc-ch">${outroEx?`${esc(swaps[alvo.id]||alvo.nome)}: `:''}${esc(mudancasTxt(a, alvo))}</div>${a.motivo?`<div>${esc(a.motivo)}</div>`:''}<div class="btns" style="margin-top:2px">${a._ok ? `<span class="pill g">Aplicado ${a._ok==='plano'?'no plano':'hoje'} ✓</span>` : `<button class="btn o sm" data-act="excAplica:${e.id}:${k}:${j}:${pri}">${pri==='hoje'?'Aplicar hoje':'Mudar no plano'}</button><button class="btn sm" data-act="excAplica:${e.id}:${k}:${j}:${outro}">${outro==='hoje'?'só hoje':'de vez no plano'}</button>`}</div></div>`; };
   return `<div class="exc"><div class="exc-h"><b>Coach</b><small>sobre este exercício</small>${msgs.length?'':`<button class="fo-ib sm" data-act="excFecha" aria-label="Fechar">${ic('x',16)}</button>`}</div>
     ${msgs.map((m,k)=>`<div class="exc-q">${esc(m.q)}</div><div class="exc-a" data-exc="${e.id}:${k}">${m.a ? esc(m.a) : m.busy ? '<span class="load">o coach está pensando…</span>' : ''}</div>${(m.acoes||[]).map((a,j)=>card(a,k,j)).join('')}`).join('')}
-    ${msgs.length ? '' : `<div class="exc-chips">${['Quero tirar 1 série','Tô sem tempo, quero ir embora','Achei muito ombro hoje','Senti dor','Tá pesado demais'].map(t=>`<button class="chip" data-act="excPerg:${e.id}:${esc(t)}">${esc(t)}</button>`).join('')}</div>`}
+    ${msgs.length ? '' : `<div class="exc-chips">${['Quero tirar 1 série','Tô sem tempo, quero ir embora','Encerra aqui, pula o resto','Achei muito ombro hoje','Senti dor'].map(t=>`<button class="chip" data-act="excPerg:${e.id}:${esc(t)}">${esc(t)}</button>`).join('')}</div>`}
     <form class="exc-f" id="excF" data-ex="${e.id}"><textarea class="in grow" id="excIn" rows="1" placeholder="Pergunte sobre ${esc(swaps[e.id]||e.nome)}"></textarea><button class="btn p sm" aria-label="Enviar">${ic('dir',16)}</button></form></div>`; }
 async function exVibe(exId){ const p = getPlan(plano), e = p.ex.find(x=>x.id===exId) || D.plans.flatMap(x=>x.ex).find(x=>x.id===exId); if (!e) return; const nome = swaps[exId]||e.nome;
   if (memo.get('exIABusy')) return; memo.set('exIABusy', nome); if (S.foco) renderFoco();
@@ -1491,10 +1506,7 @@ async function acao(a, el){
     case 'equivIA': { const [id, f] = arg.split(':'); equivalentes(id, !!f); return; }
     case 'trocaPlano': { const k = arg.indexOf(':'), id = arg.slice(0,k), v = decodeURIComponent(arg.slice(k+1)); fecharFolha(); persist(); comDesfazer(x => x || 'Nada mudou', ()=>aplicarAjuste(id, {trocar_por:v}, 'plano')); return; }
     case 'troca': { const k = arg.indexOf(':'), id = arg.slice(0,k), v = decodeURIComponent(arg.slice(k+1)); const e = getPlanBase(plano).ex.find(x=>x.id===id); if (!e) return; fecharFolha(); persist(); comDesfazer(v===e.nome ? `Voltou para ${e.nome}` : `Hoje: ${v} no lugar de ${e.nome}`, ()=>{ if (v===e.nome) delete swaps[id]; else swaps[id] = v; persist(); }); return; }
-    case 'encerrar': { if (S.foco){ S.foco = null; document.body.classList.remove('focando'); $('#foco').hidden = true; } const p = getPlan(plano); const itens = p.ex.map(e=>({nome:swaps[e.id]||e.nome, bw:!!e.bw, sets:(log[e.id]||[]).filter(s=>s&&s.ok).map(s=>({kg:e.bw?null:(num(s.kg)), reps:parseInt(s.reps)||null})), nota:(notas[e.id]||'').trim()})).filter(i=>i.sets.length||i.nota);
-      if (!itens.some(i=>i.sets.length)){ toast('Marque pelo menos uma série com o ✓ antes de encerrar.'); return; }
-      const id = uid(), dur = relogio ? Math.round((Date.now()-relogio.inicio)/60000) : null, mt = relogio ? relogio.meta : null; comDesfazer(`Treino salvo: ${itens.length} ${itens.length>1?'exercícios':'exercício'}${dur!=null?` em ${dur} min${dur<=mt?' · dentro da meta':` · ${dur-mt} min acima da meta`}`:`, ${Math.round(sum(itens,i=>sum(i.sets,x=>(x.kg||0)*(x.reps||0))))} kg de volume`}`, ()=>{ D.sessions.push({id, data:hoje(), plano:p.id, itens, ts:Date.now(), ...(dur!=null?{min:dur, meta:mt}:{})}); relogio = null; D.rascunho=null; D.fechadoEm=Date.now(); log={}; swaps={}; notas={}; ajustes={}; if (p.id==='Hoje') D.hojeCustom = null; plano = proximo(); });
-      setTimeout(()=>revisarSessao(id), 1200); return; }
+    case 'encerrar': { if (!itensFeitos().some(i=>i.sets.length)){ toast('Marque pelo menos uma série com o ✓ antes de encerrar.'); return; } comDesfazer(r=>r, ()=>encerrarTreino(true)); return; }
     case 'limparHoje': comDesfazer('Marcações de hoje limpas', ()=>{ log={}; swaps={}; notas={}; ajustes={}; relogio=null; D.rascunho=null; D.fechadoEm=Date.now(); }); return;
     case 'semanaAbre': case 'semanaFecha': lsSet('caderno:semana', JSON.stringify({w:segunda(), aberto: cmd==='semanaAbre'})); render(); return;
     case 'metaEd': memo.set('edMeta', arg); render(); setTimeout(()=>{ const i=$('#metaIn'); i?.focus(); i?.select(); },0); return;
