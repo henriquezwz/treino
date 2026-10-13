@@ -339,6 +339,7 @@ textarea.grow{resize:none;overflow:hidden;font:inherit;line-height:1.35;min-heig
 .exc-h{display:flex;align-items:center;gap:8px}.exc-h b{color:var(--violet);font-size:14px}.exc-h small{color:var(--muted);font-size:12px;flex:1}
 .fo-ib.sm{width:30px;height:30px;border-radius:9px}
 .exc-q{justify-self:end;background:var(--blue-soft);border-radius:12px 12px 4px 12px;padding:6px 10px;font-size:13px;max-width:88%}
+.exc-a b.cl,.resp b.cl{color:var(--blue)}.exc-a b.cl.v,.resp b.cl.v{color:var(--tang)}
 .exc-a{font-size:13.5px;line-height:1.45;white-space:pre-wrap}
 .exc-card{border:1.5px solid var(--tang);background:var(--tang-soft);border-radius:12px;padding:8px 10px;display:grid;gap:4px;font-size:13px}
 .exc-ch{font:700 12.5px var(--f-num);color:var(--ink)}
@@ -433,7 +434,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 21:05";
+const VERSAO = "13/10 21:20";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -524,7 +525,7 @@ const SEED = {
       {id:'c6', nome:'Tibial anterior', series:3, reps:'15–20', rest:45, bw:true, nota:'Tratamento da canelite. Não pula.', alts:['Tibial com anilha no pé','Tibial na parede','Tibial com elástico']}
     ]}
   ],
-  planMsg: 'Seu treino A, B e C de antes, girando (A → B → C → A…), só sem flexão e abdominal do teste físico. Meta: 4 treinos por semana. Volta de 1 mês e meio parado: na 1ª semana use uns 80–85% da carga de antes e suba até ela em 2 a 3 semanas.',
+  planMsg: 'Seu treino A, B e C de antes, girando (A → B → C → A…), só sem flexão e abdominal. Meta: 4 treinos por semana. Volta de 1 mês e meio parado: na 1ª semana use uns 80–85% da carga de antes e suba até ela em 2 a 3 semanas.',
   metas: [
     {id:'m1', t:'Zero refrigerante com açúcar', s:'Zero açúcar pode.'},
     {id:'m2', t:'Regra do prato no almoço', s:'½ vegetais · ¼ proteína · ¼ carbo'},
@@ -583,7 +584,7 @@ const INFO = {
   a4:{porque:'Isola a função de "fechar" o peito (adução) e alonga sob carga — gatilho forte de crescimento.', ativa:'Peito (adução), sem ombro/tríceps atrapalhando.', erro:'Estender e dobrar o cotovelo (vira empurrão) e agarrar forte (acende o antebraço). Trave o cotovelo levemente e pegue leve.'},
   a5:{porque:'Tríceps é ~2/3 do braço: engrossa mais que o bíceps.', ativa:'Tríceps, ênfase nas cabeças lateral e medial.', erro:'Cotovelo abrindo e subindo. Cole os cotovelos ao corpo e mova só o antebraço.'},
   a7:{porque:'Segundo ângulo de tríceps: pega a cabeça longa, que a corda pega pouco (braço acima da cabeça).', ativa:'Cabeça longa do tríceps (a de dentro/baixo).', erro:'Deixar o cotovelo abrir e ir pra frente. Mantenha o cotovelo apontado pro teto e fixo.'},
-  a6:{porque:'É uma das duas provas do EAF — treinar o movimento é treinar a prova.', ativa:'Peito, tríceps, ombro e core como estabilizador.', erro:'Quadril subindo ou lombar cedendo. Corpo reto como prancha, desça o peito até quase o chão.'},
+  a6:{porque:'Empurrar com o peso do corpo: peito, tríceps e core trabalhando juntos.', ativa:'Peito, tríceps, ombro e core como estabilizador.', erro:'Quadril subindo ou lombar cedendo. Corpo reto como prancha, desça o peito até quase o chão.'},
   b1:{porque:'Abre a LARGURA das costas — o maior responsável pela silhueta em V.', ativa:'Dorsal (grande dorsal), com bíceps ajudando.', erro:'Puxar com os braços e balançar o tronco. Puxe com os cotovelos pra baixo, peito pra cima, sem "dar tranco".'},
   b2:{porque:'Espessura e densidade das costas, e um dos melhores construtores de "meio das costas" e postura. Supinada ainda soma bíceps.', ativa:'Dorsal, trapézio médio, romboides, bíceps.', erro:'Arredondar a lombar (risco de lesão). Coluna neutra sempre; se não segura reta, o peso está alto.'},
   b3:{porque:'Espessura da parte central das costas, complementa a largura da puxada.', ativa:'Meio das costas, trapézio médio, romboides.', erro:'Deixar o ombro ir junto pra frente. Puxe até o umbigo e aperte as escápulas no fim.'},
@@ -591,7 +592,7 @@ const INFO = {
   b5:{porque:'Construtor principal do bíceps — o pico do braço.', ativa:'Bíceps (as duas cabeças).', erro:'Balançar o corpo e mover o cotovelo pra frente. Cotovelo fixo ao lado do corpo, sobe só o antebraço.'},
   b8:{porque:'Dá GROSSURA ao braço visto de lado (não só o pico) e engrossa o antebraço.', ativa:'Braquial e braquiorradial, além do bíceps.', erro:'Girar o punho. Mantenha a pegada neutra (martelo) o movimento todo.'},
   b6:{porque:'Core forte segura a parede abdominal e protege a coluna nas remadas e no dia a dia.', ativa:'Transverso e reto abdominal, lombar como estabilizador.', erro:'Quadril alto ou baixo demais. Corpo numa linha reta dos calcanhares à cabeça; não deixe a lombar afundar.'},
-  b7:{porque:'Segunda prova do EAF; abdômen visível também depende de perder gordura, mas força ajuda na prova.', ativa:'Reto abdominal.', erro:'Puxar o pescoço com as mãos. Olhe pra cima, suba pela contração da barriga.'},
+  b7:{porque:'Fortalece o abdômen; aparecer depende também de perder gordura.', ativa:'Reto abdominal.', erro:'Puxar o pescoço com as mãos. Olhe pra cima, suba pela contração da barriga.'},
   c1:{porque:'O maior construtor de perna e de hormônios/força geral. Base de tudo.', ativa:'Quadríceps, glúteo, posterior e core.', erro:'Joelho pra dentro e calcanhar saindo do chão. Joelho na direção do pé, peso no meio do pé, desça controlado.'},
   c2:{porque:'Muito volume de perna com menos exigência da lombar que o agachamento.', ativa:'Quadríceps e glúteo.', erro:'Descer até a lombar "descolar" do apoio. Pare antes disso pra proteger a coluna.'},
   c3:{porque:'Equilibra o posterior de coxa com o quadríceps — importante pro joelho e pra correr.', ativa:'Isquiotibiais (posterior da coxa).', erro:'Levantar o quadril do apoio pra puxar mais. Quadril firme, movimento só do joelho.'},
@@ -793,7 +794,7 @@ function contextoTreino(curto){
   const ultimo = [...D.sessions].sort((a,b)=>a.data<b.data?-1:1).pop(); const parado = ultimo ? Math.round((Date.now()-new Date(ultimo.data+'T12:00:00'))/864e5) : null;
   return `Hoje: ${hoje()} (${diaSem(hoje())}). Último treino de musculação: ${ultimo?`${ultimo.data} (há ${parado} dias)`:'nenhum'}. Próximo da sequência: ${proximo()}.
 Semana atual: musculação ${sd.musc}/${mt.treinos}, corrida ${f1(sd.km)}/${mt.km} km, futebol ${sd.bola}/${mt.bola}. (Alimentação: a pessoa registra só às vezes; não cobre isso.)
-Contexto da pessoa: faz musculação A/B/C (rodízio, nunca dois dias de perna), quer estética, força e pernas recuperadas; corre de vez em quando, joga futebol, já teve canelite. Teste físico não é prioridade agora. Quer treinar em no máximo ~1 hora.
+Contexto da pessoa: faz musculação A/B/C (rodízio, nunca dois dias de perna), quer estética, força e pernas recuperadas; corre de vez em quando, joga futebol, já teve canelite. Quer treinar em no máximo ~1 hora. NUNCA mencione EAF, TAF, teste físico, prova ou concurso: isso não faz mais parte dos objetivos (flexão e abdominal no histórico eram de uma fase antiga).
 ${estadoHoje()}
 PLANOS:\n${planos}
 TREINOS RECENTES:\n${sess||'nenhum'}
@@ -801,6 +802,16 @@ ATIVIDADES (corrida, futebol…):\n${ativ||'nenhuma'}
 PESO: ${pesos||'sem registro'}
 ALIMENTAÇÃO E HÁBITOS (14 dias):\n${dias.join('\n')||'sem registro'}`;
 }
+/* resposta do coach com os rótulos em destaque */
+const fmtCoach = t => esc(t).replace(/^\s*(Veredito|Já garantiu|Fica pra trás|Por quê|Próximo treino)\s*:/gm, (m, r) => `<b class="cl ${r==='Veredito'?'v':''}">${r}:</b>`);
+/* jeito de explicar: didático, sempre com o porquê */
+const DIDATICO = `JEITO DE RESPONDER (obrigatório): seja um professor didático, em português simples, sem jargão (se usar um termo técnico, explique em poucas palavras). Use os números reais dela. Para qualquer pedido de mudança (pular, encerrar, tirar série, trocar, ir embora), NÃO só obedeça: avalie e responda em linhas curtas, cada uma começando com o rótulo:
+Veredito: tudo bem fazer isso hoje / ok com uma ressalva / melhor não, em 1 frase.
+Já garantiu: o que o que ela já fez hoje consolida (estímulo, volume, músculos), com números.
+Fica pra trás: o que ela perde ou adia com a mudança e se isso pesa ou não.
+Por quê: a explicação fisiológica simples (volume semanal, frequência, recuperação, destreino…).
+Próximo treino: o que fazer para compensar, se precisar.
+Mesmo quando o veredito for "melhor não", ofereça a ação em "acoes" para ela decidir. Para dúvidas simples, responda direto, mas sempre com o porquê.`;
 const FORMATO_ACOES = `"acoes" é uma lista (pode ser vazia) de mudanças que o app aplica com um toque:
 {"tipo":"treino_hoje","nome":"nome curto","motivo":"1 frase","exercicios":[{"nome":"","series":3,"reps":"8–12","descanso":90,"kg":null,"bw":false,"nota":""}]}  → monta o treino de hoje (só hoje)
 {"tipo":"alterar_plano","plano":"A","nome":"opcional","motivo":"1 frase","exercicios":[...mesmo formato]}  → substitui os exercícios do treino A/B/C de vez
@@ -879,11 +890,12 @@ async function perguntarCoach(q){
   q = String(q||'').trim(); if (!q) return; const c = {q, a:'', acoes:[], busy:true}; S.chat.push(c); S.chat = S.chat.slice(-12); render();
   try{
     const hist = S.chat.slice(-5,-1).map(x=>`Pessoa: ${x.q}\nCoach: ${x.a}`).join('\n');
-    const r = await S.ia.json(`Você é o coach de treino pessoal desta pessoa: um preparador físico brasileiro experiente, direto, prático, que explica a fisiologia quando ajuda. Use os dados reais abaixo. Se a pessoa pedir para montar, trocar ou ajustar treino, PROPONHA as mudanças em "acoes" (o app aplica com um toque). Considere tempo parado (destreino: reduzir volume e carga ~20–40% na volta), dores, canelite, futebol e o teste físico.
+    const r = await S.ia.json(`Você é o coach de treino pessoal desta pessoa: um preparador físico brasileiro experiente, direto, prático, que explica a fisiologia quando ajuda. Use os dados reais abaixo.
+${DIDATICO} Se a pessoa pedir para montar, trocar ou ajustar treino, PROPONHA as mudanças em "acoes" (o app aplica com um toque). Considere tempo parado (destreino: reduzir volume e carga ~20–40% na volta), dores, canelite e futebol.
 ${contextoTreino()}
 ${hist?`CONVERSA ATÉ AGORA:\n${hist}\n`:''}
 PERGUNTA: ${q}
-Responda SÓ com JSON: {"resposta":"texto curto em português, até 8 linhas, sem markdown","acoes":[...]}
+Responda SÓ com JSON: {"resposta":"texto em português, até 10 linhas curtas, sem markdown, uma ideia por linha","acoes":[...]}
 ${FORMATO_ACOES}`, t => { const m = t.match(/"resposta"\s*:\s*"((?:[^"\\]|\\.)*)/); if (m){ c.a = m[1].replace(/\\n/g,'\n').replace(/\\"/g,'"'); const box = document.querySelector(`[data-chat="${S.chat.indexOf(c)}"]`); if (box) box.textContent = c.a; } });
     c.a = r.resposta || c.a || ''; c.acoes = Array.isArray(r.acoes) ? r.acoes : [];
   }catch(e){ c.a = S.ia.erro(e); }
@@ -912,7 +924,8 @@ async function perguntarExercicio(exId, q){
   const series = Array.from({length:nSeries(e)},(_,i)=>{ const v = valorSerie(e,i); return `${i+1}ª ${v.ok?'feita':'a fazer'}: ${e.bw?'':`${v.kg??'?'} kg x `}${v.reps??'?'}`; }).join('; ');
   const h = historicoEx(nome, e.bw).slice(-8).map(x=>`${x.data}: ${x.sets.map(s=>e.bw?s.reps:`${s.kg}x${s.reps}`).join(' ')}`).join(' | ');
   const conversa = lista.slice(0,-1).map(x=>`Pessoa: ${x.q}\nCoach: ${x.a}`).join('\n');
-  try{ const r = await S.ia.json(`Você é o coach de treino desta pessoa: preparador físico brasileiro, direto e prático. Ela está NA ACADEMIA, no exercício "${nome}", e perguntou algo sobre ele. Responda curto (até 4 linhas, sem markdown), com números reais.
+  try{ const r = await S.ia.json(`Você é o coach de treino desta pessoa: preparador físico brasileiro, direto e prático. Ela está NA ACADEMIA, no exercício "${nome}", e perguntou algo. Responda em até 8 linhas curtas, sem markdown, uma ideia por linha.
+${DIDATICO}
 EXERCÍCIO HOJE: ${a.series} séries de ${a.reps}${e.tempo?' segundos':''}, descanso ${a.rest}s${e.bw?', peso do corpo':''}. Séries de hoje: ${series}.${notas[exId]?` Comentário dela: "${notas[exId]}".`:''}
 HISTÓRICO NESTE EXERCÍCIO: ${h||'nenhum'}
 CONTEXTO: ${contextoTreino(true).slice(0,2500)}
@@ -927,7 +940,7 @@ ${FORMATO_ACOES}`, t => { const mm = t.match(/"resposta"\s*:\s*"((?:[^"\\]|\\.)*
 /* ---------- insights do dia ---------- */
 async function gerarInsights(forcar){
   if (!forcar && D.ia && D.ia.dia===hoje()) return; if (memo.get('insBusy')) return; memo.set('insBusy', true); render();
-  try{ const r = await S.ia.json(`Você é um preparador físico brasileiro muito bom. Gere de 4 a 6 insights PROFUNDOS e ESPECÍFICOS sobre o treino desta pessoa, com números reais dos dados (nunca genéricos): consistência da semana vs plano, progressão de carga (o que subiu, o que estagnou e por quê), recordes, equilíbrio entre treinos A/B/C, corrida e futebol vs recuperação e canelite, preparação para o teste físico, e o que fazer hoje.
+  try{ const r = await S.ia.json(`Você é um preparador físico brasileiro muito bom. Gere de 4 a 6 insights PROFUNDOS e ESPECÍFICOS sobre o treino desta pessoa, com números reais dos dados (nunca genéricos): consistência da semana vs plano, progressão de carga (o que subiu, o que estagnou e por quê), recordes, equilíbrio entre treinos A/B/C, corrida e futebol vs recuperação e canelite, e o que fazer hoje. Explique o porquê de cada um em linguagem simples.
 ${contextoTreino()}
 Responda só JSON: [{"tipo":"alerta|dica|projecao|elogio","titulo":"até 8 palavras","texto":"1 a 3 frases com números","acao":"opcional, ação concreta curta"}]`);
     const itens = (Array.isArray(r) ? r : (r.insights||r.itens||[])).filter(x=>x && x.titulo).slice(0,7);
@@ -936,7 +949,7 @@ Responda só JSON: [{"tipo":"alerta|dica|projecao|elogio","titulo":"até 8 palav
   memo.delete('insBusy'); render();
 }
 async function revisarSessao(id){ const s = D.sessions.find(x=>x.id===id); if (!s) return;
-  try{ const t = await S.ia.texto(`Você é o preparador físico desta pessoa. Comente o treino que ela acabou de fazer em até 5 linhas, em português, sem markdown: o que foi bem (com números, compare com a última vez do mesmo treino), o que ajustar na próxima (carga, reps, descanso) e um cuidado de recuperação.
+  try{ const t = await S.ia.texto(`Você é o preparador físico desta pessoa. Comente o treino que ela acabou de fazer em até 5 linhas, em português, sem markdown: o que foi bem (com números, compare com a última vez do mesmo treino), o que ajustar na próxima (carga, reps, descanso) e um cuidado de recuperação. Explique o porquê de cada ponto em linguagem simples. Se o treino terminou antes (exercícios faltando), diga sem drama o que ele consolidou e como compensar.
 ${contextoTreino(true)}
 TREINO DE AGORA: ${s.data} treino ${s.plano}: ${s.itens.map(i=>`${i.nome} ${i.sets.map(x=>i.bw?`${x.reps}`:`${x.kg}x${x.reps}`).join(' ')}${i.nota?` ("${i.nota}")`:''}`).join('; ')}`);
     s.ia = t.trim(); save(); toast('O coach comentou seu treino. Veja em Progresso → histórico.'); }catch(e){}
@@ -1068,7 +1081,7 @@ function blocoExCoach(e){ const msgs = S.exChat[e.id]||[]; if (S.excAberto!==e.i
     const alvo = exAlvo(a, e), outroEx = alvo.id!==e.id; const outro = a.escopo==='plano' ? 'hoje' : 'plano', pri = outro==='hoje' ? 'plano' : 'hoje';
     return `<div class="exc-card"><div class="exc-ch">${outroEx?`${esc(swaps[alvo.id]||alvo.nome)}: `:''}${esc(mudancasTxt(a, alvo))}</div>${a.motivo?`<div>${esc(a.motivo)}</div>`:''}<div class="btns" style="margin-top:2px">${a._ok ? `<span class="pill g">Aplicado ${a._ok==='plano'?'no plano':'hoje'} ✓</span>` : `<button class="btn o sm" data-act="excAplica:${e.id}:${k}:${j}:${pri}">${pri==='hoje'?'Aplicar hoje':'Mudar no plano'}</button><button class="btn sm" data-act="excAplica:${e.id}:${k}:${j}:${outro}">${outro==='hoje'?'só hoje':'de vez no plano'}</button>`}</div></div>`; };
   return `<div class="exc"><div class="exc-h"><b>Coach</b><small>sobre este exercício</small>${msgs.length?'':`<button class="fo-ib sm" data-act="excFecha" aria-label="Fechar">${ic('x',16)}</button>`}</div>
-    ${msgs.map((m,k)=>`<div class="exc-q">${esc(m.q)}</div><div class="exc-a" data-exc="${e.id}:${k}">${m.a ? esc(m.a) : m.busy ? '<span class="load">o coach está pensando…</span>' : ''}</div>${(m.acoes||[]).map((a,j)=>card(a,k,j)).join('')}`).join('')}
+    ${msgs.map((m,k)=>`<div class="exc-q">${esc(m.q)}</div><div class="exc-a" data-exc="${e.id}:${k}">${m.a ? fmtCoach(m.a) : m.busy ? '<span class="load">o coach está pensando…</span>' : ''}</div>${(m.acoes||[]).map((a,j)=>card(a,k,j)).join('')}`).join('')}
     ${msgs.length ? '' : `<div class="exc-chips">${['Quero tirar 1 série','Tô sem tempo, quero ir embora','Encerra aqui, pula o resto','Achei muito ombro hoje','Senti dor'].map(t=>`<button class="chip" data-act="excPerg:${e.id}:${esc(t)}">${esc(t)}</button>`).join('')}</div>`}
     <form class="exc-f" id="excF" data-ex="${e.id}"><textarea class="in grow" id="excIn" rows="1" placeholder="Pergunte sobre ${esc(swaps[e.id]||e.nome)}"></textarea><button class="btn p sm" aria-label="Enviar">${ic('dir',16)}</button></form></div>`; }
 async function exVibe(exId){ const p = getPlan(plano), e = p.ex.find(x=>x.id===exId) || D.plans.flatMap(x=>x.ex).find(x=>x.id===exId); if (!e) return; const nome = swaps[exId]||e.nome;
@@ -1174,7 +1187,7 @@ function blocoAtividades(){ const at = D.atividades.filter(a=>a.data>=addDias(ho
 function blocoCoach(){ const ultimos = S.chat.slice(-4); const base = S.chat.length - ultimos.length;
   return `<section class="panel" id="coach"><div class="ph"><h2 style="--hc:var(--violet)">Coach</h2>${S.chat.length?`<button class="act" data-act="limparChat">limpar</button>`:''}</div>
     ${ultimos.length ? ultimos.map((c,j)=>{ const ci = base+j; return `<div style="margin-top:10px"><div class="pill v" style="white-space:normal">${esc(c.q)}</div>
-      ${c.busy && !c.a ? `<div class="load" style="margin-top:8px">Pensando com os seus dados…</div>` : `<div class="resp" data-chat="${ci}">${esc(c.a)}</div>`}
+      ${c.busy && !c.a ? `<div class="load" style="margin-top:8px">Pensando com os seus dados…</div>` : `<div class="resp" data-chat="${ci}">${fmtCoach(c.a)}</div>`}
       ${(c.acoes||[]).map((a,i)=>cartaoAcao(a,i,ci)).join('')}</div>`; }).join('') : `<p class="note" style="margin-top:0">Pergunte qualquer coisa ou peça mudanças. Ele vê seus treinos, cargas, corridas e comida, e pode montar o treino de hoje ou alterar seu plano.</p>`}
     <form class="ask" id="askF"><textarea class="in grow" id="askIn" rows="1" placeholder="Ex.: voltei depois de um mês, o que faço hoje?"></textarea><button class="btn p">Enviar</button></form>
     <div class="btns">${['O que faço hoje?','Monta meu treino de hoje em 45 minutos','Como está minha evolução de carga?','Troca um exercício que está me incomodando'].map(s=>`<button class="chip" data-act="perg:${esc(s)}">${esc(s)}</button>`).join('')}</div>
