@@ -385,7 +385,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 18:30";
+const VERSAO = "13/10 18:40";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -854,7 +854,7 @@ function render(){
 }
 
 /* ---------- HOJE ---------- */
-function viewHoje(){ return `<div class="grid two"><div class="col">${blocoSemana()}${blocoConta()}${blocoPlanoNovo()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}${blocoProteina()}</div></div>`; }
+function viewHoje(){ return `<div class="grid two"><div class="col">${blocoSemana()}${blocoProteina()}${blocoConta()}${blocoPlanoNovo()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}</div></div>`; }
 
 function blocoPlanoNovo(){ const n = D.planNovo; if (!n || n.visto) return '';
   return `<section class="panel novo"><div class="sm-eye" style="color:var(--violet)">Treino ajustado pelo Claude</div><b style="font-size:17px">${D.plans.map(p=>esc(p.id)).join(' → ')} girando · ${metaSemana().treinos}× por semana</b>
