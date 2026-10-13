@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2D5BFF">
+<meta name="theme-color" content="#F3F5FB">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Treino">
@@ -244,8 +244,8 @@ nav.tabs button[aria-current="page"]{color:var(--tang);background:var(--tang-sof
 .eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .big{display:flex;align-items:baseline;gap:10px;margin:8px 0 6px;font-weight:800;letter-spacing:-.035em;line-height:1}
 .big>span:first-child{font-size:clamp(52px,14vw,72px)}
-.big .de{font-size:18px;letter-spacing:0;font-weight:700;color:var(--blue)}
-.big .de button{color:var(--blue);text-decoration:underline dotted;text-underline-offset:4px;font-weight:800}
+.big .de{font-size:18px;letter-spacing:0;font-weight:700;color:var(--tang)}
+.big .de button{color:var(--tang);text-decoration:underline dotted;text-underline-offset:4px;font-weight:800}
 .hero .sub{color:var(--muted);margin:0;font-size:14.5px}.hero .sub b{color:var(--ink)}
 .split{display:flex;height:12px;border-radius:999px;overflow:hidden;margin:16px 0 8px;gap:3px}
 .split span{flex:1;border-radius:999px;background:var(--blue)}.split span.vz{background:var(--sunk)}
@@ -292,45 +292,40 @@ nav.tabs button[aria-current="page"]{color:var(--tang);background:var(--tang-sof
 .btn.big{padding:15px 16px;font-size:16px;border-radius:14px}
 .panel.conta{border-left:5px solid var(--blue)}.panel.aviso{border-left:5px solid var(--danger)}
 
-/* ===== modo academia ===== */
+/* ===== modo academia (compacto) ===== */
 body.focando{overflow:hidden}
 #foco{position:fixed;inset:0;z-index:55;background:var(--bg);overflow:auto}
-.fo{max-width:560px;margin:0 auto;padding:12px 16px calc(24px + env(safe-area-inset-bottom,0px));min-height:100%;display:flex;flex-direction:column;gap:14px}
+.fo{max-width:520px;margin:0 auto;padding:10px 14px calc(14px + env(safe-area-inset-bottom,0px));min-height:100%;display:flex;flex-direction:column;gap:10px}
 .fo-top{display:flex;align-items:center;gap:10px}
-.fo-ib{width:42px;height:42px;border-radius:13px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink);flex:0 0 auto}
+.fo-ib{width:36px;height:36px;border-radius:11px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink);flex:0 0 auto}
 .fo-pos{flex:1;display:flex;gap:4px;justify-content:center;flex-wrap:wrap}
-.fo-pos button{width:22px;height:6px;border-radius:6px;background:var(--line)}
-.fo-pos button.meio{background:var(--amber)}.fo-pos button.ok{background:var(--mint)}.fo-pos button.cur{background:var(--blue);width:30px}
-.fo-ex h2{margin:4px 0 2px;font-size:26px;line-height:1.15;letter-spacing:-.015em}
-.fo-ex h2 button{text-align:left;display:inline-flex;gap:6px;align-items:center}
-.fo-ex h2 svg{color:var(--muted)}
-.fo-alvo{color:var(--muted);font-size:14px}
-.fo-ult{margin-top:8px;font-size:13.5px;color:var(--muted)}.fo-ult b{font:500 13px var(--f-num);color:var(--blue)}
-.fo-sug{margin-top:6px;display:inline-block;border-radius:10px;padding:6px 10px;font-size:13.5px;font-weight:700;background:var(--mint-soft);color:var(--mint)}
-.fo-sug.volta{background:var(--violet-soft);color:var(--violet)}
-.fo-nota{margin-top:6px;font-size:13px;color:var(--muted)}
-.fo-sets{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
-.fo-set{flex:0 0 auto;min-width:68px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);padding:6px 10px;text-align:center}
-.fo-set small{display:block;font-size:11px;color:var(--muted);font-weight:700}.fo-set b{font:700 14px var(--f-num)}
+.fo-pos button{width:18px;height:5px;border-radius:5px;background:var(--line)}
+.fo-pos button.meio{background:var(--amber)}.fo-pos button.ok{background:var(--mint)}.fo-pos button.cur{background:var(--tang);width:26px}
+.fo-ex h2{margin:0;font-size:20px;line-height:1.2;letter-spacing:-.01em}.fo-ex h2 button{text-align:left}
+.fo-alvo{color:var(--muted);font-size:13px;margin-top:2px}.fo-alvo b{color:var(--tang)}
+.fo-sets{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.fo-set{flex:0 0 auto;min-width:58px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);padding:4px 8px;text-align:center;line-height:1.2}
+.fo-set small{display:block;font-size:10px;color:var(--muted);font-weight:700}.fo-set b{font:700 13px var(--f-num)}
 .fo-set.ok{background:var(--mint-soft);border-color:var(--mint)}.fo-set.ok b{color:var(--mint)}
-.fo-set.cur{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
-.fo-set.add{min-width:44px;display:grid;place-items:center;color:var(--blue)}
-.fo-nums{display:grid;gap:12px}
-.fo-num label{display:block;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;text-align:center}
-.stp{display:grid;grid-template-columns:64px minmax(0,1fr) 64px;gap:10px;align-items:center}
-.stp button{height:64px;border-radius:18px;background:var(--surface);border:1.5px solid var(--line);display:grid;place-items:center;color:var(--ink)}
-.stp button:active{background:var(--blue-soft)}
-.stp input{width:100%;min-width:0;height:72px;text-align:center;border:0;border-radius:18px;background:var(--surface);font:700 44px var(--f-num);letter-spacing:-.02em;box-shadow:inset 0 0 0 1.5px var(--line)}
-.stp input:focus{outline:0;box-shadow:inset 0 0 0 2.5px var(--blue)}
-.fo-feita{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:68px;border-radius:20px;background:var(--tang);color:#fff;font-size:19px;font-weight:800;box-shadow:0 14px 30px -14px rgba(255,106,43,.8)}
-.fo-feita:active{transform:translateY(1px)}
-.fo-feita.des{background:var(--mint-soft);color:var(--mint);box-shadow:none;font-size:15px}
-.fo-desc{text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px 14px}
-.fo-desc b{display:block;font-size:64px;font-weight:700;letter-spacing:-.03em;color:var(--tang);line-height:1.1;margin:4px 0}
-.fo-bot{margin-top:auto;display:flex;gap:8px;align-items:center}
-.fo-nav{display:inline-flex;align-items:center;gap:4px;border-radius:12px;padding:10px 12px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:13.5px;white-space:nowrap}
+.fo-set.cur{border-color:var(--tang);box-shadow:0 0 0 3px var(--tang-soft)}
+.fo-set.add{min-width:38px;display:grid;place-items:center;color:var(--tang)}
+.fo-nums{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fo-num label{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;text-align:center}
+.stp{display:grid;grid-template-columns:38px minmax(0,1fr) 38px;gap:5px;align-items:center}
+.stp button{height:46px;border-radius:12px;background:var(--surface);border:1.5px solid var(--line);display:grid;place-items:center;color:var(--ink)}
+.stp button:active{background:var(--tang-soft)}
+.stp input{width:100%;min-width:0;height:52px;text-align:center;border:0;border-radius:12px;background:var(--surface);font:700 26px var(--f-num);box-shadow:inset 0 0 0 1.5px var(--line)}
+.stp input:focus{outline:0;box-shadow:inset 0 0 0 2px var(--tang)}
+.fo-nums:has(.fo-num:only-child){grid-template-columns:1fr}
+.fo-feita{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:52px;border-radius:14px;background:var(--tang);color:#fff;font-size:16.5px;font-weight:800;box-shadow:0 10px 24px -14px rgba(255,106,43,.9)}
+.fo-feita.des{background:var(--mint-soft);color:var(--mint);box-shadow:none;font-size:14px}
+.fo-desc{text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px}
+.fo-desc b{display:block;font-size:44px;font-weight:700;color:var(--tang);line-height:1.1;margin:2px 0 4px}
+.fo-desc .btns{margin-top:4px}
+.fo-bot{margin-top:auto;display:flex;gap:6px;align-items:center}
+.fo-nav{display:inline-flex;align-items:center;gap:3px;border-radius:11px;padding:8px 10px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:13px;white-space:nowrap}
 .fo-nav:disabled{opacity:.4}.fo-nav.fim{background:var(--mint);border-color:var(--mint);color:#fff}
-.fo-bot .cmt{min-width:0;flex:1}
+.fo-bot .cmt{min-width:0;flex:1;font-size:12.5px;padding:7px 9px}
 body.focando #timer{display:none!important}
 
 /* ===== semana ===== */
@@ -351,17 +346,17 @@ body.focando #timer{display:none!important}
 .panel.novo{border:1.5px solid var(--violet);background:linear-gradient(180deg,var(--violet-soft),var(--surface) 75%)}
 .claude-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}.claude-row span{flex:1 1 100%}
 /* ===== evolução no modo academia ===== */
-.evo{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:grid;gap:8px}
-.evo-v{font-weight:800;font-size:15px;line-height:1.3}
-.evo-v.up{color:var(--mint)}.evo-v.trava{color:#9A6500}.evo-v.down{color:var(--danger)}.evo-v.volta,.evo-v.novo{color:var(--violet)}
+.evo{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:6px}
+.evo-v{font-weight:700;font-size:13.5px;line-height:1.35;border-left:3px solid currentColor;padding-left:8px}
+.evo-v.up{color:var(--mint)}.evo-v.trava{color:#9A6500}.evo-v.down{color:var(--danger)}.evo-v.volta,.evo-v.novo,.evo-v.ok{color:var(--violet)}.evo-v.coach{color:var(--tang)}
 :root[data-tema="escuro"] .evo-v.trava{color:var(--amber)}
-.spark{width:100%;height:64px;display:block}
-.evo-s{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.evo-s span{background:var(--sunk);border-radius:12px;padding:6px 8px}
-.evo-s small{display:block;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.evo-s b{font:700 15px var(--f-num)}
-.evo-s b.up{color:var(--mint)}.evo-s b.dn{color:var(--danger)}.evo-s i{font-style:normal;font-size:11px}
-.evo-ia{font-size:13.5px;background:var(--violet-soft);border-radius:12px;padding:8px 10px}.evo-ia:empty{display:none}.evo-ia b{color:var(--violet);display:inline-flex;gap:4px;align-items:center}
-.evo>.lnk{justify-self:start}
-.passos{padding-left:20px;margin:10px 0}.passos li{margin:8px 0;font-size:15px}
+.evo-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.spark{width:100%;height:40px;display:block}
+.evo-s{display:grid;gap:1px;text-align:right;font-size:12px;color:var(--muted)}.evo-s b{font:700 13px var(--f-num);color:var(--ink)}
+.evo-s span.up{color:var(--mint);font:700 12.5px var(--f-num)}.evo-s span.dn{color:var(--danger);font:700 12.5px var(--f-num)}.evo-s small{font:500 11px var(--f-ui);color:var(--muted)}
+.evo-u{font-size:12px;color:var(--muted)}.evo-u b{font:500 12px var(--f-num);color:var(--blue)}
+.evo-ia{font-size:13px;background:var(--violet-soft);border-radius:10px;padding:6px 9px}.evo-ia b{color:var(--violet)}
+.evo-l{display:flex;gap:14px;font-size:12.5px}.evo-l .lnk{font-size:12.5px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -390,7 +385,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 18:05";
+const VERSAO = "13/10 18:30";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -896,7 +891,7 @@ function blocoSemana(){
     <div class="dias7">${dias.map(d=>`<div class="${d.k===hoje()?'hoje':''} ${d.k>hoje()?'fut':''}"><small>${d.l}</small><span style="${d.m.length?`background:${corPlano(d.m[0].plano)};color:#fff;border-color:transparent`:''}">${d.m.map(s=>s.plano==='Hoje'?'★':esc(s.plano)).join('')}</span><em>${d.at.some(ehCorre)?'<i class="r"></i>':''}${d.at.some(ehBola)?'<i class="f"></i>':''}</em></div>`).join('')}</div>
     <dl class="kpis">
       <div><dt>Recordes</dt><dd>${recs}</dd><small>neste mês</small></div>
-      <div><dt>Corrida</dt><dd>${f1(sd.km)} km</dd><small>${sd.bola?`+ futebol ${sd.bola}×`:'nesta semana'}</small></div>
+      ${sd.km || sd.bola ? `<div><dt>${sd.km?'Corrida':'Futebol'}</dt><dd>${sd.km?f1(sd.km)+' km':sd.bola+'×'}</dd><small>${sd.km&&sd.bola?`+ futebol ${sd.bola}×`:'nesta semana'}</small></div>` : `<div><dt>Último treino</dt><dd>${diasDesde==null?'—':diasDesde===0?'hoje':diasDesde===1?'ontem':`há ${diasDesde} d`}</dd><small>${ult?esc(ult.plano==='Hoje'?'coach':'treino '+ult.plano):'nenhum ainda'}</small></div>`}
       <div><dt>Séries</dt><dd>${sum(sess, s=>s.itens.reduce((a,i)=>a+i.sets.length,0))}</dd><small>nesta semana</small></div>
     </dl>
   </section>`;
@@ -916,15 +911,17 @@ function vibeEx(e, nome){ const h = historicoEx(nome, e.bw), un = e.bw ? 'reps' 
 function sparkline(pts){ if (pts.length<2) return ''; const W=300,H=64,P=6; const mn=Math.min(...pts), mx=Math.max(...pts), rg=(mx-mn)||1; const X=i=>P+i*(W-2*P)/(pts.length-1), Y=v=>H-P-((v-mn)/rg)*(H-2*P);
   const d = pts.map((v,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
   return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path d="${d} L${X(pts.length-1)},${H} L${X(0)},${H} Z" fill="var(--tang-soft)"/><path d="${d}" fill="none" stroke="var(--tang)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><circle cx="${X(pts.length-1)}" cy="${Y(pts[pts.length-1])}" r="4" fill="var(--tang)"/></svg>`; }
-function painelEvolucao(e, nome){ const h = historicoEx(nome, e.bw), un = e.bw ? 'reps' : 'kg', vb = vibeEx(e, nome);
-  const rec = h.length ? h.reduce((a,b)=>b.top>a.top?b:a) : null, prim = h[0], ult = h[h.length-1];
-  const ganho = h.length>1 ? ult.top - prim.top : 0, pc = h.length>1 && prim.top ? Math.round(ganho/prim.top*100) : 0;
-  const ia = (D.exIA||{})[nome]; const iaOk = ia && ia.dia===hoje();
-  return `<div class="evo"><div class="evo-v ${vb.cls}">${esc(vb.txt)}</div>
-    ${h.length>1 ? `<div class="evo-g">${sparkline(h.slice(-10).map(x=>x.top))}</div>` : ''}
-    ${h.length ? `<div class="evo-s"><span><small>Recorde</small><b>${f1(rec.top)} ${un}</b></span><span><small>Desde ${br(prim.data)}</small><b class="${ganho>0?'up':ganho<0?'dn':''}">${ganho>0?'+':''}${f1(ganho)} ${un}${pc?` <i>${pc>0?'+':''}${pc}%</i>`:''}</b></span><span><small>Treinos</small><b>${h.length}</b></span></div>` : ''}
-    ${S.ia ? `<div class="evo-ia">${iaOk ? `<b>${ic('info',14)} Coach:</b> ${esc(ia.txt)}` : memo.get('exIABusy')===nome ? `<span class="load">o coach está olhando sua evolução…</span>` : h.length ? `<button class="lnk" data-act="exVibe:${e.id}">o que o coach acha?</button>` : ''}</div>` : ''}
-    <button class="lnk" data-act="info:${e.id}">ver tudo deste exercício</button></div>`; }
+function painelEvolucao(e, nome, dica){ const h = historicoEx(nome, e.bw), un = e.bw ? 'reps' : 'kg', vb = vibeEx(e, nome);
+  const rec = h.length ? h.reduce((a,b)=>b.top>a.top?b:a) : null, prim = h[0];
+  const ganho = h.length>1 ? h[h.length-1].top - prim.top : 0;
+  const ia = (D.exIA||{})[nome]; const iaOk = ia && ia.dia===hoje(); const u = ultima(nome);
+  const frase = dica || vb;
+  return `<div class="evo"><div class="evo-v ${frase.cls}">${esc(frase.txt)}</div>
+    ${h.length ? `<div class="evo-row">${h.length>1 ? `<div class="evo-g">${sparkline(h.slice(-10).map(x=>x.top))}</div>` : ''}
+      <div class="evo-s"><span>Recorde <b>${f1(rec.top)} ${un}</b></span>${h.length>1?`<span class="${ganho>0?'up':ganho<0?'dn':''}">${ganho>0?'+':''}${f1(ganho)} ${un} <small>desde ${br(prim.data)}</small></span>`:''}<span><small>${h.length} ${h.length>1?'treinos':'treino'}</small></span></div></div>` : ''}
+    ${u ? `<div class="evo-u">Última: <b>${esc(u.txt)}</b></div>` : ''}
+    ${iaOk ? `<div class="evo-ia"><b>Coach:</b> ${esc(ia.txt)}</div>` : ''}
+    <div class="evo-l">${S.ia && h.length && !iaOk ? (memo.get('exIABusy')===nome ? `<span class="load">o coach está olhando…</span>` : `<button class="lnk" data-act="exVibe:${e.id}">o que o coach acha?</button>`) : ''}<button class="lnk" data-act="info:${e.id}">ver tudo</button></div></div>`; }
 async function exVibe(exId){ const p = getPlan(plano), e = p.ex.find(x=>x.id===exId) || D.plans.flatMap(x=>x.ex).find(x=>x.id===exId); if (!e) return; const nome = swaps[exId]||e.nome;
   if (memo.get('exIABusy')) return; memo.set('exIABusy', nome); if (S.foco) renderFoco();
   const h = historicoEx(nome, e.bw).slice(-8).map(x=>`${x.data}: ${x.sets.map(s=>e.bw?s.reps:`${s.kg}x${s.reps}`).join(' ')}`).join(' | ');
@@ -978,7 +975,7 @@ function blocoTreino(){
     <div class="tr-seg" role="tablist">${vis.map(x=>`<button role="tab" aria-selected="${x.id===plano}" style="--cc:${corPlano(x.id)}" data-act="plano:${esc(x.id)}" class="${feitos.includes(x.id)?'feito':''}"><b>${x.id==='Hoje'?'★':esc(x.id)}</b><small>${esc(x.id==='Hoje'?'coach':x.nome.split('/')[0].trim())}</small></button>`).join('')}</div>
     <div class="tr-lista">${linhas || '<p class="note">Sem exercícios neste treino. Ajuste em Treinos.</p>'}</div>
     <div class="tr-acoes">
-      ${acabou ? `<button class="btn o w big" data-act="encerrar">Encerrar e salvar treino</button>` : `<button class="btn p w big" data-act="foco:${Math.max(0, p.ex.findIndex(e=>progressoEx(e).n < progressoEx(e).ns))}">${comecou?`Continuar · ${ok} de ${tot} séries`:'Começar treino'}</button>`}
+      ${acabou ? `<button class="btn o w big" data-act="encerrar">Encerrar e salvar treino</button>` : `<button class="btn o w big" data-act="foco:${Math.max(0, p.ex.findIndex(e=>progressoEx(e).n < progressoEx(e).ns))}">${comecou?`Continuar · ${ok} de ${tot} séries`:'Começar treino'}</button>`}
       ${comecou && !acabou ? `<button class="lnk" data-act="encerrar">encerrar e salvar como está</button>` : ''}
       ${custom ? `<button class="lnk" data-act="tirarCustom">voltar para o treino normal</button>` : ''}
       ${comecou ? `<button class="lnk" data-act="limparHoje">limpar o que marquei</button>` : ''}
@@ -998,18 +995,16 @@ function renderFoco(){
     <div class="fo-top"><button class="fo-ib" data-act="fecharFoco" aria-label="Fechar">${ic('x',20)}</button>
       <div class="fo-pos">${p.ex.map((x,k)=>{ const q = progressoEx(x); return `<button class="${k===f.i?'cur':''} ${q.n>=q.ns?'ok':q.n?'meio':''}" data-act="focoEx:${k}" aria-label="Exercício ${k+1}"></button>`; }).join('')}</div>
       <a class="fo-ib" href="${yt(nome)}" target="_blank" rel="noopener" aria-label="Ver execução">${ic('play',18)}</a></div>
-    <div class="fo-ex"><div class="tr-eye" style="color:var(--tang)">Exercício ${f.i+1} de ${p.ex.length}</div>
-      <h2><button data-act="info:${e.id}">${esc(nome)} ${ic('info',16)}</button></h2>
-      <div class="fo-alvo">Alvo ${e.series}×${esc(e.reps)}${e.tempo?' s':''} · descanso ${e.rest}s <button class="lnk" data-act="swap:${e.id}">trocar</button></div>
-      ${u?`<div class="fo-ult">Última vez: <b>${esc(u.txt)}</b></div>`:''}
-      ${D.cargasHoje && D.cargasHoje.data===hoje() && (D.cargasHoje.por||{})[nome] ? `<div class="fo-sug volta">Carga do coach para hoje${D.cargasHoje.pct?` (${D.cargasHoje.pct}%)`:''}: ${f1(D.cargasHoje.por[nome].kg??0)} kg</div>` : sg?`<div class="fo-sug ${sg.tipo}">${esc(sg.txt)}</div>`:''}</div>
-    ${painelEvolucao(e, nome)}
+    <div class="fo-ex"><h2><button data-act="info:${e.id}">${esc(nome)}</button></h2>
+      <div class="fo-alvo"><b>${f.i+1}/${p.ex.length}</b> · ${e.series}×${esc(e.reps)}${e.tempo?' s':''} · descanso ${e.rest}s · <button class="lnk" data-act="swap:${e.id}">trocar</button></div>
+    </div>
+    ${painelEvolucao(e, nome, D.cargasHoje && D.cargasHoje.data===hoje() && (D.cargasHoje.por||{})[nome] ? {cls:'coach', txt:`Carga do coach para hoje${D.cargasHoje.pct?` (${D.cargasHoje.pct}%)`:''}: ${f1(D.cargasHoje.por[nome].kg??0)} kg`} : sg ? {cls: sg.tipo==='sobe'?'up':'volta', txt: sg.txt} : null)}
     <div class="fo-sets">${Array.from({length:ns},(_,s)=>{ const x = valorSerie(e,s); return `<button class="fo-set ${s===f.s?'cur':''} ${x.ok?'ok':''}" data-act="focoSet:${s}"><small>${s+1}ª</small>${x.ok||s===f.s?`<b>${e.bw?'':f1(x.kg??0)+'×'}${x.reps??'–'}</b>`:'<b>—</b>'}</button>`; }).join('')}<button class="fo-set add" data-act="maisSerie:${e.id}" aria-label="Mais uma série">${ic('mais',16)}</button></div>
     ${descansando ? `<div class="fo-desc"><div class="tr-eye" style="color:var(--tang)">Descanso</div><b id="fClock" class="num">${pad(Math.floor(tL/60))}:${pad(tL%60)}</b><div class="btns" style="justify-content:center"><button class="btn" data-act="timerMais">+30s</button><button class="btn o" data-act="timerPara">Pular descanso</button></div><p class="note">Próxima: ${f.s+1}ª série${pr.n>=pr.ns && p.ex[f.i+1] ? ` · ${esc(swaps[p.ex[f.i+1].id]||p.ex[f.i+1].nome)}`:''}</p></div>`
     : `<div class="fo-nums">
-        ${e.bw?'':`<div class="fo-num"><label>Carga (kg)</label><div class="stp"><button data-act="stp:kg:-1" aria-label="Menos carga">${ic('menos',22)}</button><input id="foKg" inputmode="decimal" value="${v.kg!=null?String(v.kg).replace('.',','):''}" aria-label="Carga"><button data-act="stp:kg:1" aria-label="Mais carga">${ic('mais',22)}</button></div></div>`}
-        <div class="fo-num"><label>${e.tempo?'Segundos':'Repetições'}</label><div class="stp"><button data-act="stp:reps:-1" aria-label="Menos">${ic('menos',22)}</button><input id="foReps" inputmode="numeric" value="${v.reps??''}" aria-label="Repetições"><button data-act="stp:reps:1" aria-label="Mais">${ic('mais',22)}</button></div></div></div>
-      ${v.ok ? `<button class="fo-feita des" data-act="focoDesmarca">${ic('check',22)} Série feita · toque para desmarcar</button>` : `<button class="fo-feita" data-act="focoFeita">${ic('check',24)} Série feita</button>`}
+        ${e.bw?'':`<div class="fo-num"><label>Carga kg</label><div class="stp"><button data-act="stp:kg:-1" aria-label="Menos carga">${ic('menos',18)}</button><input id="foKg" inputmode="decimal" value="${v.kg!=null?String(v.kg).replace('.',','):''}" aria-label="Carga"><button data-act="stp:kg:1" aria-label="Mais carga">${ic('mais',18)}</button></div></div>`}
+        <div class="fo-num"><label>${e.tempo?'Segundos':'Reps'}</label><div class="stp"><button data-act="stp:reps:-1" aria-label="Menos">${ic('menos',18)}</button><input id="foReps" inputmode="numeric" value="${v.reps??''}" aria-label="Repetições"><button data-act="stp:reps:1" aria-label="Mais">${ic('mais',18)}</button></div></div></div>
+      ${v.ok ? `<button class="fo-feita des" data-act="focoDesmarca">${ic('check',22)} Série feita · toque para desmarcar</button>` : `<button class="fo-feita" data-act="focoFeita">${ic('check',20)} Série feita</button>`}
       ${best && v.kg && v.reps && e1rm(v.kg, v.reps) > best + 0.01 && !v.ok ? `<p class="note" style="text-align:center;color:#9A6500;font-weight:700">Isso vai ser recorde pessoal</p>`:''}`}
     <div class="fo-bot"><button class="fo-nav" data-act="focoEx:${f.i-1}" ${f.i?'':'disabled'}>${ic('esq')} anterior</button>
       <input class="cmt" placeholder="comentário (dor, faltou força…)" data-cmt="${e.id}" value="${esc(notas[e.id]||'')}">
@@ -1017,7 +1012,7 @@ function renderFoco(){
   </div>`;
 }
 
-function blocoAtividades(){ const at = D.atividades.filter(a=>a.data>=addDias(hoje(),-6)).sort((a,b)=>a.data<b.data?1:-1);
+function blocoAtividades(){ const at = D.atividades.filter(a=>a.data>=addDias(hoje(),-6)).sort((a,b)=>a.data<b.data?1:-1); if (!D.atividades.some(a=>a.data>=addDias(hoje(),-14))) return '';
   return `<section class="panel"><div class="ph"><h2 style="--hc:var(--mint)">Corrida, futebol e outras</h2></div>
     ${at.length ? at.map(a=>`<div class="li"><span class="t"><span class="badge c">${ic(ehBola(a)?'bola':'corre',14)}</span>${esc(a.esporte)}<small>${a.data===hoje()?'hoje':diaSem(a.data)+' '+br(a.data)}${a.nota?' · '+esc(a.nota):''}</small></span><span class="v">${a.km?f1(a.km)+' km ':''}${a.min?Math.round(a.min)+' min':''}${a.km&&a.min&&ehCorre(a)?`<br><small style="color:var(--muted)">${ritmo(a.min,a.km)}/km</small>`:''}</span><button class="x" data-act="delAtiv:${a.id}" aria-label="Apagar">✕</button></div>`).join('') : `<p class="note" style="margin-top:0">Escreva na barra: “corri 5km em 28min”, “futebol 1h”, “caminhei 40min”.</p>`}
     <div class="btns"><button class="chip" data-act="preencher:corri  km em  min">+ Corrida</button><button class="chip" data-act="preencher:futebol 1h">+ Futebol</button><button class="chip" data-act="preencher:caminhei  min">+ Caminhada</button></div></section>`; }
