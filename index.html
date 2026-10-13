@@ -357,6 +357,17 @@ body.focando #timer{display:none!important}
 .evo-u{font-size:12px;color:var(--muted)}.evo-u b{font:500 12px var(--f-num);color:var(--blue)}
 .evo-ia{font-size:13px;background:var(--violet-soft);border-radius:10px;padding:6px 9px}.evo-ia b{color:var(--violet)}
 .evo-l{display:flex;gap:14px;font-size:12.5px}.evo-l .lnk{font-size:12.5px}
+/* ===== comida ===== */
+.pt-top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.pt-big{display:flex;align-items:baseline;gap:8px}.pt-big b{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1}.pt-big span{color:var(--tang);font-weight:700}.pt-big span button{color:var(--tang);text-decoration:underline dotted;text-underline-offset:3px;font-weight:800}
+.pt-add{display:flex;gap:8px;margin-top:14px}.pt-add .btn{flex:0 0 52px;font-size:20px;padding:0}
+.pt-prev{font-size:12.5px;color:var(--muted);margin:6px 2px 4px;min-height:18px}
+.pt-v{font:700 15px var(--f-num);color:var(--tang);text-decoration:underline dotted;text-underline-offset:3px}
+.pt-cols{position:relative;display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:4px;height:120px;align-items:end;padding-bottom:16px}
+.pt-cols button{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+.pt-cols i{width:100%;border-radius:5px 5px 2px 2px;background:var(--tang)}.pt-cols small{position:absolute;bottom:-16px;font:500 9.5px var(--f-num);color:var(--muted)}
+.pt-cols button.sel i{outline:2px solid var(--ink);outline-offset:1px}
+.pt-cols s{position:absolute;left:0;right:0;height:0;border-top:1.5px dashed var(--muted);opacity:.6;pointer-events:none}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -386,7 +397,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 18:50";
+const VERSAO = "13/10 19:10";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -634,7 +645,7 @@ function metaSemana(){ if (D.metaSem) return D.metaSem; const ws = [1,2,3,4].map
 /* ---------- comida: proteína do dia ---------- */
 const protDe = t => { const m=String(t).match(/~\s*(\d+)\s*g/); return m && +m[1] <= 90 ? +m[1] : 0; };
 function diaDe(k){ const d=D.dias[k]||(D.dias[k]={feito:[],agua:0,nota:''}); if(!d.comido)d.comido=[]; if(!d.mealEat)d.mealEat={}; if(d.kcalExtra===undefined)d.kcalExtra=0; return d; }
-function protDia(k){ const d = D.dias[k]; if (!d) return 0; let p = 0; D.refeicoes.forEach(r=>{ (d.mealEat?.[r.id]||[]).forEach(x=>p+=(+x.p||0)); r.itens.forEach((it,i)=>{ if ((d.comido||[]).includes(r.id+'#'+i)) p+=protDe(it); }); }); return p; }
+function protDia(k){ const d = D.dias[k]; if (!d) return 0; let p = sum(d.comidas||[], x=>+x.p||0); D.refeicoes.forEach(r=>{ (d.mealEat?.[r.id]||[]).forEach(x=>p+=(+x.p||0)); r.itens.forEach((it,i)=>{ if ((d.comido||[]).includes(r.id+'#'+i)) p+=protDe(it); }); }); return p; }
 function refeicaoAgora(){ const h = new Date().getHours()*60+new Date().getMinutes(); const rs = D.refeicoes.map(r=>{ const [hh,mm] = String(r.hora||'12:00').split(':').map(Number); return {r, d: Math.abs((hh*60+(mm||0))-h)}; }).sort((a,b)=>a.d-b.d); return rs[0]?.r || D.refeicoes[0]; }
 
 /* ---------- barra: entende o que você escreve ---------- */
@@ -653,7 +664,7 @@ function parseLinha(raw){
   if (/\bagua\b|\bcopos?\b|\bgarrafa/.test(n)){ let c = 1; if ((m = n.match(/(\d+[.,]?\d*)\s*(l|litros?)\b/))) c = Math.round(num(m[1])*1000/300); else if ((m = n.match(/(\d+)\s*ml/))) c = Math.round(+m[1]/300); else if ((m = n.match(/(\d+)\s*(copos?|garrafas?)/))) c = +m[1] * (/garraf/.test(m[2]) ? 2 : 1); else if ((m = n.match(/(\d+)/))) c = +m[1]; return {tipo:'agua', copos: Math.max(1, Math.min(12, c)), txt:t}; }
   if ((m = n.match(/\bdormi\b[^\d]*(\d+[.,]?\d*)\s*h?/))) return {tipo:'sono', h: num(m[1]), txt:t};
   for (const [re, esporte] of ESPORTES) if (re.test(n)){ const km = (m = n.match(/(\d+[.,]?\d*)\s*km/)) ? num(m[1]) : null; const min = parseDur(n.replace(/(\d+[.,]?\d*)\s*km/,'')); const kcal = (m = n.match(/(\d+)\s*kcal/)) ? +m[1] : null; if (!km && !min) return {tipo:'atividade', esporte, min: esporte==='Futebol'?60:null, km:null, txt:t, incompleto:true}; return {tipo:'atividade', esporte, km, min, kcal, txt:t}; }
-  if (/\b(comi|almocei|jantei|lanchei|cafe da manha|tomei|whey|ovos?|frango|carne|peixe)\b/.test(n) && !/\b\d+\s*kg\b/.test(n)){ const p = (m = n.match(/(\d+)\s*g\s*(de\s*)?(prot|proteina)/)) ? +m[1] : (m = n.match(/~\s*(\d+)\s*g/)) ? +m[1] : null; return {tipo:'comida', t: t.replace(/^(comi|almocei|jantei|lanchei|tomei)\s+/i,''), p, txt:t}; }
+  if ((/\b(comi|almocei|jantei|lanchei|cafe da manha|tomei|whey|ovos?|frango|carne|peixe)\b/.test(n) || ALIMENTOS.some(([re])=>re.test(n)) || UNIDADES.some(([re])=>re.test(n))) && !/\b\d+\s*kg\b/.test(n) && !acharExercicio(t)){ const p = (m = n.match(/(\d+)\s*g\s*(de\s*)?(prot|proteina)/)) ? +m[1] : (m = n.match(/~\s*(\d+)\s*g/)) ? +m[1] : null; return {tipo:'comida', t: t.replace(/^(comi|almocei|jantei|lanchei|tomei)\s+/i,''), p, txt:t}; }
   const ex = acharExercicio(t);
   if (ex){ const sets = []; let kgBase = null;
     const pares = [...n.matchAll(/(\d+[.,]?\d*)\s*(?:kg)?\s*[x×]\s*(\d+)/g)];
@@ -675,7 +686,7 @@ function aplicarItens(itens){
     else if (it.tipo==='agua'){ const d = diaDe(hoje()); d.agua = Math.min(12, (d.agua||0) + it.copos); }
     else if (it.tipo==='sono'){ diaDe(hoje()).sono = it.h; }
     else if (it.tipo==='atividade'){ D.atividades.push({id:uid(), data:hoje(), esporte:it.esporte, km:it.km||null, min:it.min||null, kcal:it.kcal||null, nota:'', ts:Date.now()}); }
-    else if (it.tipo==='comida'){ const r = refeicaoAgora(); const d = diaDe(hoje()); (d.mealEat[r.id] ||= []).push({id:uid(), t:it.t, p:it.p||0}); }
+    else if (it.tipo==='comida'){ const c = calcProt(it.txt); comidasDia(hoje()).push({id:uid(), t:it.t, p: it.p!=null ? it.p : c.p ?? 0, como: it.p!=null ? 'você informou' : c.como || 'toque no número para informar', k:c.k, peso:c.peso||null, qtd:c.qtd||null}); }
     else if (it.tipo==='series'){ const e = it.ex; if (!getPlan(plano).ex.includes(e)){ const dono = D.plans.find(p=>p.ex.includes(e)); if (dono) plano = dono.id; }
       log[e.id] = (log[e.id]||[]).filter(s=>s && s.ok); const ini = log[e.id].length;
       it.sets.forEach((s,i)=>{ log[e.id][ini+i] = {kg: s.kg!=null ? String(s.kg) : undefined, reps: s.reps!=null ? String(s.reps) : undefined, ok:true}; });
@@ -1076,33 +1087,71 @@ function desenharGraficos(){
 }
 
 /* ---------- COMIDA ---------- */
+/* ---------- COMIDA: escreve o que comeu, o app calcula a proteína e aprende ---------- */
+/* g de proteína a cada 100 g (já pronto) ou por unidade */
+const ALIMENTOS = [
+  [/picanha/,26],[/alcatra|contra.?fil[eé]|patinho|maminha|fraldinha|file mignon|mignon|cox[aã]o|bife|carne(?! moida)/,30],[/carne moida|hamburguer|hamburger/,26],
+  [/costela/,22],[/frango|peito de frango|sassami/,31],[/coxa|sobrecoxa/,25],[/lombo|porco|bisteca/,27],[/linguica/,15],[/figado/,26],
+  [/tilapia|peixe|merluza|pescada/,26],[/salmao/,25],[/atum/,26],[/sardinha/,24],[/camarao/,24],
+  [/peito de peru/,20],[/presunto/,18],[/queijo/,25],[/requeijao/,10],[/iogurte/,5],[/leite/,3.3],
+  [/feijao/,5],[/lentilha|grao de bico/,9],[/arroz/,2.5],[/macarrao|massa/,5],[/pao/,9],[/tofu/,8],[/pasta de amendoim|amendoim/,25],[/castanha/,15]
+];
+const UNIDADES = [ // [regex comida, regex unidade, g de proteína por unidade]
+  [/whey|proteina em po/,/scoops?|doses?|medidas?/,24],[/ovos?/,null,6],[/clara/,null,3.6],[/pao/,/paes|pao|unid/,4],
+  [/iogurte/,/potes?/,8],[/atum|sardinha/,/latas?/,26],[/leite/,/copos?/,8],[/queijo/,/fatias?/,5],[/presunto|peito de peru/,/fatias?/,3]
+];
+const NUM_PALAVRA = {um:1,uma:1,dois:2,duas:2,tres:3,quatro:4,cinco:5,seis:6,meio:0.5,meia:0.5};
+function chaveAlimento(t){ return norm(t).replace(/~?\s*\d+[.,]?\d*\s*(g|kg|gramas|ml|prot\w*)?/g,' ').replace(/\b(comi|almocei|jantei|lanchei|tomei|de|do|da|com|e|um|uma|dois|duas|tres|meio|meia|scoops?|doses?|medidas?|latas?|fatias?|potes?|copos?|unid\w*|proteina|prot|g|gramas)\b/g,' ').replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim().split(' ').slice(0,2).join(' '); }
+function calcProt(texto){
+  const n = norm(texto); let m;
+  // proteína informada direto
+  if ((m = n.match(/(\d+[.,]?\d*)\s*g?\s*(de\s*)?(prot|proteina)/)) || (m = n.match(/~\s*(\d+[.,]?\d*)\s*g/)) || (m = n.match(/prot\w*\s*(\d+[.,]?\d*)/))) return {p: Math.round(num(m[1])), como:'você informou', fonte:'direto'};
+  const k = chaveAlimento(texto), aprendido = (D.alimentos||{})[k];
+  const peso = (m = n.match(/(\d+[.,]?\d*)\s*(kg|g|gramas)\b/)) ? num(m[1]) * (m[2]==='kg' ? 1000 : 1) : null;
+  let qtd = (m = n.match(/(^|\s)(\d+[.,]?\d*)\s*(?!g\b|kg\b|gramas)([a-z]+)/)) ? num(m[2]) : null; if (qtd==null){ const w = n.split(/\s+/).find(w=>NUM_PALAVRA[w]); if (w) qtd = NUM_PALAVRA[w]; }
+  if (aprendido){ if (peso && aprendido.por100) return {p: Math.round(peso*aprendido.por100/100), como:`${f1(aprendido.por100)} g a cada 100 g (aprendido)`, fonte:'aprendido', k, peso};
+    if (aprendido.porUnid) return {p: Math.round((qtd||1)*aprendido.porUnid), como:`${f1(aprendido.porUnid)} g por unidade (aprendido)`, fonte:'aprendido', k, qtd: qtd||1}; }
+  for (const [rc, ru, g] of UNIDADES) if (rc.test(n) && (!ru || ru.test(n) || !peso) && !(peso && !ru && false)){ if (peso && ru && !ru.test(n)) break; const q = qtd || 1; return {p: Math.round(q*g), como:`${f1(g)} g por unidade`, fonte:'tabela', k, qtd:q}; }
+  if (peso) for (const [re, g] of ALIMENTOS) if (re.test(n)) return {p: Math.round(peso*g/100), como:`${f1(g)} g a cada 100 g, pronto`, fonte:'tabela', k, peso};
+  return {p:null, k, peso, qtd};
+}
+/* aprende: quando você corrige, ou quando a IA estima um alimento novo */
+function aprenderAlimento(item, novoP){ const k = item.k || chaveAlimento(item.t); if (!k || !(novoP>0)) return; D.alimentos ||= {};
+  if (item.peso) D.alimentos[k] = {por100: Math.round(novoP/item.peso*1000)/10}; else D.alimentos[k] = {porUnid: Math.round(novoP/(item.qtd||1)*10)/10}; }
+function comidasDia(k){ const d = diaDe(k); d.comidas ||= []; return d.comidas; }
+async function adicionarComida(texto, k){ texto = String(texto||'').trim().replace(/^(comi|almocei|jantei|lanchei|tomei)\s+/i,''); if (!texto) return;
+  const c = calcProt(texto); const id = uid(); const item = {id, t:texto, p:c.p, como:c.como, k:c.k, peso:c.peso||null, qtd:c.qtd||null, fonte:c.fonte||null};
+  comDesfazer(c.p!=null ? `${texto}: ${c.p} g de proteína` : `${texto}: calculando a proteína…`, ()=>{ comidasDia(k).push(item); });
+  if (c.p==null){ try{ const r = await S.ia.json(`Estime os gramas de PROTEÍNA desta comida brasileira, como foi descrita: "${texto}". Se não houver quantidade, considere uma porção comum. Responda só JSON {"p":número inteiro,"porcao":"o que você considerou, curto","por100":g de proteína a cada 100 g ou null,"porUnid":g por unidade ou null}`);
+      const x = comidasDia(k).find(y=>y.id===id); if (x){ x.p = parseInt(r.p)||0; x.como = `estimado pela IA${r.porcao?`: ${r.porcao}`:''}`; x.fonte = 'ia';
+        if (x.k && (r.por100 || r.porUnid)){ D.alimentos ||= {}; D.alimentos[x.k] = r.por100 ? {por100:+r.por100} : {porUnid:+r.porUnid}; } save(); render(); toast(`${texto}: ~${x.p} g de proteína (estimado)`); } }
+    catch(e){ const x = comidasDia(k).find(y=>y.id===id); if (x){ x.p = 0; x.como = 'toque no número para informar'; save(); render(); } } }
+}
 function viewComida(){
-  const k = memo.get('dia') || hoje(), d = diaDe(k), passado = k!==hoje(), alvo = D.protAlvo||120, comido = protDia(k);
+  const k = memo.get('dia') || hoje(), passado = k!==hoje(), alvo = D.protAlvo||120, itens = comidasDia(k), total = protDia(k);
   const lab = k===hoje() ? 'Hoje' : k===addDias(hoje(),-1) ? 'Ontem' : diaSem(k);
-  const COPOS = 8;
-  const pesoAtual = D.pesos.length ? D.pesos[D.pesos.length-1].kg : 75; let kcalT = 0; D.sessions.filter(x=>x.data===k).forEach(x=>{ const ns = x.itens.reduce((a,i)=>a+i.sets.length,0); kcalT += (6*3.5*pesoAtual/200)*Math.max(15, ns*2.2); });
-  const kcalA = sum(D.atividades.filter(a=>a.data===k), a=>+a.kcal || (a.min ? (ehBola(a)?9:ehCorre(a)?10:5)*3.5*pesoAtual/200*a.min : 0));
-  const kcal = Math.round(kcalT + kcalA + (+d.kcalExtra||0));
+  const edAlvo = memo.get('edAlvo'), ed = memo.get('edComida'), prev = memo.get('prevComida');
+  const ult14 = Array.from({length:14},(_,i)=>{ const dk = addDias(hoje(),-(13-i)); return {dk, p: protDia(dk)}; }); const mx = Math.max(alvo, ...ult14.map(x=>x.p));
+  const aprend = Object.entries(D.alimentos||{});
   return `<div class="grid two"><div class="col">
     <section class="panel"><div class="daybar"><button class="ib" data-act="dia:-1" aria-label="Dia anterior">‹</button><div><b>${lab}</b><small>${diaSem(k)} · ${br(k)}</small></div><button class="ib" data-act="dia:1" ${passado?'':'style="visibility:hidden"'} aria-label="Próximo dia">›</button></div>
-      <div class="ph"><h2 style="--hc:var(--violet)">Proteína</h2><span class="num"><b>${comido}</b> / ${alvo} g</span></div><div class="bar" style="--cc:var(--violet)"><i style="width:${Math.min(100,comido/alvo*100)}%"></i></div>
-      <p class="note">${comido>=alvo?'Meta batida ✓':`Faltam ${alvo-comido} g.`} Escreva na barra o que comeu (“comi picanha 250g ~65g”) ou registre em cada refeição. Sem o número, a IA estima.</p></section>
-    <section class="panel"><div class="ph"><h2 style="--hc:var(--tang)">Refeições</h2><button class="act" data-act="novaRef">+ refeição</button></div>
-      ${D.refeicoes.map(r=>{ const eat = d.mealEat[r.id]||[]; return `<div class="meal"><div class="meal-h"><span class="hh">${esc(r.hora||'')}</span><b>${esc(r.nome)}</b><button class="lnk" data-act="editRef:${r.id}">editar</button></div>
-        ${r.itens.map((it,i)=>{ const key = r.id+'#'+i, on = d.comido.includes(key), p = protDe(it); return `<button class="fi ${on?'on':''}" data-act="come:${key}"><span class="box">${on?'✓':''}</span><span class="ft">${esc(it.replace(/\s*~\s*\d+\s*g/,''))}</span>${p?`<span class="fp">${p}g</span>`:'<span></span>'}</button>`; }).join('')}
-        ${eat.length?`<div style="margin-top:6px;border-top:1px dashed var(--line);padding-top:6px">${eat.map(x=>`<div class="li"><span class="t">${esc(x.t)}</span><span class="v">${+x.p?x.p+' g':''}</span><button class="x" data-act="delEat:${r.id}:${x.id}" aria-label="Apagar">✕</button></div>`).join('')}</div>`:''}
-        <form class="row" style="margin-top:6px" data-eatf="${r.id}"><input class="in" placeholder="o que comi" data-et="${r.id}"><input class="in" style="flex:0 0 70px" inputmode="numeric" placeholder="g prot" data-ep="${r.id}"><button class="btn sm" style="flex:0 0 auto">+</button></form></div>`; }).join('')}
-      <p class="note">Não sabe a proteína? Deixe em branco: a IA estima.</p></section>
+      <div class="pt-top"><div><div class="eyebrow">Proteína</div><div class="pt-big"><b>${total}</b><span>de ${edAlvo ? `<span class="inl"><input id="alvoIn" inputmode="numeric" value="${alvo}"><button data-act="alvoOk">OK</button></span>` : `<button data-act="alvoEd" title="Mudar a meta">${alvo}</button>`} g</span></div></div>
+        <span class="pill ${total>=alvo?'g':'o'}">${total>=alvo?'meta batida':`faltam ${alvo-total} g`}</span></div>
+      <div class="bar" style="--cc:var(--tang)"><i style="width:${Math.min(100,total/alvo*100)}%"></i></div>
+      <form class="pt-add" id="comidaF"><input class="in" id="comidaIn" placeholder="picanha 250g · 3 ovos · 1 scoop whey" autocomplete="off" aria-label="O que você comeu"><button class="btn o">+</button></form>
+      <div class="pt-prev" id="comidaPrev">${prev ? esc(prev) : 'Peso da comida (o app calcula) ou a proteína direto: “picanha 65g prot”.'}</div>
+      <div class="pt-lista">${itens.length ? itens.map(x=>`<div class="li"><span class="t">${esc(x.t)}<small>${esc(x.como||'')}</small></span>
+        <span class="v">${ed===x.id ? `<span class="inl"><input id="comidaVal" inputmode="numeric" value="${x.p??''}"><button data-act="comidaOk:${x.id}">OK</button></span>` : x.p==null ? '<span class="load"></span>' : `<button class="num pt-v" data-act="comidaEd:${x.id}" title="Corrigir">${x.p} g</button>`}</span>
+        <button class="x" data-act="comidaDel:${x.id}" aria-label="Apagar">✕</button></div>`).join('') : `<p class="note" style="margin:6px 0 0">Nada registrado ${passado?'nesse dia':'hoje'}. Sem cobrança: registre só quando quiser.</p>`}</div>
+      ${itens.length?`<p class="note">Errou a conta? Toque no número e corrija: o app aprende para a próxima vez.</p>`:''}</section>
   </div><div class="col">
-    <section class="panel"><div class="ph"><h2 style="--hc:var(--mint)">Metas do dia</h2><span class="num">${d.feito.length}/${D.metas.length}</span></div><div class="check">${D.metas.map(m=>`<button class="ck ${d.feito.includes(m.id)?'on':''}" data-act="meta:${m.id}"><span class="box">${d.feito.includes(m.id)?'✓':''}</span><span class="ckt">${esc(m.t)}${m.s?`<small>${esc(m.s)}</small>`:''}</span><span class="x" data-act="delMeta:${m.id}" role="button" aria-label="Remover">✕</span></button>`).join('')}</div>
-      <form class="row" id="metaF" style="margin-top:8px"><input class="in" id="metaNova" placeholder="Nova meta diária"><button class="btn sm" style="flex:0 0 auto">+</button></form></section>
-    <section class="panel"><div class="ph"><h2 style="--hc:var(--tang)">Gasto do dia</h2><span class="num">${kcal?'≈ '+kcal+' kcal':'—'}</span></div><p class="note" style="margin-top:0">Treino e atividades registrados${d.kcalExtra?` + ${d.kcalExtra} extra`:''}. Não inclui o gasto basal.</p></section>
-    <section class="panel"><div class="ph"><h2 style="--hc:var(--blue)">Últimos 14 dias</h2></div><div class="streak">${Array.from({length:14},(_,i)=>{ const dk = addDias(hoje(),-(13-i)), r = D.dias[dk], p = r&&D.metas.length ? (r.feito||[]).length/D.metas.length : 0; return `<button data-act="irDia:${dk}" title="${br(dk)}" style="background:${p>=1?'var(--mint)':p>=.5?'color-mix(in srgb,var(--mint) 55%,var(--sunk))':p>0?'color-mix(in srgb,var(--mint) 25%,var(--sunk))':'var(--sunk)'};${dk===k?'outline:2px solid var(--tang)':''}"></button>`; }).join('')}</div></section>
-    <section class="panel"><div class="ph"><h2 style="--hc:var(--amber)">Anotação do dia</h2></div><textarea class="in" id="notaDia" rows="3" placeholder="Fome fora de hora? Dormiu mal? Anota.">${esc(d.nota||'')}</textarea></section>
+    <section class="panel"><div class="ph"><h2 style="--hc:var(--tang)">Últimos 14 dias</h2></div>
+      <div class="pt-cols">${ult14.map(x=>`<button data-act="irDia:${x.dk}" class="${x.dk===k?'sel':''}" title="${br(x.dk)}: ${x.p} g"><i style="height:${Math.max(3, x.p/mx*100)}%;${x.p>=alvo?'background:var(--mint)':''}"></i><small>${x.dk.slice(8)}</small></button>`).join('')}<s style="bottom:calc(16px + (100% - 16px) * ${(alvo/mx).toFixed(3)})"></s></div>
+      <p class="note">Barra verde: dia que bateu ${alvo} g. Dias em branco só não foram registrados.</p></section>
+    ${aprend.length?`<section class="panel"><div class="ph"><h2 style="--hc:var(--violet)">O que o app já aprendeu</h2></div>${aprend.slice(-12).reverse().map(([nome,v])=>`<div class="li"><span class="t">${esc(nome)}</span><span class="v">${v.por100?`${f1(v.por100)} g / 100 g`:`${f1(v.porUnid)} g / unid.`}</span><button class="x" data-act="esquecer:${encodeURIComponent(nome)}" aria-label="Esquecer">✕</button></div>`).join('')}</section>`:''}
   </div></div>`;
 }
 
-/* ---------- TREINOS (editar, Claude, ajustes) ---------- */
 function viewTreinos(){
   if (!D.plans.find(p=>p.id===editP)) editP = D.plans[0]?.id; const p = D.plans.find(x=>x.id===editP);
   const ehApp = matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
@@ -1173,6 +1222,13 @@ async function acao(a, el){
   const [cmd, ...rest] = a.split(':'); const arg = rest.join(':');
   switch(cmd){
     case 'fechar': fecharFolha(); return;
+    case 'comidaEd': memo.set('edComida', arg); render(); setTimeout(()=>{ const i=$('#comidaVal'); i?.focus(); i?.select(); },0); return;
+    case 'comidaOk': { const k = memo.get('dia')||hoje(); const x = comidasDia(k).find(y=>y.id===arg); const v = parseInt($('#comidaVal')?.value); memo.delete('edComida'); if (!x || isNaN(v)){ render(); return; }
+      const antes = x.p; comDesfazer(`${x.t}: ${v} g. Aprendi para a próxima.`, ()=>{ x.p = v; x.como = 'corrigido por você'; aprenderAlimento(x, v); }); return; }
+    case 'comidaDel': { const k = memo.get('dia')||hoje(); comDesfazer('Removido', ()=>{ const d = diaDe(k); d.comidas = (d.comidas||[]).filter(y=>y.id!==arg); }); return; }
+    case 'alvoEd': memo.set('edAlvo', 1); render(); setTimeout(()=>$('#alvoIn')?.focus(),0); return;
+    case 'alvoOk': { const v = parseInt($('#alvoIn')?.value); memo.delete('edAlvo'); if (v>0){ D.protAlvo = v; save(); } render(); return; }
+    case 'esquecer': { const nome = decodeURIComponent(arg); comDesfazer(`Esqueci “${nome}”`, ()=>{ delete D.alimentos[nome]; }); return; }
     case 'planoOk': D.planNovo.visto = true; save(); render(); toast('Treino novo valendo. Primeiro: '+getPlan(proximo()).nome); return;
     case 'planoVolta': comDesfazer('Voltou para o treino de antes', ()=>{ if (D.plansAnteriores) D.plans = D.plansAnteriores; D.planNovo.visto = true; plano = proximo(); }); return;
     case 'exVibe': exVibe(arg); return;
@@ -1299,6 +1355,7 @@ document.addEventListener('input', e=>{ const t = e.target;
   if (t.id==='foKg' || t.id==='foReps'){ const e = getPlan(plano).ex[S.foco.i]; log[e.id] ||= []; log[e.id][S.foco.s] ||= {}; log[e.id][S.foco.s][t.id==='foKg'?'kg':'reps'] = t.value.replace(',','.'); persist(); return; }
   if (t.dataset.in){ const [id, s, f] = t.dataset.in.split(':'); log[id] ||= []; log[id][s] ||= {}; log[id][s][f] = t.value; persist(); return; }
   if (t.dataset.cmt){ notas[t.dataset.cmt] = t.value; persist(); return; }
+  if (t.id==='comidaIn'){ const v = t.value.trim(); const el = $('#comidaPrev'); if (!el) return; if (!v){ el.textContent = 'Peso da comida (o app calcula) ou a proteína direto: “picanha 65g prot”.'; return; } const c = calcProt(v); el.textContent = c.p!=null ? `≈ ${c.p} g de proteína · ${c.como}` : 'Não conheço essa ainda: a IA estima ao adicionar.'; return; }
   if (t.id==='notaDia'){ diaDe(memo.get('dia')||hoje()).nota = t.value; save(); return; }
 });
 document.addEventListener('change', e=>{ const t = e.target;
@@ -1314,13 +1371,14 @@ document.addEventListener('submit', async e=>{ const f = e.target; e.preventDefa
   if (f.id==='swapF'){ const v = $('#swapIn').value.trim(); if (!v) return; const id = f.dataset.ex; const e2 = getPlan(plano).ex.find(x=>x.id===id); swaps[id] = v; if (!(e2.alts||[]).includes(v)){ (e2.alts ||= []).push(v); } persist(); fecharFolha(); render(); return; }
   if (f.id==='metaF'){ const v = $('#metaNova').value.trim(); if (!v) return; D.metas.push({id:uid(), t:v, s:''}); save(); render(); return; }
   if (f.id==='refF'){ const r = D.refeicoes.find(x=>x.id===f.dataset.id); const fd = new FormData(f); r.hora = String(fd.get('h')).trim(); r.nome = String(fd.get('n')).trim()||'Refeição'; r.itens = String(fd.get('i')).split('\n').map(s=>s.trim()).filter(Boolean); D.refeicoes.sort((a,b)=>(a.hora||'').localeCompare(b.hora||'')); save(); fecharFolha(); render(); return; }
+  if (f.id==='comidaF'){ const v = $('#comidaIn').value; $('#comidaIn').value=''; memo.delete('prevComida'); adicionarComida(v, memo.get('dia')||hoje()); return; }
   if (f.id==='loginF'){ const fd = new FormData(f); const b = f.querySelector('button.p'); b.disabled = true; b.textContent = 'Entrando…'; await entrarEmail(String(fd.get('email')).trim(), String(fd.get('senha'))); b.disabled = false; b.textContent = 'Entrar'; return; }
   if (f.dataset.eatf){ const rid = f.dataset.eatf, t = f.querySelector('[data-et]').value.trim(); let p = parseInt(f.querySelector('[data-ep]').value)||0; if (!t){ toast('Escreva o que comeu.'); return; }
     const k = memo.get('dia')||hoje(); const id = uid(); comDesfazer(`Registrado: ${t}`, ()=>{ (diaDe(k).mealEat[rid] ||= []).push({id, t, p}); });
     if (!p){ try{ const r = await S.ia.json(`Estime os gramas de PROTEÍNA desta refeição brasileira: "${t}". Responda só JSON {"p":número inteiro,"obs":"curta"}`); const g = parseInt(r.p)||0; const x = (diaDe(k).mealEat[rid]||[]).find(y=>y.id===id); if (x && g){ x.p = g; save(); render(); toast(`A IA estimou ${g} g de proteína${r.obs?` (${r.obs})`:''}`); } }catch(err){} }
     return; }
 });
-document.addEventListener('keydown', e=>{ if (e.key==='Escape'){ if ($('#layer').classList.contains('on')) fecharFolha(); else if (S.foco) fecharFoco(); } const t = e.target; if (e.key==='Enter' && t.id==='metaIn'){ e.preventDefault(); t.closest('.inl')?.querySelector('button')?.click(); } });
+document.addEventListener('keydown', e=>{ const tt = e.target; if (e.key==='Enter' && (tt.id==='comidaVal' || tt.id==='alvoIn')){ e.preventDefault(); tt.closest('.inl')?.querySelector('button')?.click(); return; } if (e.key==='Escape'){ if ($('#layer').classList.contains('on')) fecharFolha(); else if (S.foco) fecharFoco(); } const t = e.target; if (e.key==='Enter' && t.id==='metaIn'){ e.preventDefault(); t.closest('.inl')?.querySelector('button')?.click(); } });
 $('#q').addEventListener('input', atualizarPreview);
 $('#q').addEventListener('keydown', e=>{ if (e.key==='Enter' && !e.shiftKey){ e.preventDefault(); lancarBarra(); } });
 $('#goBtn').onclick = lancarBarra;
