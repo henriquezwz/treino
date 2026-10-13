@@ -382,10 +382,11 @@ body.focando #timer{display:none!important}
 <nav class="tabs"><div>
   <button data-tab="hoje"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 10h3v4H3zM18 10h3v4h-3zM6 12h12"/></svg>Hoje</button>
   <button data-tab="prog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>Progresso</button>
+  <button data-tab="comida"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 3v8M5 3v4a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 2-3 5-3 8h3v10"/></svg>Comida</button>
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 18:40";
+const VERSAO = "13/10 18:50";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -716,10 +717,10 @@ function contextoTreino(curto){
   const sess = D.sessions.slice(curto?-8:-30).map(s=>`${s.data} ${diaSem(s.data)} treino ${s.plano}: `+s.itens.map(i=>`${i.nome} ${i.sets.map(x=>i.bw?`${x.reps??'?'}`:`${x.kg??'?'}x${x.reps??'?'}`).join(' ')}${i.nota?` ("${i.nota}")`:''}`).join('; ')).join('\n');
   const ativ = D.atividades.slice(-30).map(a=>`${a.data} ${a.esporte}${a.km?` ${a.km}km`:''}${a.min?` ${Math.round(a.min)}min`:''}${a.nota?` (${a.nota})`:''}`).join('\n');
   const pesos = D.pesos.slice(-12).map(p=>`${p.data} ${p.kg}kg`).join(', ');
-  const dias = []; for (let i=13;i>=0;i--){ const k = addDias(hoje(),-i), d = D.dias[k]; if (d) dias.push(`${k}: água ${d.agua||0} copos, proteína ${protDia(k)}g, metas ${(d.feito||[]).length}/${D.metas.length}${d.sono?`, sono ${d.sono}h`:''}${d.nota?`, nota "${d.nota}"`:''}`); }
+  const dias = []; for (let i=13;i>=0;i--){ const k = addDias(hoje(),-i), d = D.dias[k]; if (d) dias.push(`${k}: proteína ${protDia(k)}g, metas ${(d.feito||[]).length}/${D.metas.length}${d.sono?`, sono ${d.sono}h`:''}${d.nota?`, nota "${d.nota}"`:''}`); }
   const ultimo = [...D.sessions].sort((a,b)=>a.data<b.data?-1:1).pop(); const parado = ultimo ? Math.round((Date.now()-new Date(ultimo.data+'T12:00:00'))/864e5) : null;
   return `Hoje: ${hoje()} (${diaSem(hoje())}). Último treino de musculação: ${ultimo?`${ultimo.data} (há ${parado} dias)`:'nenhum'}. Próximo da sequência: ${proximo()}.
-Semana atual: musculação ${sd.musc}/${mt.treinos}, corrida ${f1(sd.km)}/${mt.km} km, futebol ${sd.bola}/${mt.bola}, água média ${f1(sd.agua)}/${mt.agua} copos, proteína média ${Math.round(sd.prot)}/${mt.prot} g.
+Semana atual: musculação ${sd.musc}/${mt.treinos}, corrida ${f1(sd.km)}/${mt.km} km, futebol ${sd.bola}/${mt.bola}. (Alimentação: a pessoa registra só às vezes; não cobre isso.)
 Contexto da pessoa: faz musculação A/B/C, joga futebol, corre, se prepara para teste físico (EAF: flexão e abdominal), já teve canelite.
 PLANOS:\n${planos}
 TREINOS RECENTES:\n${sess||'nenhum'}
@@ -789,7 +790,7 @@ ${FORMATO_ACOES}`, t => { const m = t.match(/"resposta"\s*:\s*"((?:[^"\\]|\\.)*)
 /* ---------- insights do dia ---------- */
 async function gerarInsights(forcar){
   if (!forcar && D.ia && D.ia.dia===hoje()) return; if (memo.get('insBusy')) return; memo.set('insBusy', true); render();
-  try{ const r = await S.ia.json(`Você é um preparador físico brasileiro muito bom. Gere de 4 a 6 insights PROFUNDOS e ESPECÍFICOS sobre o treino desta pessoa, com números reais dos dados (nunca genéricos): consistência da semana vs plano, progressão de carga (o que subiu, o que estagnou e por quê), recordes, equilíbrio entre treinos A/B/C, corrida e futebol vs recuperação e canelite, proteína/água/sono vs ganho, preparação para o teste físico, e o que fazer hoje.
+  try{ const r = await S.ia.json(`Você é um preparador físico brasileiro muito bom. Gere de 4 a 6 insights PROFUNDOS e ESPECÍFICOS sobre o treino desta pessoa, com números reais dos dados (nunca genéricos): consistência da semana vs plano, progressão de carga (o que subiu, o que estagnou e por quê), recordes, equilíbrio entre treinos A/B/C, corrida e futebol vs recuperação e canelite, preparação para o teste físico, e o que fazer hoje.
 ${contextoTreino()}
 Responda só JSON: [{"tipo":"alerta|dica|projecao|elogio","titulo":"até 8 palavras","texto":"1 a 3 frases com números","acao":"opcional, ação concreta curta"}]`);
     const itens = (Array.isArray(r) ? r : (r.insights||r.itens||[])).filter(x=>x && x.titulo).slice(0,7);
@@ -854,7 +855,7 @@ function render(){
 }
 
 /* ---------- HOJE ---------- */
-function viewHoje(){ return `<div class="grid two"><div class="col">${blocoSemana()}${blocoProteina()}${blocoConta()}${blocoPlanoNovo()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}</div></div>`; }
+function viewHoje(){ return `<div class="grid two"><div class="col">${blocoSemana()}${blocoConta()}${blocoPlanoNovo()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}</div></div>`; }
 
 function blocoPlanoNovo(){ const n = D.planNovo; if (!n || n.visto) return '';
   return `<section class="panel novo"><div class="sm-eye" style="color:var(--violet)">Treino ajustado pelo Claude</div><b style="font-size:17px">${D.plans.map(p=>esc(p.id)).join(' → ')} girando · ${metaSemana().treinos}× por semana</b>
@@ -1085,8 +1086,7 @@ function viewComida(){
   return `<div class="grid two"><div class="col">
     <section class="panel"><div class="daybar"><button class="ib" data-act="dia:-1" aria-label="Dia anterior">‹</button><div><b>${lab}</b><small>${diaSem(k)} · ${br(k)}</small></div><button class="ib" data-act="dia:1" ${passado?'':'style="visibility:hidden"'} aria-label="Próximo dia">›</button></div>
       <div class="ph"><h2 style="--hc:var(--violet)">Proteína</h2><span class="num"><b>${comido}</b> / ${alvo} g</span></div><div class="bar" style="--cc:var(--violet)"><i style="width:${Math.min(100,comido/alvo*100)}%"></i></div>
-      <p class="note">${comido>=alvo?'Meta batida ✓':`Faltam ${alvo-comido} g.`} Escreva na barra o que comeu (“almocei frango 200g ~40g”) ou registre em cada refeição.</p></section>
-    <section class="panel"><div class="ph"><h2 style="--hc:var(--sky)">Água</h2><span class="num">${f1(Math.min(d.agua,12)*0.3)} / ${f1(COPOS*0.3)} L</span></div><div class="agua">${Array.from({length:COPOS},(_,i)=>`<button class="${i<d.agua?'on':''}" data-act="agua:${i+1}" aria-label="${i+1} copos"></button>`).join('')}</div><p class="note">Copos de 300 ml. Ou escreva “2 copos de água”.</p></section>
+      <p class="note">${comido>=alvo?'Meta batida ✓':`Faltam ${alvo-comido} g.`} Escreva na barra o que comeu (“comi picanha 250g ~65g”) ou registre em cada refeição. Sem o número, a IA estima.</p></section>
     <section class="panel"><div class="ph"><h2 style="--hc:var(--tang)">Refeições</h2><button class="act" data-act="novaRef">+ refeição</button></div>
       ${D.refeicoes.map(r=>{ const eat = d.mealEat[r.id]||[]; return `<div class="meal"><div class="meal-h"><span class="hh">${esc(r.hora||'')}</span><b>${esc(r.nome)}</b><button class="lnk" data-act="editRef:${r.id}">editar</button></div>
         ${r.itens.map((it,i)=>{ const key = r.id+'#'+i, on = d.comido.includes(key), p = protDe(it); return `<button class="fi ${on?'on':''}" data-act="come:${key}"><span class="box">${on?'✓':''}</span><span class="ft">${esc(it.replace(/\s*~\s*\d+\s*g/,''))}</span>${p?`<span class="fp">${p}g</span>`:'<span></span>'}</button>`; }).join('')}
