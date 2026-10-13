@@ -369,7 +369,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 17:20";
+const VERSAO = "13/10 17:35";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -454,16 +454,16 @@ const SEED = {
       {id:'c5', nome:'Panturrilha em pé', series:4, reps:'12–15', rest:60, nota:'Amortece o impacto que hoje vai direto pro osso.', alts:['Panturrilha sentado','Panturrilha no leg press']},
       {id:'c6', nome:'Tibial anterior', series:3, reps:'15–20', rest:45, bw:true, nota:'Tratamento da canelite. Não pula.', alts:['Tibial com anilha no pé','Tibial na parede','Tibial com elástico']}
     ]},
-    { id:'D', nome:'Perna leve / Ombro / Braços', ex:[
-      {id:'d3', nome:'Stiff com halteres', series:3, reps:'8–10', rest:120, nota:'Posterior e glúteo com pouca carga no joelho. Quadril para trás, costas retas.', alts:['Stiff com barra','Mesa flexora']},
-      {id:'d4', nome:'Cadeira extensora', series:3, reps:'12–15', rest:75, nota:'Recupera a força do quadríceps e protege o joelho. Desça devagar.', alts:['Extensora unilateral']},
-      {id:'d5', nome:'Panturrilha sentado', series:3, reps:'12–15', rest:60, nota:'Sóleo: o músculo que mais segura a corrida.', alts:['Panturrilha no leg press','Panturrilha em pé']},
-      {id:'d2', nome:'Elevação lateral', series:3, reps:'15–20', rest:45, nota:'Segunda dose de ombro na semana: mais leve, mais repetições.', alts:['Elevação lateral polia','Elevação lateral máquina']},
+    { id:'D', nome:'Ombro / Peito superior / Braços', ex:[
+      {id:'d9', nome:'Supino inclinado máquina', series:3, reps:'10–12', rest:90, nota:'Segunda dose de peito de cima na semana, mais leve que o do treino A.', alts:['Supino inclinado com halteres','Crucifixo inclinado']},
+      {id:'d2', nome:'Elevação lateral', series:4, reps:'15–20', rest:45, nota:'Segunda dose de ombro na semana: mais leve, mais repetições.', alts:['Elevação lateral polia','Elevação lateral máquina']},
+      {id:'d10', nome:'Desenvolvimento máquina', series:3, reps:'10–12', rest:90, nota:'', alts:['Desenvolvimento halteres sentado','Desenvolvimento Arnold']},
       {id:'d7', nome:'Rosca alternada com halteres', series:3, reps:'10–12', rest:75, nota:'', alts:['Rosca direta (barra W)','Rosca scott']},
-      {id:'d8', nome:'Tríceps francês com halter', series:3, reps:'10–12', rest:75, nota:'Cabeça longa do tríceps, com o braço acima da cabeça.', alts:['Tríceps testa (barra W)','Tríceps polia corda']}
+      {id:'d8', nome:'Tríceps francês com halter', series:3, reps:'10–12', rest:75, nota:'Cabeça longa do tríceps, com o braço acima da cabeça.', alts:['Tríceps testa (barra W)','Tríceps polia corda']},
+      {id:'d11', nome:'Rosca concentrada', series:2, reps:'12–15', rest:60, nota:'Fecha o bíceps com bombeamento.', alts:['Rosca scott máquina','Rosca na polia']}
     ]}
   ],
-  planMsg: 'Igual ao seu treino de antes, só sem flexão e abdominal do teste físico, e com um dia D curto: perna leve para recuperar força (stiff, extensora, panturrilha) e mais ombro e braço. Volta de 1 mês e meio parado: na 1ª semana use uns 80–85% da carga de antes e suba até ela em 2 a 3 semanas.',
+  planMsg: 'Igual ao seu treino de antes, só sem flexão e abdominal do teste físico, e com um dia D de cima: ombro, peito superior e braços. Perna continua num dia só (C). Volta de 1 mês e meio parado: na 1ª semana use uns 80–85% da carga de antes e suba até ela em 2 a 3 semanas.',
   metas: [
     {id:'m1', t:'Zero refrigerante com açúcar', s:'Zero açúcar pode.'},
     {id:'m2', t:'Regra do prato no almoço', s:'½ vegetais · ¼ proteína · ¼ carbo'},
@@ -472,7 +472,7 @@ const SEED = {
     {id:'m5', t:'Lanche âncora (~16h)', s:'Fruta, castanha, ovo ou iogurte — protege o jantar.'}
   ],
   refVer: 2,
-  planVer: 6,
+  planVer: 7,
   refeicoes: [
     {id:'r1', hora:'09:00', nome:'Café da manhã', itens:[
       '2–3 ovos mexidos ~ 15g',
@@ -504,6 +504,9 @@ const SEED = {
 
 /* metadados por id de exercício: por que faço, o que ativa, erro comum */
 const INFO = {
+  d9:{porque:'Peito de cima numa máquina, estável, para somar volume sem cansar o ombro.', ativa:'Peito superior, ombro anterior, tríceps.', erro:'Banco muito inclinado vira ombro. Escápulas para trás.'},
+  d10:{porque:'Ombro com caminho guiado: dá para empurrar forte com segurança.', ativa:'Deltoide anterior e lateral, tríceps.', erro:'Arquear a lombar. Costas coladas no encosto.'},
+  d11:{porque:'Isola o bíceps no fim do treino de braço.', ativa:'Bíceps.', erro:'Usar o ombro. Cotovelo apoiado na coxa, sobe devagar.'},
   d7:{porque:'Segunda dose de bíceps na semana, com cada braço trabalhando sozinho.', ativa:'Bíceps.', erro:'Balançar o tronco. Cotovelo parado ao lado do corpo.'},
   d8:{porque:'Pega a cabeça longa do tríceps, que dá volume ao braço visto de lado.', ativa:'Tríceps (cabeça longa).', erro:'Cotovelos abrindo. Mantenha-os apontados para cima e perto da cabeça.'},
   d1:{porque:'Massa geral do peito em ângulo reto, complementa o inclinado do Superior 1.', ativa:'Peito (porção média), tríceps e ombro anterior.', erro:'Halteres descendo abertos demais (estressa o ombro). Cotovelos a ~45° do corpo.'},
