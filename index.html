@@ -369,7 +369,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 16:45";
+const VERSAO = "13/10 17:20";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -429,41 +429,41 @@ function cloudPush(){ if (!nuvemRef) return; setSync('sync'); clearTimeout(pushT
 <script>
 const SEED = {
   plans: [
-    { id:'A', nome:'Superior 1 · Peito e costas', ex:[
-      {id:'a1', nome:'Supino inclinado com halteres', series:4, reps:'6–10', rest:150, nota:'Principal do dia. Peito de cima é o que mais muda a silhueta de frente.', alts:['Supino inclinado máquina','Supino inclinado barra','Supino reto halteres']},
-      {id:'b1', nome:'Puxada máquina', series:4, reps:'8–10', rest:120, nota:'Largura das costas: puxe com os cotovelos, peito para cima.', alts:['Puxada aberta','Puxada supinada','Barra fixa assistida']},
-      {id:'a3', nome:'Desenvolvimento halteres sentado', series:3, reps:'8–10', rest:120, nota:'', alts:['Desenvolvimento máquina','Desenvolvimento Arnold']},
-      {id:'b3', nome:'Remada baixa na polia', series:3, reps:'10–12', rest:90, nota:'Espessura do meio das costas. Aperte as escápulas no fim.', alts:['Remada máquina','Remada halter unilateral']},
-      {id:'a2', nome:'Elevação lateral', series:4, reps:'12–15', rest:60, nota:'Ombro largo = camisa cai reta. Sem balançar.', alts:['Elevação lateral polia','Elevação lateral máquina']},
-      {id:'a5', nome:'Tríceps polia corda', series:3, reps:'10–12', rest:75, nota:'', alts:['Tríceps francês','Tríceps barra na polia']},
-      {id:'b5', nome:'Rosca direta (barra W)', series:3, reps:'8–12', rest:75, nota:'', alts:['Rosca halteres','Rosca scott']}
+    { id:'A', nome:'Peito / Ombro / Tríceps', ex:[
+      {id:'a1', nome:'Supino inclinado com halteres', series:4, reps:'8–12', rest:150, nota:'Principal do peito. Inclinação leve (15–30°) — pega o peito superior, que é o que mais falta e o que enche a camisa na frente.', alts:['Supino inclinado máquina','Supino inclinado barra','Supino reto halteres','Supino reto barra']},
+      {id:'a2', nome:'Elevação lateral', series:4, reps:'12–15', rest:75, nota:'Largura de ombro = camisa cai reta por cima da barriga. Capricha, é estratégico pra você.', alts:['Elevação lateral polia','Elevação lateral máquina']},
+      {id:'a3', nome:'Desenvolvimento halteres sentado', series:3, reps:'8–12', rest:120, nota:'', alts:['Desenvolvimento máquina','Desenvolvimento Arnold','Barra pela frente']},
+      {id:'a4', nome:'Crucifixo máquina / cross over', series:3, reps:'12–15', rest:90, nota:'Desça devagar e alonga bem o peito — o alongamento sob carga é onde o peito mais cresce.', alts:['Cross over polia','Crucifixo halteres banco','Peck deck (apoio antebraço)']},
+      {id:'a5', nome:'Tríceps polia corda', series:3, reps:'10–12', rest:90, nota:'', alts:['Tríceps testa','Tríceps francês','Mergulho no banco']},
+      {id:'a7', nome:'Tríceps testa (barra W)', series:3, reps:'10–12', rest:90, nota:'Segundo exercício de tríceps — pega a cabeça longa, que a corda pega menos. Tríceps é ~2/3 do braço.', alts:['Tríceps francês halter','Tríceps coice','Mergulho entre bancos']}
     ]},
-    { id:'B', nome:'Inferior 1 · Força', ex:[
-      {id:'c1', nome:'Agachamento livre ou Smith', series:4, reps:'5–8', rest:180, nota:'Força de perna. Nas 2 primeiras semanas pare 2–3 reps antes da falha e suba a carga aos poucos.', alts:['Agachamento Smith','Hack machine','Agachamento goblet']},
-      {id:'c3', nome:'Mesa flexora', series:3, reps:'8–12', rest:90, nota:'Posterior forte protege joelho e ajuda a correr.', alts:['Cadeira flexora','Flexora em pé']},
-      {id:'c2', nome:'Leg press 45', series:3, reps:'10–12', rest:120, nota:'', alts:['Leg press horizontal','Hack machine']},
-      {id:'c5', nome:'Panturrilha em pé', series:4, reps:'10–15', rest:60, nota:'Amortece o impacto da corrida e do futebol.', alts:['Panturrilha no leg press','Panturrilha sentado']},
-      {id:'c6', nome:'Tibial anterior', series:3, reps:'15–20', rest:45, bw:true, nota:'Prevenção da canelite. Não pula.', alts:['Tibial com anilha no pé','Tibial com elástico']},
-      {id:'b6', nome:'Prancha', series:3, reps:'40', rest:60, bw:true, tempo:true, nota:'Marque o tempo em segundos.', alts:['Prancha lateral','Dead bug']}
+    { id:'B', nome:'Costas / Bíceps / Core', ex:[
+      {id:'b1', nome:'Puxada máquina', series:4, reps:'8–12', rest:120, nota:'Puxada abre a largura das costas — é o que mais faz a silhueta em V e ajuda a camisa a assentar.', alts:['Puxada aberta','Puxada supinada','Barra fixa assistida']},
+      {id:'b2', nome:'Remada curvada (pegada supinada)', series:3, reps:'8–10', rest:150, nota:'Pegada supinada (palmas pra cima): pega mais dorsal e bíceps, e deixa puxar mais carga. Costas SEMPRE neutras — se a lombar reclamar (dor, não cansaço), troca já pela remada com apoio no peito.', alts:['Remada máquina apoio peito','Remada baixa polia','Remada halter unilateral','Remada cavalinho']},
+      {id:'b3', nome:'Remada baixa na polia', series:3, reps:'10–12', rest:90, nota:'Espessura das costas. Puxa até o umbigo, aperta as escápulas.', alts:['Puxada polia triângulo','Pulldown braço reto','Remada máquina']},
+      {id:'b4', nome:'Crucifixo invertido / face pull', series:3, reps:'15–20', rest:60, nota:'Ombro pra trás e postura ereta. Sozinho já melhora o caimento da camisa e abre o peito.', alts:['Face pull na polia','Crucifixo invertido máquina','Crucifixo invertido halteres']},
+      {id:'b5', nome:'Rosca direta (barra W)', series:3, reps:'10–12', rest:90, nota:'Construtor principal do bíceps — o "pico".', alts:['Rosca halteres','Rosca scott','Rosca direta barra reta']},
+      {id:'b8', nome:'Rosca martelo', series:3, reps:'10–12', rest:90, nota:'Segundo de bíceps: pega o braquial e o braquiorradial, que dão GROSSURA ao braço visto de lado — não só o pico.', alts:['Rosca martelo polia corda','Rosca inversa','Rosca martelo no banco inclinado']},
+      {id:'b6', nome:'Prancha', series:3, reps:'40', rest:60, bw:true, tempo:true, nota:'Core forte segura a parede abdominal. Marque o tempo em segundos.', alts:['Prancha lateral','Prancha com joelhos']}
     ]},
-    { id:'C', nome:'Superior 2 · Ombro e braços', ex:[
-      {id:'b2', nome:'Remada curvada (pegada supinada)', series:4, reps:'8–10', rest:120, nota:'Coluna neutra sempre. Se a lombar reclamar, troque pela remada com apoio no peito.', alts:['Remada máquina apoio peito','Remada cavalinho','Remada halter unilateral']},
-      {id:'d1', nome:'Supino reto com halteres', series:3, reps:'8–10', rest:120, nota:'', alts:['Supino reto máquina','Supino reto barra']},
-      {id:'a4', nome:'Crucifixo máquina / cross over', series:3, reps:'12–15', rest:75, nota:'Desça devagar e alongue bem o peito.', alts:['Cross over polia','Peck deck']},
-      {id:'b4', nome:'Crucifixo invertido / face pull', series:3, reps:'15–20', rest:60, nota:'Ombro para trás e postura. Peso leve, controle.', alts:['Face pull na polia','Crucifixo invertido máquina']},
-      {id:'d2', nome:'Elevação lateral', series:3, reps:'15–20', rest:45, nota:'Segunda dose da semana: mais leve, mais reps.', alts:['Elevação lateral polia','Elevação lateral máquina']},
-      {id:'a7', nome:'Tríceps testa (barra W)', series:3, reps:'10–12', rest:75, nota:'', alts:['Tríceps francês halter','Tríceps coice']},
-      {id:'b8', nome:'Rosca martelo', series:3, reps:'10–12', rest:75, nota:'Grossura do braço visto de lado.', alts:['Rosca martelo polia corda','Rosca inversa']}
+    { id:'C', nome:'Perna / Canela', ex:[
+      {id:'c1', nome:'Agachamento livre ou Smith', series:3, reps:'8–10', rest:180, nota:'', alts:['Agachamento Smith','Hack machine','Agachamento goblet']},
+      {id:'c2', nome:'Leg press 45', series:3, reps:'10–12', rest:120, nota:'', alts:['Leg press horizontal','Cadeira extensora']},
+      {id:'c3', nome:'Mesa flexora', series:3, reps:'10–12', rest:90, nota:'', alts:['Stiff halteres','Flexora em pé','Cadeira flexora']},
+      {id:'c4', nome:'Afundo com halter', series:2, reps:'10 por perna', rest:90, nota:'', alts:['Búlgaro','Passada','Step up no banco']},
+      {id:'c5', nome:'Panturrilha em pé', series:4, reps:'12–15', rest:60, nota:'Amortece o impacto que hoje vai direto pro osso.', alts:['Panturrilha sentado','Panturrilha no leg press']},
+      {id:'c6', nome:'Tibial anterior', series:3, reps:'15–20', rest:45, bw:true, nota:'Tratamento da canelite. Não pula.', alts:['Tibial com anilha no pé','Tibial na parede','Tibial com elástico']}
     ]},
-    { id:'D', nome:'Inferior 2 · Posterior e unilateral', ex:[
-      {id:'d3', nome:'Stiff com halteres', series:3, reps:'8–10', rest:120, nota:'Quadril para trás, costas retas, joelho levemente dobrado. Sinta o posterior alongar.', alts:['Stiff com barra','Levantamento terra romeno']},
-      {id:'c4', nome:'Afundo com halter', series:3, reps:'8–10 por perna', rest:90, nota:'Corrige diferença entre as pernas.', alts:['Búlgaro','Passada','Step up no banco']},
-      {id:'d4', nome:'Cadeira extensora', series:3, reps:'12–15', rest:75, nota:'Controle a descida. Joelho agradece.', alts:['Extensora unilateral']},
+    { id:'D', nome:'Perna leve / Ombro / Braços', ex:[
+      {id:'d3', nome:'Stiff com halteres', series:3, reps:'8–10', rest:120, nota:'Posterior e glúteo com pouca carga no joelho. Quadril para trás, costas retas.', alts:['Stiff com barra','Mesa flexora']},
+      {id:'d4', nome:'Cadeira extensora', series:3, reps:'12–15', rest:75, nota:'Recupera a força do quadríceps e protege o joelho. Desça devagar.', alts:['Extensora unilateral']},
       {id:'d5', nome:'Panturrilha sentado', series:3, reps:'12–15', rest:60, nota:'Sóleo: o músculo que mais segura a corrida.', alts:['Panturrilha no leg press','Panturrilha em pé']},
-      {id:'d6', nome:'Tibial anterior', series:2, reps:'15–20', rest:45, bw:true, nota:'', alts:['Tibial com anilha no pé','Tibial com elástico']},
-      {id:'b7', nome:'Abdominal remador', series:3, reps:'15–20', rest:45, bw:true, nota:'', alts:['Abdominal na polia','Elevação de pernas']}
+      {id:'d2', nome:'Elevação lateral', series:3, reps:'15–20', rest:45, nota:'Segunda dose de ombro na semana: mais leve, mais repetições.', alts:['Elevação lateral polia','Elevação lateral máquina']},
+      {id:'d7', nome:'Rosca alternada com halteres', series:3, reps:'10–12', rest:75, nota:'', alts:['Rosca direta (barra W)','Rosca scott']},
+      {id:'d8', nome:'Tríceps francês com halter', series:3, reps:'10–12', rest:75, nota:'Cabeça longa do tríceps, com o braço acima da cabeça.', alts:['Tríceps testa (barra W)','Tríceps polia corda']}
     ]}
   ],
+  planMsg: 'Igual ao seu treino de antes, só sem flexão e abdominal do teste físico, e com um dia D curto: perna leve para recuperar força (stiff, extensora, panturrilha) e mais ombro e braço. Volta de 1 mês e meio parado: na 1ª semana use uns 80–85% da carga de antes e suba até ela em 2 a 3 semanas.',
   metas: [
     {id:'m1', t:'Zero refrigerante com açúcar', s:'Zero açúcar pode.'},
     {id:'m2', t:'Regra do prato no almoço', s:'½ vegetais · ¼ proteína · ¼ carbo'},
@@ -472,7 +472,7 @@ const SEED = {
     {id:'m5', t:'Lanche âncora (~16h)', s:'Fruta, castanha, ovo ou iogurte — protege o jantar.'}
   ],
   refVer: 2,
-  planVer: 5,
+  planVer: 6,
   refeicoes: [
     {id:'r1', hora:'09:00', nome:'Café da manhã', itens:[
       '2–3 ovos mexidos ~ 15g',
@@ -504,6 +504,8 @@ const SEED = {
 
 /* metadados por id de exercício: por que faço, o que ativa, erro comum */
 const INFO = {
+  d7:{porque:'Segunda dose de bíceps na semana, com cada braço trabalhando sozinho.', ativa:'Bíceps.', erro:'Balançar o tronco. Cotovelo parado ao lado do corpo.'},
+  d8:{porque:'Pega a cabeça longa do tríceps, que dá volume ao braço visto de lado.', ativa:'Tríceps (cabeça longa).', erro:'Cotovelos abrindo. Mantenha-os apontados para cima e perto da cabeça.'},
   d1:{porque:'Massa geral do peito em ângulo reto, complementa o inclinado do Superior 1.', ativa:'Peito (porção média), tríceps e ombro anterior.', erro:'Halteres descendo abertos demais (estressa o ombro). Cotovelos a ~45° do corpo.'},
   d2:{porque:'Segunda dose de ombro lateral na semana: é o músculo que mais muda a largura.', ativa:'Deltoide lateral.', erro:'Subir com impulso. Peso leve, sobe pelos cotovelos.'},
   d3:{porque:'O melhor para o posterior de coxa e glúteo com pouca carga no joelho. Força de base para correr.', ativa:'Posterior de coxa, glúteo, eretores da coluna.', erro:'Arredondar as costas ou dobrar muito o joelho (vira agachamento). Quadril para trás, halter rente às pernas.'},
@@ -539,7 +541,7 @@ function defaults(){
   for(const k in SEED) if(D[k]===undefined) D[k]=structuredClone(SEED[k]);
   if(D._u===undefined) D._u=0;
   if((D.refVer||0) < SEED.refVer){ D.refeicoes=structuredClone(SEED.refeicoes); D.refVer=SEED.refVer; }
-  if((D.planVer||0) < SEED.planVer){ if (D.planVer && D.plans?.length){ D.plansAnteriores = D.plans; D.planNovo = {dia:hoje(), de:D.planVer}; } D.plans=structuredClone(SEED.plans); D.planVer=SEED.planVer; }
+  if((D.planVer||0) < SEED.planVer){ if (D.planVer && D.plans?.length){ if (D.planVer < 5 || !D.plansAnteriores) D.plansAnteriores = D.plans; D.planNovo = {dia:hoje(), de:D.planVer, txt:SEED.planMsg}; } D.plans=structuredClone(SEED.plans); D.planVer=SEED.planVer; if (!D.plans.some(p=>p.id===plano)) plano = 'A'; }
   D.atividades ||= []; D.pesos ||= []; D.sessions ||= []; D.dias ||= {};
   if (D.planNovo && !D.planNovo.metaOk){ D.metaSem = Object.assign({}, metaSemana(), {treinos: D.plans.length}); D.planNovo.metaOk = true; }
 }
@@ -717,7 +719,9 @@ const FORMATO_ACOES = `"acoes" é uma lista (pode ser vazia) de mudanças que o 
 {"tipo":"treino_hoje","nome":"nome curto","motivo":"1 frase","exercicios":[{"nome":"","series":3,"reps":"8–12","descanso":90,"kg":null,"bw":false,"nota":""}]}  → monta o treino de hoje (só hoje)
 {"tipo":"alterar_plano","plano":"A","nome":"opcional","motivo":"1 frase","exercicios":[...mesmo formato]}  → substitui os exercícios do treino A/B/C de vez
 {"tipo":"novo_plano","plano":"D","nome":"","motivo":"","exercicios":[...]}
-{"tipo":"meta_semana","treinos":3,"km":10,"bola":2,"agua":8,"prot":120,"motivo":""}`;
+{"tipo":"meta_semana","treinos":4,"km":10,"bola":2,"motivo":""}
+{"tipo":"cargas_hoje","plano":"A","percentual":85,"itens":[{"nome":"nome exato do exercício","kg":20,"reps":"10"}],"motivo":"1 frase"}  → preenche as cargas do treino de hoje (percentual aplicado sobre a última carga de cada exercício; "itens" sobrepõe exercícios específicos; pode mandar só um dos dois)
+SEMPRE que sugerir cargas, percentual ou repetições para hoje, inclua "cargas_hoje" para a pessoa aplicar com um toque. Se sugerir trocar exercícios só hoje, use "treino_hoje" com "kg" em cada exercício.`;
 
 /* ---------- aplicar ações vindas do coach (IA do app ou do Claude) ---------- */
 function exDeIA(x, velhos){ const v = (velhos||[]).find(e=>norm(e.nome)===norm(x.nome)); return {id: v?.id || 'x'+uid(), nome: String(x.nome||'Exercício').slice(0,60), series: Math.max(1, Math.min(10, parseInt(x.series)||3)), reps: String(x.reps||'8–12'), rest: Math.max(15, Math.min(300, parseInt(x.descanso||x.rest)||90)), nota: String(x.nota||'').slice(0,200), alts: v?.alts||[], ...(x.bw||v?.bw?{bw:true}:{}), ...(x.kg?{kgSug:num(x.kg)}:{})}; }
@@ -728,13 +732,29 @@ function aplicarAcao(a){
   if (a.tipo==='alterar_plano' || a.tipo==='novo_plano'){ let p = D.plans.find(x=>x.id===String(a.plano||'').toUpperCase());
     if (!p){ const id = String(a.plano||'').toUpperCase().slice(0,3) || String.fromCharCode(65+D.plans.length); p = {id, nome:a.nome||'Novo treino', ex:[]}; D.plans.push(p); }
     const ex = (a.exercicios||[]).map(x=>exDeIA(x, p.ex)); if (!ex.length) return null; p.ex = ex; if (a.nome) p.nome = String(a.nome).slice(0,60); return `Treino ${p.id} atualizado (${ex.length} exercícios)`; }
+  if (a.tipo==='cargas_hoje'){ const alvo = a.plano && D.plans.some(p=>p.id===String(a.plano).toUpperCase()) ? String(a.plano).toUpperCase() : plano; const p = getPlan(alvo); if (!p) return null;
+    const pct = a.percentual ? Math.max(30, Math.min(120, +a.percentual)) : null; const por = {};
+    for (const e of p.ex){ const nome = swaps[e.id]||e.nome; const u = ultima(nome); if (pct && u && !e.bw){ const top = Math.max(0, ...u.it.sets.map(x=>x.kg||0)); if (top) por[nome] = {kg: arredKg(top*pct/100)}; } }
+    for (const x of (a.itens||[])){ const e = p.ex.find(e=>norm(swaps[e.id]||e.nome)===norm(x.nome)) || p.ex.find(e=>norm(swaps[e.id]||e.nome).includes(norm(x.nome).split(' ')[0])); if (!e) continue; const nome = swaps[e.id]||e.nome; por[nome] = Object.assign(por[nome]||{}, x.kg!=null?{kg:num(x.kg)}:{}, x.reps!=null?{reps:parseInt(x.reps)||null}:{}); }
+    if (!Object.keys(por).length) return null;
+    D.cargasHoje = {data:hoje(), plano:alvo, pct, por, motivo:a.motivo||''}; plano = alvo;
+    for (const e of p.ex){ const nome = swaps[e.id]||e.nome; (log[e.id]||[]).forEach(s=>{ if (s && !s.ok){ delete s.kg; delete s.reps; } }); }
+    D.rascunho = {data:hoje(), plano, log, swaps, notas};
+    return `Cargas de hoje aplicadas${pct?` (${pct}%)`:''} em ${Object.keys(por).length} exercícios`; }
   if (a.tipo==='meta_semana'){ const m = Object.assign({}, metaSemana()); ['treinos','km','bola','agua','prot'].forEach(k=>{ if (a[k]!=null && isFinite(+a[k])) m[k] = +a[k]; }); D.metaSem = m; return 'Plano da semana ajustado'; }
   return null;
 }
+const arredKg = k => k<10 ? Math.round(k*2)/2 : k<40 ? Math.round(k) : Math.round(k/2.5)*2.5;
+function previaCargas(a){ const alvo = a.plano && D.plans.some(p=>p.id===String(a.plano).toUpperCase()) ? String(a.plano).toUpperCase() : plano; const p = getPlan(alvo); if (!p) return '';
+  const linhas = p.ex.map(e=>{ const nome = swaps[e.id]||e.nome, u = ultima(nome), x = (a.itens||[]).find(x=>norm(x.nome)===norm(nome)); const top = u ? Math.max(0, ...u.it.sets.map(s=>s.kg||0)) : 0;
+    const kg = x && x.kg!=null ? num(x.kg) : (a.percentual && top && !e.bw ? arredKg(top*a.percentual/100) : null); if (kg==null && !(x && x.reps)) return '';
+    return `<li>${esc(nome)}: ${top&&kg!=null?`${f1(top)} → `:''}<b>${kg!=null?f1(kg)+' kg':''}</b>${x&&x.reps?` × ${esc(x.reps)}`:''}</li>`; }).filter(Boolean);
+  return linhas.length ? `<div class="note" style="margin-top:4px">Treino ${esc(alvo)}${a.percentual?` · ${a.percentual}% da última carga`:''}</div><ul style="margin:6px 0 0;padding-left:18px">${linhas.join('')}</ul>` : '<div class="note">Sem cargas anteriores para calcular.</div>'; }
 function cartaoAcao(a, i, ci){ const ex = a.exercicios||[];
-  const tit = a.tipo==='treino_hoje' ? `Treino de hoje: ${a.nome||''}` : a.tipo==='alterar_plano' ? `Alterar o treino ${a.plano}${a.nome?` (${a.nome})`:''}` : a.tipo==='novo_plano' ? `Novo treino ${a.plano||''} ${a.nome||''}` : a.tipo==='meta_semana' ? 'Ajustar o plano da semana' : a.tipo;
+  const tit = a.tipo==='cargas_hoje' ? 'Aplicar cargas no treino de hoje' : a.tipo==='treino_hoje' ? `Treino de hoje: ${a.nome||''}` : a.tipo==='alterar_plano' ? `Alterar o treino ${a.plano}${a.nome?` (${a.nome})`:''}` : a.tipo==='novo_plano' ? `Novo treino ${a.plano||''} ${a.nome||''}` : a.tipo==='meta_semana' ? 'Ajustar o plano da semana' : a.tipo;
   return `<div class="box-i ia"><span class="il">${esc(tit)}</span>${a.motivo?`<div>${esc(a.motivo)}</div>`:''}
     ${ex.length?`<ol style="margin:6px 0 0;padding-left:20px">${ex.map(x=>`<li>${esc(x.nome)} — ${esc(x.series)}×${esc(x.reps)}${x.kg?` · ${esc(x.kg)} kg`:''}${x.nota?` <small style="color:var(--muted)">(${esc(x.nota)})</small>`:''}</li>`).join('')}</ol>`:''}
+    ${a.tipo==='cargas_hoje'?previaCargas(a):''}
     ${a.tipo==='meta_semana'?`<div class="note">${['treinos','km','bola','agua','prot'].filter(k=>a[k]!=null).map(k=>`${k} ${a[k]}`).join(' · ')}</div>`:''}
     <div class="btns">${a._ok?`<span class="pill g">Aplicado ✓</span>`:`<button class="btn p sm" data-act="aplicar:${ci}:${i}">Aplicar</button>`}</div></div>`; }
 
@@ -825,9 +845,9 @@ function render(){
 function viewHoje(){ return `<div class="grid two"><div class="col">${blocoConta()}${blocoPlanoNovo()}${blocoSemana()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}${blocoProteina()}</div></div>`; }
 
 function blocoPlanoNovo(){ const n = D.planNovo; if (!n || n.visto) return '';
-  return `<section class="panel novo"><div class="sm-eye" style="color:var(--violet)">Treino novo, feito pelo Claude</div><b style="font-size:17px">4 dias: ${D.plans.map(p=>esc(p.nome.split('·')[0].trim())).join(' → ')}</b>
-    <p class="note">Foco em estética e força, com perna recuperando: agachamento e stiff para força, extensora, panturrilha e tibial para proteger joelho e canela. ${D.plans.map(p=>p.ex.length).reduce((a,b)=>a+b,0)} exercícios na semana, uns 50 min por treino. <b>Nas 2 primeiras semanas pare 2 a 3 repetições antes da falha</b>: você está voltando de um mês parado.</p>
-    <div class="btns"><button class="btn p" data-act="planoOk">Bora</button><button class="btn" data-act="planoVolta">Voltar para o treino antigo</button></div></section>`; }
+  return `<section class="panel novo"><div class="sm-eye" style="color:var(--violet)">Treino ajustado pelo Claude</div><b style="font-size:17px">${D.plans.length} dias: ${D.plans.map(p=>esc(p.id)).join(' → ')}</b>
+    <p class="note">${esc(n.txt || '')}</p>
+    <div class="btns"><button class="btn p" data-act="planoOk">Bora</button><button class="btn" data-act="planoVolta">Voltar para o treino de antes</button></div></section>`; }
 function blocoProteina(){ const k = hoje(); const usa = Object.keys(D.dias).some(x=>x>=addDias(hoje(),-7) && protDia(x)>0); if (!usa) return '';
   const d = diaDe(k), p = protDia(k), alvo = D.protAlvo||120; const itens = D.refeicoes.flatMap(r=>(d.mealEat[r.id]||[]).map(x=>({...x, r:r.id})));
   return `<section class="panel"><div class="ph"><h2 style="--hc:var(--violet)">Proteína hoje</h2><span class="num"><b>${p}</b> / ${alvo} g</span></div><div class="bar" style="--cc:var(--violet)"><i style="width:${Math.min(100,p/alvo*100)}%"></i></div>
@@ -900,8 +920,9 @@ const ic = (n, s=18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fil
 
 /* valor que aparece numa série ainda não feita: o que você mexeu > série anterior de hoje > sugestão > última vez */
 function valorSerie(e, s){ const nome = swaps[e.id]||e.nome, v = (log[e.id]||[])[s]||{}; const ant = (log[e.id]||[])[s-1]; const sg = sugestaoCarga(e, nome), u = sugSet(nome, s);
-  const kg = v.kg!=null && v.kg!=='' ? num(v.kg) : ant && ant.ok && ant.kg!=null ? num(ant.kg) : sg ? sg.kg : u.kg!=null ? u.kg : (e.kgSug ?? null);
-  const reps = v.reps!=null && v.reps!=='' ? num(v.reps) : ant && ant.ok && ant.reps!=null ? num(ant.reps) : u.reps!=null ? u.reps : (topReps(e.reps) || 10);
+  const ch = D.cargasHoje && D.cargasHoje.data===hoje() ? (D.cargasHoje.por||{})[nome] : null;
+  const kg = v.kg!=null && v.kg!=='' ? num(v.kg) : ant && ant.ok && ant.kg!=null ? num(ant.kg) : ch && ch.kg!=null ? ch.kg : e.kgSug!=null ? e.kgSug : sg ? sg.kg : u.kg!=null ? u.kg : null;
+  const reps = v.reps!=null && v.reps!=='' ? num(v.reps) : ant && ant.ok && ant.reps!=null ? num(ant.reps) : ch && ch.reps ? ch.reps : u.reps!=null ? u.reps : (topReps(e.reps) || 10);
   return {kg, reps, ok: !!v.ok}; }
 function progressoEx(e){ const ns = nSeries(e), n = (log[e.id]||[]).filter(s=>s&&s.ok).length; return {ns, n: Math.min(n, ns)}; }
 function minutosTreino(p){ return Math.round(sum(p.ex, e=>e.series*(0.75 + e.rest/60)) + 5); }
@@ -917,7 +938,7 @@ function blocoTreino(){
     const alvo = `${e.series}×${e.reps}${e.tempo?'s':''}${!e.bw && v0.kg ? ` · ${f1(v0.kg)} kg` : e.bw ? ' · corpo' : ''}`;
     return `<button class="tr-ex ${pr.n>=pr.ns?'feito':pr.n?'meio':''}" data-act="foco:${i}">
       <span class="tr-n">${pr.n>=pr.ns ? ic('check',16) : i+1}</span>
-      <span class="tr-t"><b>${esc(nome)}</b><small>${esc(alvo)}${sg && !pr.n ? ` <em class="${sg.tipo==='volta'?'volta':''}">${sg.tipo==='volta'?'volta leve':`↑ ${f1(sg.kg)} kg`}</em>` : ''}</small></span>
+      <span class="tr-t"><b>${esc(nome)}</b><small>${esc(alvo)}${D.cargasHoje && D.cargasHoje.data===hoje() && (D.cargasHoje.por||{})[nome] && !pr.n ? ` <em class="volta">coach</em>` : sg && !pr.n ? ` <em class="${sg.tipo==='volta'?'volta':''}">${sg.tipo==='volta'?'volta leve':`↑ ${f1(sg.kg)} kg`}</em>` : ''}</small></span>
       <span class="tr-dots">${Array.from({length:pr.ns},(_,k)=>`<i class="${k<pr.n?'on':''}"></i>`).join('')}</span></button>`; }).join('');
   const comecou = ok > 0, acabou = tot && ok >= tot;
   return `<section class="panel treino">
@@ -955,7 +976,7 @@ function renderFoco(){
       <h2><button data-act="info:${e.id}">${esc(nome)} ${ic('info',16)}</button></h2>
       <div class="fo-alvo">Alvo ${e.series}×${esc(e.reps)}${e.tempo?' s':''} · descanso ${e.rest}s <button class="lnk" data-act="swap:${e.id}">trocar</button></div>
       ${u?`<div class="fo-ult">Última vez: <b>${esc(u.txt)}</b></div>`:''}
-      ${sg?`<div class="fo-sug ${sg.tipo}">${esc(sg.txt)}</div>`:''}</div>
+      ${D.cargasHoje && D.cargasHoje.data===hoje() && (D.cargasHoje.por||{})[nome] ? `<div class="fo-sug volta">Carga do coach para hoje${D.cargasHoje.pct?` (${D.cargasHoje.pct}%)`:''}: ${f1(D.cargasHoje.por[nome].kg??0)} kg</div>` : sg?`<div class="fo-sug ${sg.tipo}">${esc(sg.txt)}</div>`:''}</div>
     ${painelEvolucao(e, nome)}
     <div class="fo-sets">${Array.from({length:ns},(_,s)=>{ const x = valorSerie(e,s); return `<button class="fo-set ${s===f.s?'cur':''} ${x.ok?'ok':''}" data-act="focoSet:${s}"><small>${s+1}ª</small>${x.ok||s===f.s?`<b>${e.bw?'':f1(x.kg??0)+'×'}${x.reps??'–'}</b>`:'<b>—</b>'}</button>`; }).join('')}<button class="fo-set add" data-act="maisSerie:${e.id}" aria-label="Mais uma série">${ic('mais',16)}</button></div>
     ${descansando ? `<div class="fo-desc"><div class="tr-eye" style="color:var(--tang)">Descanso</div><b id="fClock" class="num">${pad(Math.floor(tL/60))}:${pad(tL%60)}</b><div class="btns" style="justify-content:center"><button class="btn" data-act="timerMais">+30s</button><button class="btn o" data-act="timerPara">Pular descanso</button></div><p class="note">Próxima: ${f.s+1}ª série${pr.n>=pr.ns && p.ex[f.i+1] ? ` · ${esc(swaps[p.ex[f.i+1].id]||p.ex[f.i+1].nome)}`:''}</p></div>`
@@ -1132,7 +1153,7 @@ async function acao(a, el){
   switch(cmd){
     case 'fechar': fecharFolha(); return;
     case 'planoOk': D.planNovo.visto = true; save(); render(); toast('Treino novo valendo. Primeiro: '+getPlan(proximo()).nome); return;
-    case 'planoVolta': comDesfazer('Voltou para o treino antigo', ()=>{ if (D.plansAnteriores) D.plans = D.plansAnteriores; D.planNovo.visto = true; plano = proximo(); }); return;
+    case 'planoVolta': comDesfazer('Voltou para o treino de antes', ()=>{ if (D.plansAnteriores) D.plans = D.plansAnteriores; D.planNovo.visto = true; plano = proximo(); }); return;
     case 'exVibe': exVibe(arg); return;
     case 'mandarClaude': { const txt = textoCurtoClaude(); try{ await navigator.clipboard.writeText(textoParaClaude()); }catch(e){} window.open('https://claude.ai/new?q='+encodeURIComponent(txt), '_blank'); toast('Abri o Claude com seus dados. É só enviar. Depois copie a resposta dele e toque em “Colar resposta”.', null, 9000); return; }
     case 'colarRapido': { try{ const t = await navigator.clipboard.readText(); if (t && /acoes|"tipo"/.test(t)) { importarClaude(t); return; } }catch(e){} colarClaude(); return; }
