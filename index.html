@@ -325,6 +325,14 @@ body.cronando #foco{top:calc(40px + env(safe-area-inset-top,0px))}
 .chip.on{background:var(--tang);border-color:var(--tang);color:#fff}
 textarea.grow{resize:none;overflow:hidden;font:inherit;line-height:1.35;min-height:42px;display:block}
 .ask,.exc-f{align-items:flex-end}
+.tr-pul{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--muted);font-weight:600;margin-top:8px}.tr-pul .chip{font-size:12.5px;padding:5px 10px;text-decoration:line-through;text-decoration-color:var(--muted)}
+.eq{border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-top:8px;display:grid;gap:5px;background:var(--surface)}
+.eq.on{border-color:var(--mint);background:var(--mint-soft)}
+.eq-h{display:flex;align-items:center;gap:8px;justify-content:space-between}.eq-h b{font-size:15px}
+.eq-m{font-size:12.5px;color:var(--muted);font-weight:600}
+.eq-d{font-size:13.5px;line-height:1.4}.eq-d .il{display:inline;margin-right:6px}
+.eq-c{font-size:12.5px;color:var(--violet);font-weight:600}
+.eq-b{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px}
 .fo-set.del{min-width:38px;display:grid;place-items:center;color:var(--danger);border-style:dashed}
 .fo-alvo .lnk{font-size:13px}
 .exc{background:var(--surface);border:1.5px solid var(--violet-soft);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
@@ -425,7 +433,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 20:20";
+const VERSAO = "13/10 20:45";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -658,7 +666,10 @@ function toast(msg, desfazer, ms){ const t=$('#toast'); $('#toastT').textContent
   t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'), ms||(desfazer?7000:3500)); }
 
 /* ---------- treino do dia ---------- */
-const getPlan = id => (D.hojeCustom && D.hojeCustom.data===hoje() && id===D.hojeCustom.plano.id) ? D.hojeCustom.plano : (D.plans.find(p=>p.id===id)||D.plans[0]);
+const getPlanBase = id => (D.hojeCustom && D.hojeCustom.data===hoje() && id===D.hojeCustom.plano.id) ? D.hojeCustom.plano : (D.plans.find(p=>p.id===id)||D.plans[0]);
+/* treino de hoje sem os exercícios que você tirou só hoje */
+const pulado = e => !!(ajustes[e.id] && ajustes[e.id].pular);
+const getPlan = id => { const p = getPlanBase(id); if (!p || id!==plano || !p.ex.some(pulado)) return p; return Object.assign({}, p, {ex: p.ex.filter(e=>!pulado(e)), pulados: p.ex.filter(pulado)}); };
 const planosVisiveis = () => (D.hojeCustom && D.hojeCustom.data===hoje()) ? [D.hojeCustom.plano, ...D.plans] : D.plans;
 function proximo(){ const ult=[...D.sessions].filter(s=>D.plans.some(p=>p.id===s.plano)).sort((a,b)=>a.data===b.data?(a.ts||0)-(b.ts||0):(a.data<b.data?-1:1)).pop(); const ord=D.plans.map(p=>p.id); if(!ult) return ord[0]; return ord[(ord.indexOf(ult.plano)+1)%ord.length]; }
 function nSeries(e){ return Math.max(ef(e).series, (log[e.id]||[]).length); }
@@ -782,7 +793,8 @@ function contextoTreino(curto){
   const ultimo = [...D.sessions].sort((a,b)=>a.data<b.data?-1:1).pop(); const parado = ultimo ? Math.round((Date.now()-new Date(ultimo.data+'T12:00:00'))/864e5) : null;
   return `Hoje: ${hoje()} (${diaSem(hoje())}). Último treino de musculação: ${ultimo?`${ultimo.data} (há ${parado} dias)`:'nenhum'}. Próximo da sequência: ${proximo()}.
 Semana atual: musculação ${sd.musc}/${mt.treinos}, corrida ${f1(sd.km)}/${mt.km} km, futebol ${sd.bola}/${mt.bola}. (Alimentação: a pessoa registra só às vezes; não cobre isso.)
-Contexto da pessoa: faz musculação A/B/C, joga futebol, corre, se prepara para teste físico (EAF: flexão e abdominal), já teve canelite.
+Contexto da pessoa: faz musculação A/B/C (rodízio, nunca dois dias de perna), quer estética, força e pernas recuperadas; corre de vez em quando, joga futebol, já teve canelite. Teste físico não é prioridade agora. Quer treinar em no máximo ~1 hora.
+${estadoHoje()}
 PLANOS:\n${planos}
 TREINOS RECENTES:\n${sess||'nenhum'}
 ATIVIDADES (corrida, futebol…):\n${ativ||'nenhuma'}
@@ -794,7 +806,9 @@ const FORMATO_ACOES = `"acoes" é uma lista (pode ser vazia) de mudanças que o 
 {"tipo":"alterar_plano","plano":"A","nome":"opcional","motivo":"1 frase","exercicios":[...mesmo formato]}  → substitui os exercícios do treino A/B/C de vez
 {"tipo":"novo_plano","plano":"D","nome":"","motivo":"","exercicios":[...]}
 {"tipo":"meta_semana","treinos":4,"km":10,"bola":2,"motivo":""}
-{"tipo":"ajustar_exercicio","exercicio":"nome exato","series":3,"reps":"10–12","descanso":90,"kg":20,"trocar_por":null,"escopo":"hoje|plano","motivo":"1 frase"}  → muda UM exercício (só os campos que mudam): "hoje" vale só no treino de hoje, "plano" muda de vez
+{"tipo":"ajustar_exercicio","exercicio":"nome exato","series":3,"reps":"10–12","descanso":90,"kg":20,"trocar_por":null,"escopo":"hoje|plano","motivo":"1 frase"}  → muda UM exercício (só os campos que mudam; "trocar_por" troca por um equivalente): "hoje" vale só no treino de hoje, "plano" muda de vez
+{"tipo":"remover_exercicios","exercicios":["nome exato"],"escopo":"hoje|plano","motivo":"1 frase"}  → tira exercícios: "hoje" só do treino de hoje (pressa, cansaço, dor, "chega de ombro"); "plano" tira do plano de vez. Se já fez séries de um deles, as feitas ficam salvas.
+Você pode mudar QUALQUER parte do treino, não só o exercício em que a pessoa está. Se ela quiser ir embora, tire o que falta de menos importante e diga o que fazer para fechar.
 {"tipo":"cargas_hoje","plano":"A","percentual":85,"itens":[{"nome":"nome exato do exercício","kg":20,"reps":"10"}],"motivo":"1 frase"}  → preenche as cargas do treino de hoje (percentual aplicado sobre a última carga de cada exercício; "itens" sobrepõe exercícios específicos; pode mandar só um dos dois)
 SEMPRE que sugerir cargas, percentual ou repetições para hoje, inclua "cargas_hoje" para a pessoa aplicar com um toque. Se sugerir trocar exercícios só hoje, use "treino_hoje" com "kg" em cada exercício.`;
 
@@ -817,6 +831,13 @@ function aplicarAcao(a){
     D.rascunho = {data:hoje(), plano, log, swaps, notas};
     return `Cargas de hoje aplicadas${pct?` (${pct}%)`:''} em ${Object.keys(por).length} exercícios`; }
   if (a.tipo==='ajustar_exercicio'){ const p = getPlan(plano); const e = p.ex.find(x=>norm(swaps[x.id]||x.nome)===norm(a.exercicio)) || p.ex.find(x=>norm(x.nome)===norm(a.exercicio)) || p.ex.find(x=>norm(swaps[x.id]||x.nome).includes(norm(a.exercicio).split(' ')[0])); if (!e) return null; return aplicarAjuste(e.id, a, a.escopo==='plano'?'plano':'hoje'); }
+  if (a.tipo==='remover_exercicios'){ const base = getPlanBase(plano), nomes = (a.exercicios||[]).map(norm); const alvo = base.ex.filter(e=>{ const a1 = norm(swaps[e.id]||e.nome), a2 = norm(e.nome); return nomes.some(n=>n && (n===a1 || n===a2 || (n.length>=6 && (a1.startsWith(n) || a2.startsWith(n))))); }); if (!alvo.length) return null;
+    const nomesOk = [];
+    for (const e of alvo){ const feitas = (log[e.id]||[]).filter(s=>s&&s.ok).length; nomesOk.push(swaps[e.id]||e.nome);
+      if (feitas) ajustes[e.id] = Object.assign({}, ajustes[e.id]||{}, {series: feitas}); else ajustes[e.id] = Object.assign({}, ajustes[e.id]||{}, {pular:true});
+      if (a.escopo==='plano'){ for (const p of D.plans) p.ex = p.ex.filter(x=>x.id!==e.id); } }
+    if (S.foco){ const n = getPlan(plano).ex.length; if (!n) S.foco = null; else if (S.foco.i >= n) S.foco.i = n-1; }
+    persist(); return `${a.escopo==='plano'?'Tirado do plano':'Fora de hoje'}: ${nomesOk.join(', ')}`; }
   if (a.tipo==='meta_semana'){ const m = Object.assign({}, metaSemana()); ['treinos','km','bola','agua','prot'].forEach(k=>{ if (a[k]!=null && isFinite(+a[k])) m[k] = +a[k]; }); D.metaSem = m; return 'Plano da semana ajustado'; }
   return null;
 }
@@ -826,13 +847,17 @@ function previaCargas(a){ const alvo = a.plano && D.plans.some(p=>p.id===String(
     const kg = x && x.kg!=null ? num(x.kg) : (a.percentual && top && !e.bw ? arredKg(top*a.percentual/100) : null); if (kg==null && !(x && x.reps)) return '';
     return `<li>${esc(nome)}: ${top&&kg!=null?`${f1(top)} → `:''}<b>${kg!=null?f1(kg)+' kg':''}</b>${x&&x.reps?` × ${esc(x.reps)}`:''}</li>`; }).filter(Boolean);
   return linhas.length ? `<div class="note" style="margin-top:4px">Treino ${esc(alvo)}${a.percentual?` · ${a.percentual}% da última carga`:''}</div><ul style="margin:6px 0 0;padding-left:18px">${linhas.join('')}</ul>` : '<div class="note">Sem cargas anteriores para calcular.</div>'; }
-function cartaoAcao(a, i, ci){ const ex = a.exercicios||[];
-  const tit = a.tipo==='cargas_hoje' ? 'Aplicar cargas no treino de hoje' : a.tipo==='treino_hoje' ? `Treino de hoje: ${a.nome||''}` : a.tipo==='alterar_plano' ? `Alterar o treino ${a.plano}${a.nome?` (${a.nome})`:''}` : a.tipo==='novo_plano' ? `Novo treino ${a.plano||''} ${a.nome||''}` : a.tipo==='meta_semana' ? 'Ajustar o plano da semana' : a.tipo==='ajustar_exercicio' ? `Ajustar ${a.exercicio||'exercício'}${a.escopo==='plano'?' (no plano)':' (só hoje)'}` : a.tipo;
+function cartaoAcao(a, i, ci, botoes){ const ex = a.tipo==='remover_exercicios' ? [] : (a.exercicios||[]);
+  const tit = a.tipo==='cargas_hoje' ? 'Aplicar cargas no treino de hoje' : a.tipo==='treino_hoje' ? `Treino de hoje: ${a.nome||''}` : a.tipo==='alterar_plano' ? `Alterar o treino ${a.plano}${a.nome?` (${a.nome})`:''}` : a.tipo==='novo_plano' ? `Novo treino ${a.plano||''} ${a.nome||''}` : a.tipo==='meta_semana' ? 'Ajustar o plano da semana' : a.tipo==='ajustar_exercicio' ? `Ajustar ${a.exercicio||'exercício'}${a.escopo==='plano'?' (no plano)':' (só hoje)'}` : a.tipo==='remover_exercicios' ? `${a.escopo==='plano'?'Tirar do plano':'Tirar do treino de hoje'}: ${(a.exercicios||[]).join(', ')}` : a.tipo;
   return `<div class="box-i ia"><span class="il">${esc(tit)}</span>${a.motivo?`<div>${esc(a.motivo)}</div>`:''}
     ${ex.length?`<ol style="margin:6px 0 0;padding-left:20px">${ex.map(x=>`<li>${esc(x.nome)} — ${esc(x.series)}×${esc(x.reps)}${x.kg?` · ${esc(x.kg)} kg`:''}${x.nota?` <small style="color:var(--muted)">(${esc(x.nota)})</small>`:''}</li>`).join('')}</ol>`:''}
     ${a.tipo==='cargas_hoje'?previaCargas(a):''}${a.tipo==='ajustar_exercicio'?`<div class="exc-ch">${esc(mudancasTxt(a))}</div>`:''}
     ${a.tipo==='meta_semana'?`<div class="note">${['treinos','km','bola','agua','prot'].filter(k=>a[k]!=null).map(k=>`${k} ${a[k]}`).join(' · ')}</div>`:''}
-    <div class="btns">${a._ok?`<span class="pill g">Aplicado ✓</span>`:`<button class="btn p sm" data-act="aplicar:${ci}:${i}">Aplicar</button>`}</div></div>`; }
+    <div class="btns">${a._ok?`<span class="pill g">Aplicado ✓</span>`: botoes || `<button class="btn p sm" data-act="aplicar:${ci}:${i}">Aplicar</button>`}</div></div>`; }
+/* como está o treino de hoje agora (para o coach decidir com o que falta) */
+function estadoHoje(){ const p = getPlanBase(plano); if (!p) return ''; const lin = p.ex.map(e=>{ const a = ef(e), feitas = (log[e.id]||[]).filter(s=>s&&s.ok).length; return `${swaps[e.id]||e.nome}: ${pulado(e)?'TIRADO HOJE':`${feitas}/${nSeries(e)} séries feitas, ${a.reps} reps, desc ${a.rest}s`}`; });
+  const rel = relogio ? ` Relógio: ${Math.round((Date.now()-relogio.inicio)/60000)} de ${relogio.meta} min.` : '';
+  return `TREINO DE HOJE (${p.id} ${p.nome}) AGORA:${rel}\n${lin.join('\n')}`; }
 
 /* ---------- coach (chat) ---------- */
 async function perguntarCoach(q){
@@ -855,14 +880,16 @@ function mudancasTxt(a, e){ const x = []; if (a.series!=null) x.push(`${e?ef(e).
 function aplicarAjuste(exId, a, escopo){ const p = getPlan(plano), e = p.ex.find(x=>x.id===exId); if (!e) return null;
   const v = {}; const se = parseInt(a.series); if (se>0) v.series = Math.min(10, se); if (a.reps) v.reps = String(a.reps).slice(0,12); const r = parseInt(a.descanso??a.rest); if (r>0) v.rest = Math.max(15, Math.min(300, r));
   const kg = a.kg!=null && a.kg!=='' ? num(a.kg) : null, troca = a.trocar_por ? String(a.trocar_por).trim().slice(0,60) : '';
-  if (!Object.keys(v).length && kg==null && !troca) return null;
+  if (!Object.keys(v).length && kg==null && !troca) return null; const nomeAntes = swaps[exId]||e.nome;
   if (escopo==='plano'){ const base = D.plans.flatMap(x=>x.ex).find(x=>x.id===exId); for (const alvo of new Set([base, e].filter(Boolean))){ Object.assign(alvo, v); if (troca && norm(troca)!==norm(alvo.nome)){ alvo.alts = [alvo.nome, ...(alvo.alts||[]).filter(n=>norm(n)!==norm(troca))].slice(0,6); alvo.nome = troca; } } delete ajustes[exId]; if (troca) delete swaps[exId]; }
   else { if (Object.keys(v).length) ajustes[exId] = Object.assign({}, ajustes[exId]||{}, v); if (troca) swaps[exId] = troca; }
   const L = log[exId]; if (L && v.series!=null){ while (L.length > v.series && !(L[L.length-1]&&L[L.length-1].ok)) L.pop(); }
   if (kg!=null && !e.bw){ log[exId] ||= []; for (let s=0; s<nSeries(e); s++){ log[exId][s] ||= {}; if (!log[exId][s].ok) log[exId][s].kg = String(kg); } }
   if (S.foco && S.foco.s >= nSeries(e)) S.foco.s = nSeries(e)-1;
-  persist(); return `${swaps[exId]||e.nome}: ${mudancasTxt(a)}${escopo==='plano'?' · mudou no plano':' · só hoje'}`; }
+  persist(); const resto = Object.assign({}, a, {trocar_por:null}); return `${troca ? `${nomeAntes} → ${troca}` : (swaps[exId]||e.nome)}${(Object.keys(v).length || kg!=null) ? ': '+mudancasTxt(resto) : ''}${escopo==='plano'?' · mudou no plano':' · só hoje'}`; }
 
+/* exercício que a ação do coach cita (ou o atual) */
+function exAlvo(a, e){ const base = getPlanBase(plano), n = norm(a.exercicio||''); return (n && (base.ex.find(x=>norm(swaps[x.id]||x.nome)===n || norm(x.nome)===n) || base.ex.find(x=>norm(swaps[x.id]||x.nome).includes(n)))) || e; }
 /* ---------- coach dentro do exercício ---------- */
 async function perguntarExercicio(exId, q){
   q = String(q||'').trim(); if (!q) return; const p = getPlan(plano), e = p.ex.find(x=>x.id===exId); if (!e) return; const nome = swaps[exId]||e.nome, a = ef(e);
@@ -875,9 +902,10 @@ EXERCÍCIO HOJE: ${a.series} séries de ${a.reps}${e.tempo?' segundos':''}, desc
 HISTÓRICO NESTE EXERCÍCIO: ${h||'nenhum'}
 CONTEXTO: ${contextoTreino(true).slice(0,2500)}
 ${conversa?`CONVERSA SOBRE ESTE EXERCÍCIO:\n${conversa}\n`:''}PERGUNTA: ${q}
-Responda SÓ com JSON: {"resposta":"texto","acoes":[{"tipo":"ajustar_exercicio","series":3,"reps":"10–12","descanso":90,"kg":20,"trocar_por":null,"escopo":"hoje","motivo":"1 frase"}]}
-Em "acoes", só os campos que mudam (no máximo 2 opções). "escopo":"hoje" para ajuste do dia (dor, cansaço, volta, pressa); "plano" para mudança de vez. Pedido de tirar ou pôr série = mude "series" (total de séries). Se for só dúvida, "acoes" vazio.`, t => { const mm = t.match(/"resposta"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm){ m.a = mm[1].replace(/\\n/g,'\n').replace(/\\"/g,'"'); const box = document.querySelector(`[data-exc="${exId}:${lista.indexOf(m)}"]`); if (box) box.textContent = m.a; } });
-    m.a = r.resposta || m.a || ''; m.acoes = (Array.isArray(r.acoes) ? r.acoes : []).filter(x=>x && x.tipo==='ajustar_exercicio').slice(0,2);
+Responda SÓ com JSON: {"resposta":"texto","acoes":[...]}
+Em "acoes" (no máximo 3), use qualquer tipo abaixo. Você pode mudar o treino INTEIRO, não só "${nome}": se ela quer ir embora, tirar ombro, trocar a ordem ou mudar o plano, faça. "escopo":"hoje" para o dia (dor, cansaço, pressa); "plano" para mudança de vez. Tirar ou pôr série = "ajustar_exercicio" com "series" (total). Se for só dúvida, "acoes" vazio.
+${FORMATO_ACOES}`, t => { const mm = t.match(/"resposta"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm){ m.a = mm[1].replace(/\\n/g,'\n').replace(/\\"/g,'"'); const box = document.querySelector(`[data-exc="${exId}:${lista.indexOf(m)}"]`); if (box) box.textContent = m.a; } });
+    m.a = r.resposta || m.a || ''; m.acoes = (Array.isArray(r.acoes) ? r.acoes : []).filter(x=>x && x.tipo).slice(0,3);
   }catch(err){ m.a = S.ia.erro(err); }
   m.busy = false; if (S.foco) renderFoco(); }
 
@@ -1021,11 +1049,12 @@ function painelEvolucao(e, nome, dica){ const h = historicoEx(nome, e.bw), un = 
     <div class="evo-l">${S.ia && h.length && !iaOk ? (memo.get('exIABusy')===nome ? `<span class="load">o coach está olhando…</span>` : `<button class="lnk" data-act="exVibe:${e.id}">o que o coach acha?</button>`) : ''}${S.ia && S.excAberto!==e.id && !(S.exChat[e.id]||[]).length ? `<button class="lnk" data-act="excAbre:${e.id}">perguntar ao coach</button>` : ''}<button class="lnk" data-act="info:${e.id}">ver tudo</button></div></div>`; }
 /* conversa com o coach sobre ESTE exercício, com mudanças que aplicam com um toque */
 function blocoExCoach(e){ const msgs = S.exChat[e.id]||[]; if (S.excAberto!==e.id && !msgs.length) return '';
-  const card = (a,k,j)=>{ const outro = a.escopo==='plano' ? 'hoje' : 'plano', pri = outro==='hoje' ? 'plano' : 'hoje';
-    return `<div class="exc-card"><div class="exc-ch">${esc(mudancasTxt(a, e))}</div>${a.motivo?`<div>${esc(a.motivo)}</div>`:''}<div class="btns" style="margin-top:2px">${a._ok ? `<span class="pill g">Aplicado ${a._ok==='plano'?'no plano':'hoje'} ✓</span>` : `<button class="btn o sm" data-act="excAplica:${e.id}:${k}:${j}:${pri}">${pri==='hoje'?'Aplicar hoje':'Mudar no plano'}</button><button class="btn sm" data-act="excAplica:${e.id}:${k}:${j}:${outro}">${outro==='hoje'?'só hoje':'de vez no plano'}</button>`}</div></div>`; };
+  const card = (a,k,j)=>{ if (a.tipo!=='ajustar_exercicio') return cartaoAcao(a, j, 0, `<button class="btn o sm" data-act="excAplicaG:${e.id}:${k}:${j}">Aplicar</button>`);
+    const alvo = exAlvo(a, e), outroEx = alvo.id!==e.id; const outro = a.escopo==='plano' ? 'hoje' : 'plano', pri = outro==='hoje' ? 'plano' : 'hoje';
+    return `<div class="exc-card"><div class="exc-ch">${outroEx?`${esc(swaps[alvo.id]||alvo.nome)}: `:''}${esc(mudancasTxt(a, alvo))}</div>${a.motivo?`<div>${esc(a.motivo)}</div>`:''}<div class="btns" style="margin-top:2px">${a._ok ? `<span class="pill g">Aplicado ${a._ok==='plano'?'no plano':'hoje'} ✓</span>` : `<button class="btn o sm" data-act="excAplica:${e.id}:${k}:${j}:${pri}">${pri==='hoje'?'Aplicar hoje':'Mudar no plano'}</button><button class="btn sm" data-act="excAplica:${e.id}:${k}:${j}:${outro}">${outro==='hoje'?'só hoje':'de vez no plano'}</button>`}</div></div>`; };
   return `<div class="exc"><div class="exc-h"><b>Coach</b><small>sobre este exercício</small>${msgs.length?'':`<button class="fo-ib sm" data-act="excFecha" aria-label="Fechar">${ic('x',16)}</button>`}</div>
     ${msgs.map((m,k)=>`<div class="exc-q">${esc(m.q)}</div><div class="exc-a" data-exc="${e.id}:${k}">${m.a ? esc(m.a) : m.busy ? '<span class="load">o coach está pensando…</span>' : ''}</div>${(m.acoes||[]).map((a,j)=>card(a,k,j)).join('')}`).join('')}
-    ${msgs.length ? '' : `<div class="exc-chips">${['Quero tirar 1 série','Tá pesado demais','Senti dor','Posso subir a carga?','Tô sem tempo'].map(t=>`<button class="chip" data-act="excPerg:${e.id}:${esc(t)}">${esc(t)}</button>`).join('')}</div>`}
+    ${msgs.length ? '' : `<div class="exc-chips">${['Quero tirar 1 série','Tô sem tempo, quero ir embora','Achei muito ombro hoje','Senti dor','Tá pesado demais'].map(t=>`<button class="chip" data-act="excPerg:${e.id}:${esc(t)}">${esc(t)}</button>`).join('')}</div>`}
     <form class="exc-f" id="excF" data-ex="${e.id}"><textarea class="in grow" id="excIn" rows="1" placeholder="Pergunte sobre ${esc(swaps[e.id]||e.nome)}"></textarea><button class="btn p sm" aria-label="Enviar">${ic('dir',16)}</button></form></div>`; }
 async function exVibe(exId){ const p = getPlan(plano), e = p.ex.find(x=>x.id===exId) || D.plans.flatMap(x=>x.ex).find(x=>x.id===exId); if (!e) return; const nome = swaps[exId]||e.nome;
   if (memo.get('exIABusy')) return; memo.set('exIABusy', nome); if (S.foco) renderFoco();
@@ -1079,6 +1108,7 @@ function blocoTreino(){
     ${custom && D.hojeCustom.motivo ? `<div class="tr-msg">${esc(D.hojeCustom.motivo)}</div>` : parado!=null && parado>14 && !comecou ? `<div class="tr-msg">Faz ${parado} dias do último treino. <button data-act="perg:Voltei depois de ${parado} dias parado. Quais cargas uso hoje?">Pedir as cargas de volta ao coach</button></div>` : ''}
     <div class="tr-seg" role="tablist">${vis.map(x=>`<button role="tab" aria-selected="${x.id===plano}" style="--cc:${corPlano(x.id)}" data-act="plano:${esc(x.id)}" class="${feitos.includes(x.id)?'feito':''}"><b>${x.id==='Hoje'?'★':esc(x.id)}</b><small>${esc(x.id==='Hoje'?'coach':x.nome.split('/')[0].trim())}</small></button>`).join('')}</div>
     <div class="tr-lista">${linhas || '<p class="note">Sem exercícios neste treino. Ajuste em Treinos.</p>'}</div>
+    ${p.pulados && p.pulados.length ? `<div class="tr-pul">Fora de hoje: ${p.pulados.map(x=>`<button class="chip" data-act="voltarEx:${x.id}">${esc(swaps[x.id]||x.nome)} <span aria-hidden="true">↺</span></button>`).join('')}</div>` : ''}
     <div class="tr-acoes">
       ${acabou ? `<button class="btn o w big" data-act="encerrar">Encerrar e salvar treino</button>` : `<button class="btn o w big" data-act="comecar:${Math.max(0, p.ex.findIndex(e=>progressoEx(e).n < progressoEx(e).ns))}">${comecou?`Continuar · ${ok} de ${tot} séries`:'Começar treino'}</button>`}
       ${comecou && !acabou ? `<button class="lnk" data-act="encerrar">encerrar e salvar como está</button>` : ''}
@@ -1337,9 +1367,35 @@ async function exIA(exId){ const e = getPlan(plano).ex.find(x=>x.id===exId) || D
 Histórico: ${hist.join(' | ')||'nenhum'}
 Contexto: ${contextoTreino(true).slice(0,3000)}`, t => { if ($('#exIA')) $('#exIA').innerHTML = `<span class="il">Análise da IA</span>${esc(t)}`; }); }
   catch(err){ if ($('#exIA')) $('#exIA').innerHTML = `<span class="il">Análise da IA</span>${esc(S.ia.erro(err))}`; } }
-function abrirSwap(exId){ const e = getPlan(plano).ex.find(x=>x.id===exId); const atual = swaps[exId]||e.nome; const opts = [e.nome, ...(e.alts||[])];
-  abrirFolha(`<h3>Trocar exercício</h3><p class="note">Mesmo movimento. Vale só para hoje.</p>${opts.map(o=>`<button class="opt" aria-pressed="${o===atual}" data-act="troca:${exId}:${encodeURIComponent(o)}"><span style="flex:1">${esc(o)}</span><a class="chip" href="${yt(o)}" target="_blank" rel="noopener">▶</a></button>`).join('')}
-    <form class="row" id="swapF" data-ex="${exId}" style="margin-top:10px"><input class="in" id="swapIn" placeholder="Outro exercício"><button class="btn p" style="flex:0 0 auto">Usar</button></form><div class="btns"><button class="btn w" data-act="fechar">Fechar</button></div>`); }
+function abrirSwap(exId){ const e = getPlan(plano).ex.find(x=>x.id===exId) || getPlanBase(plano).ex.find(x=>x.id===exId); if (!e) return; const atual = swaps[exId]||e.nome;
+  const eq = (D.equiv||{})[norm(e.nome)], busy = memo.get('eqBusy')===exId;
+  const usar = n => `<div class="eq-b"><button class="btn o sm" data-act="troca:${exId}:${encodeURIComponent(n)}">Usar hoje</button><button class="btn sm" data-act="trocaPlano:${exId}:${encodeURIComponent(n)}">De vez no plano</button><a class="chip" href="${yt(n)}" target="_blank" rel="noopener" aria-label="Ver execução">▶</a></div>`;
+  const lista = eq && eq.itens.length ? eq.itens.filter(x=>norm(x.nome)!==norm(e.nome)).map(x=>`<div class="eq ${norm(x.nome)===norm(atual)?'on':''}">
+      <div class="eq-h"><b>${esc(x.nome)}</b>${x.equipamento?`<span class="pill b">${esc(x.equipamento)}</span>`:''}</div>
+      ${x.musculos?`<div class="eq-m">${esc(x.musculos)}</div>`:''}
+      <div class="eq-d"><span class="il">Diferença</span>${esc(x.diferenca||'')}</div>
+      ${x.bom_para?`<div class="eq-d"><span class="il">Bom quando</span>${esc(x.bom_para)}</div>`:''}
+      ${x.carga?`<div class="eq-c">Carga: ${esc(x.carga)}</div>`:''}
+      ${norm(x.nome)===norm(atual) ? `<span class="pill g">Usando hoje</span>` : usar(x.nome)}</div>`).join('')
+    : busy ? `<div class="load">O coach está escolhendo equivalentes e o que muda em cada um…</div>`
+    : (e.alts||[]).map(o=>`<div class="eq"><div class="eq-h"><b>${esc(o)}</b></div>${usar(o)}</div>`).join('') + (S.ia ? `<button class="btn w" data-act="equivIA:${exId}" style="margin-top:8px">Ver equivalentes com a diferença de cada um</button>` : '');
+  abrirFolha(`<h3>Trocar ${esc(e.nome)}</h3><p class="note">Mesmos músculos. Escolha pela diferença.</p>
+    ${atual!==e.nome ? `<div class="eq"><div class="eq-h"><b>${esc(e.nome)}</b><span class="pill">original</span></div><div class="eq-b"><button class="btn sm" data-act="troca:${exId}:${encodeURIComponent(e.nome)}">Voltar ao original</button></div></div>` : ''}
+    ${lista}
+    ${eq && S.ia ? `<button class="lnk" data-act="equivIA:${exId}:1" style="margin-top:6px">buscar outras opções</button>` : ''}
+    <form class="row" id="swapF" data-ex="${exId}" style="margin-top:12px"><input class="in" id="swapIn" placeholder="Outro exercício"><button class="btn p" style="flex:0 0 auto">Usar</button></form><div class="btns"><button class="btn w" data-act="fechar">Fechar</button></div>`);
+  if (!eq && S.ia && !busy && !memo.get('eqTentou'+exId)){ memo.set('eqTentou'+exId, 1); equivalentes(exId); } }
+async function equivalentes(exId, forcar){ const e = getPlanBase(plano).ex.find(x=>x.id===exId); if (!e || !S.ia) return; const k = norm(e.nome);
+  if (!forcar && (D.equiv||{})[k]) return; memo.set('eqBusy', exId); if ($('#layer').classList.contains('on')) abrirSwap(exId);
+  const p = getPlanBase(plano), ja = forcar && D.equiv?.[k] ? D.equiv[k].itens.map(x=>x.nome) : [];
+  try{ const r = await S.ia.json(`Você é um preparador físico brasileiro. A pessoa faz "${e.nome}" (${e.series}x${e.reps}) no treino ${p.id} (${p.nome}).${e.nota?` Papel do exercício no treino: ${e.nota}`:''}
+Sugira 5 exercícios EQUIVALENTES: mesmos grupos musculares e mesmo papel no treino, que dá para fazer numa academia comum.${(e.alts||[]).length?` Inclua primeiro estes que ela já usa: ${e.alts.join(', ')}.`:''}${ja.length?` Agora traga OUTRAS opções, diferentes de: ${ja.join(', ')}.`:''}
+Para cada um, diga com clareza a DIFERENÇA prática em relação a "${e.nome}" (ênfase muscular, amplitude, estabilidade, articulação, facilidade de progredir).
+Responda só JSON: [{"nome":"nome curto em português","musculos":"principais músculos, curto","diferenca":"1 frase: o que muda em relação a ${e.nome}","bom_para":"quando escolher, curto (ex.: ombro incomodando, aparelho ocupado, sem banco)","equipamento":"halter|barra|máquina|cabo|peso do corpo|smith","carga":"como ajustar a carga, curto"}]`);
+    const itens = (Array.isArray(r) ? r : (r.itens||r.exercicios||[])).filter(x=>x && x.nome).slice(0,6);
+    if (itens.length){ (D.equiv ||= {})[k] = {dia:hoje(), itens}; for (const x of itens) if (!(e.alts||[]).some(a=>norm(a)===norm(x.nome)) && norm(x.nome)!==norm(e.nome)){ (e.alts ||= []).push(x.nome); } e.alts = e.alts.slice(0,10); save(); }
+  }catch(err){ toast(S.ia.erro(err)); }
+  memo.delete('eqBusy'); if ($('#layer').classList.contains('on') && $('#sheet h3')?.textContent.startsWith('Trocar')) abrirSwap(exId); }
 function relatorio(id){ const s = D.sessions.find(x=>x.id===id); if (!s) return; const ns = s.itens.reduce((a,i)=>a+i.sets.length,0);
   abrirFolha(`<h3>Treino ${esc(s.plano==='Hoje'?'do coach':s.plano)}</h3><p class="note" style="text-transform:capitalize">${new Date(s.data+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</p>
     <div class="stats" style="margin-top:10px"><div class="stat"><b>${s.itens.length}</b><small>exercícios</small></div><div class="stat"><b>${ns}</b><small>séries</small></div><div class="stat"><b>${Math.round(volume(s))}</b><small>kg volume</small></div></div>
@@ -1403,8 +1459,12 @@ async function acao(a, el){
     case 'excAbre': S.excAberto = arg; renderFoco(); setTimeout(()=>{ const i = $('#excIn'); if (i){ i.scrollIntoView({block:'nearest'}); } }, 30); return;
     case 'excFecha': S.excAberto = null; renderFoco(); return;
     case 'excPerg': { const k = arg.indexOf(':'); perguntarExercicio(arg.slice(0,k), arg.slice(k+1)); return; }
+    case 'excAplicaG': { const [id, k, j] = arg.split(':'); const ac = (S.exChat[id]||[])[+k]?.acoes?.[+j]; if (!ac) return; persist();
+      const r = comDesfazer(x => x || 'Nada mudou', ()=>aplicarAcao(ac)); if (r){ ac._ok = true; if (S.foco) renderFoco(); } else toast('Não consegui aplicar essa mudança.'); return; }
+    case 'voltarEx': persist(); comDesfazer('Voltou para o treino de hoje', ()=>{ if (ajustes[arg]) delete ajustes[arg].pular; persist(); }); return;
     case 'excAplica': { const [id, k, j, esc0] = arg.split(':'); const ac = (S.exChat[id]||[])[+k]?.acoes?.[+j]; if (!ac) return; persist();
-      const r = comDesfazer(x => x || 'Nada mudou', ()=>aplicarAjuste(id, ac, esc0)); if (r){ ac._ok = esc0; renderFoco(); } else toast('Não consegui aplicar essa mudança.'); return; }
+      const eCur = getPlanBase(plano).ex.find(x=>x.id===id); const alvo = eCur ? exAlvo(ac, eCur) : null;
+      const r = comDesfazer(x => x || 'Nada mudou', ()=>aplicarAjuste(alvo ? alvo.id : id, ac, esc0)); if (r){ ac._ok = esc0; renderFoco(); } else toast('Não consegui aplicar essa mudança.'); return; }
     case 'ajustarEx': { const e = getPlan(plano).ex.find(x=>x.id===arg); if (!e) return; const a = ef(e);
       abrirFolha(`<h3>${esc(swaps[e.id]||e.nome)}</h3><p class="note">Mude aqui, ou pergunte ao coach no exercício.</p>
         <form id="ajF" data-ex="${e.id}"><div class="row" style="margin-top:6px"><label><span class="note">Séries</span><input class="in" name="series" inputmode="numeric" value="${a.series}"></label><label><span class="note">Reps</span><input class="in" name="reps" value="${esc(a.reps)}"></label><label><span class="note">Descanso s</span><input class="in" name="descanso" inputmode="numeric" value="${a.rest}"></label></div>
@@ -1428,7 +1488,9 @@ async function acao(a, el){
     case 'info': exInfo(arg); return;
     case 'exIA': exIA(arg); return;
     case 'swap': abrirSwap(arg); return;
-    case 'troca': { const [id, o] = arg.split(':'); const v = decodeURIComponent(o); const e = getPlan(plano).ex.find(x=>x.id===id); if (v===e.nome) delete swaps[id]; else swaps[id] = v; persist(); fecharFolha(); render(); return; }
+    case 'equivIA': { const [id, f] = arg.split(':'); equivalentes(id, !!f); return; }
+    case 'trocaPlano': { const k = arg.indexOf(':'), id = arg.slice(0,k), v = decodeURIComponent(arg.slice(k+1)); fecharFolha(); persist(); comDesfazer(x => x || 'Nada mudou', ()=>aplicarAjuste(id, {trocar_por:v}, 'plano')); return; }
+    case 'troca': { const k = arg.indexOf(':'), id = arg.slice(0,k), v = decodeURIComponent(arg.slice(k+1)); const e = getPlanBase(plano).ex.find(x=>x.id===id); if (!e) return; fecharFolha(); persist(); comDesfazer(v===e.nome ? `Voltou para ${e.nome}` : `Hoje: ${v} no lugar de ${e.nome}`, ()=>{ if (v===e.nome) delete swaps[id]; else swaps[id] = v; persist(); }); return; }
     case 'encerrar': { if (S.foco){ S.foco = null; document.body.classList.remove('focando'); $('#foco').hidden = true; } const p = getPlan(plano); const itens = p.ex.map(e=>({nome:swaps[e.id]||e.nome, bw:!!e.bw, sets:(log[e.id]||[]).filter(s=>s&&s.ok).map(s=>({kg:e.bw?null:(num(s.kg)), reps:parseInt(s.reps)||null})), nota:(notas[e.id]||'').trim()})).filter(i=>i.sets.length||i.nota);
       if (!itens.some(i=>i.sets.length)){ toast('Marque pelo menos uma série com o ✓ antes de encerrar.'); return; }
       const id = uid(), dur = relogio ? Math.round((Date.now()-relogio.inicio)/60000) : null, mt = relogio ? relogio.meta : null; comDesfazer(`Treino salvo: ${itens.length} ${itens.length>1?'exercícios':'exercício'}${dur!=null?` em ${dur} min${dur<=mt?' · dentro da meta':` · ${dur-mt} min acima da meta`}`:`, ${Math.round(sum(itens,i=>sum(i.sets,x=>(x.kg||0)*(x.reps||0))))} kg de volume`}`, ()=>{ D.sessions.push({id, data:hoje(), plano:p.id, itens, ts:Date.now(), ...(dur!=null?{min:dur, meta:mt}:{})}); relogio = null; D.rascunho=null; D.fechadoEm=Date.now(); log={}; swaps={}; notas={}; ajustes={}; if (p.id==='Hoje') D.hojeCustom = null; plano = proximo(); });
