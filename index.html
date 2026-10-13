@@ -369,7 +369,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 17:35";
+const VERSAO = "13/10 17:45";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -453,17 +453,9 @@ const SEED = {
       {id:'c4', nome:'Afundo com halter', series:2, reps:'10 por perna', rest:90, nota:'', alts:['Búlgaro','Passada','Step up no banco']},
       {id:'c5', nome:'Panturrilha em pé', series:4, reps:'12–15', rest:60, nota:'Amortece o impacto que hoje vai direto pro osso.', alts:['Panturrilha sentado','Panturrilha no leg press']},
       {id:'c6', nome:'Tibial anterior', series:3, reps:'15–20', rest:45, bw:true, nota:'Tratamento da canelite. Não pula.', alts:['Tibial com anilha no pé','Tibial na parede','Tibial com elástico']}
-    ]},
-    { id:'D', nome:'Ombro / Peito superior / Braços', ex:[
-      {id:'d9', nome:'Supino inclinado máquina', series:3, reps:'10–12', rest:90, nota:'Segunda dose de peito de cima na semana, mais leve que o do treino A.', alts:['Supino inclinado com halteres','Crucifixo inclinado']},
-      {id:'d2', nome:'Elevação lateral', series:4, reps:'15–20', rest:45, nota:'Segunda dose de ombro na semana: mais leve, mais repetições.', alts:['Elevação lateral polia','Elevação lateral máquina']},
-      {id:'d10', nome:'Desenvolvimento máquina', series:3, reps:'10–12', rest:90, nota:'', alts:['Desenvolvimento halteres sentado','Desenvolvimento Arnold']},
-      {id:'d7', nome:'Rosca alternada com halteres', series:3, reps:'10–12', rest:75, nota:'', alts:['Rosca direta (barra W)','Rosca scott']},
-      {id:'d8', nome:'Tríceps francês com halter', series:3, reps:'10–12', rest:75, nota:'Cabeça longa do tríceps, com o braço acima da cabeça.', alts:['Tríceps testa (barra W)','Tríceps polia corda']},
-      {id:'d11', nome:'Rosca concentrada', series:2, reps:'12–15', rest:60, nota:'Fecha o bíceps com bombeamento.', alts:['Rosca scott máquina','Rosca na polia']}
     ]}
   ],
-  planMsg: 'Igual ao seu treino de antes, só sem flexão e abdominal do teste físico, e com um dia D de cima: ombro, peito superior e braços. Perna continua num dia só (C). Volta de 1 mês e meio parado: na 1ª semana use uns 80–85% da carga de antes e suba até ela em 2 a 3 semanas.',
+  planMsg: 'Seu treino A, B e C de antes, girando (A → B → C → A…), só sem flexão e abdominal do teste físico. Meta: 4 treinos por semana. Volta de 1 mês e meio parado: na 1ª semana use uns 80–85% da carga de antes e suba até ela em 2 a 3 semanas.',
   metas: [
     {id:'m1', t:'Zero refrigerante com açúcar', s:'Zero açúcar pode.'},
     {id:'m2', t:'Regra do prato no almoço', s:'½ vegetais · ¼ proteína · ¼ carbo'},
@@ -472,7 +464,8 @@ const SEED = {
     {id:'m5', t:'Lanche âncora (~16h)', s:'Fruta, castanha, ovo ou iogurte — protege o jantar.'}
   ],
   refVer: 2,
-  planVer: 7,
+  planVer: 8,
+  metaTreinos: 4,
   refeicoes: [
     {id:'r1', hora:'09:00', nome:'Café da manhã', itens:[
       '2–3 ovos mexidos ~ 15g',
@@ -546,7 +539,7 @@ function defaults(){
   if((D.refVer||0) < SEED.refVer){ D.refeicoes=structuredClone(SEED.refeicoes); D.refVer=SEED.refVer; }
   if((D.planVer||0) < SEED.planVer){ if (D.planVer && D.plans?.length){ if (D.planVer < 5 || !D.plansAnteriores) D.plansAnteriores = D.plans; D.planNovo = {dia:hoje(), de:D.planVer, txt:SEED.planMsg}; } D.plans=structuredClone(SEED.plans); D.planVer=SEED.planVer; if (!D.plans.some(p=>p.id===plano)) plano = 'A'; }
   D.atividades ||= []; D.pesos ||= []; D.sessions ||= []; D.dias ||= {};
-  if (D.planNovo && !D.planNovo.metaOk){ D.metaSem = Object.assign({}, metaSemana(), {treinos: D.plans.length}); D.planNovo.metaOk = true; }
+  if (D.planNovo && !D.planNovo.metaOk){ D.metaSem = Object.assign({}, metaSemana(), {treinos: SEED.metaTreinos || 4}); D.planNovo.metaOk = true; }
 }
 function persist(){ D.rascunho={data:hoje(),plano,log,swaps,notas}; save(); }
 function restaurarRascunho(){ const r=D.rascunho; if(r && r.data===hoje()){ log=r.log||{}; swaps=r.swaps||{}; notas=r.notas||{}; if(r.plano) plano=r.plano; } else { D.rascunho=null; log={}; swaps={}; notas={}; } }
@@ -848,7 +841,7 @@ function render(){
 function viewHoje(){ return `<div class="grid two"><div class="col">${blocoConta()}${blocoPlanoNovo()}${blocoSemana()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}${blocoProteina()}</div></div>`; }
 
 function blocoPlanoNovo(){ const n = D.planNovo; if (!n || n.visto) return '';
-  return `<section class="panel novo"><div class="sm-eye" style="color:var(--violet)">Treino ajustado pelo Claude</div><b style="font-size:17px">${D.plans.length} dias: ${D.plans.map(p=>esc(p.id)).join(' → ')}</b>
+  return `<section class="panel novo"><div class="sm-eye" style="color:var(--violet)">Treino ajustado pelo Claude</div><b style="font-size:17px">${D.plans.map(p=>esc(p.id)).join(' → ')} girando · ${metaSemana().treinos}× por semana</b>
     <p class="note">${esc(n.txt || '')}</p>
     <div class="btns"><button class="btn p" data-act="planoOk">Bora</button><button class="btn" data-act="planoVolta">Voltar para o treino de antes</button></div></section>`; }
 function blocoProteina(){ const k = hoje(); const usa = Object.keys(D.dias).some(x=>x>=addDias(hoje(),-7) && protDia(x)>0); if (!usa) return '';
