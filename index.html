@@ -309,6 +309,17 @@ body.focando{overflow:hidden}
 .fo-set.ok{background:var(--mint-soft);border-color:var(--mint)}.fo-set.ok b{color:var(--mint)}
 .fo-set.cur{border-color:var(--tang);box-shadow:0 0 0 3px var(--tang-soft)}
 .fo-set.add{min-width:38px;display:grid;place-items:center;color:var(--tang)}
+.fo-set.del{min-width:38px;display:grid;place-items:center;color:var(--danger);border-style:dashed}
+.fo-alvo .lnk{font-size:13px}
+.exc{background:var(--surface);border:1.5px solid var(--violet-soft);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
+.exc-h{display:flex;align-items:center;gap:8px}.exc-h b{color:var(--violet);font-size:14px}.exc-h small{color:var(--muted);font-size:12px;flex:1}
+.fo-ib.sm{width:30px;height:30px;border-radius:9px}
+.exc-q{justify-self:end;background:var(--blue-soft);border-radius:12px 12px 4px 12px;padding:6px 10px;font-size:13px;max-width:88%}
+.exc-a{font-size:13.5px;line-height:1.45;white-space:pre-wrap}
+.exc-card{border:1.5px solid var(--tang);background:var(--tang-soft);border-radius:12px;padding:8px 10px;display:grid;gap:4px;font-size:13px}
+.exc-ch{font:700 12.5px var(--f-num);color:var(--ink)}
+.exc-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}.exc-chips .chip{flex:0 0 auto;font-size:12.5px;padding:6px 10px;min-height:34px}
+.exc-f{display:flex;gap:6px}.exc-f .in{flex:1;min-width:0;padding:9px 10px;font-size:15px}.exc-f .btn{flex:0 0 auto;min-width:42px;display:grid;place-items:center}
 .fo-nums{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .fo-num label{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;text-align:center}
 .stp{display:grid;grid-template-columns:38px minmax(0,1fr) 38px;gap:5px;align-items:center}
@@ -397,7 +408,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 19:10";
+const VERSAO = "13/10 19:40";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -432,12 +443,12 @@ const DIAS = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
 const diaSem = k => DIAS[new Date(k+'T12:00:00').getDay()];
 const clone = o => JSON.parse(JSON.stringify(o));
 const memo = new Map();
-const S = { view:'hoje', ia:null, chat:[] };
+const S = { view:'hoje', ia:null, chat:[], exChat:{} };
 try{ S.chat = JSON.parse(lsGet('caderno:chat')||'[]').slice(-12); }catch(e){}
 
 /* ---------- Conta e nuvem: a MESMA conta da Caderneta (mesmo projeto, mesmo login) ---------- */
 const FB = {}; let nuvemRef = null;
-function setSync(s){ const b=$('#sync'); if(!b) return; b.className='sync '+({ok:'ok',sync:'sv',err:'er'}[s]||''); $('#syncT').textContent={off:'só neste aparelho',ok:'salvo na nuvem',sync:'salvando…',err:'sem conexão',entrando:'conectando…'}[s]||''; }
+function setSync(s){ const b=$('#sync'); if(!b) return; b.className='sync '+({ok:'ok',sync:'sv',err:'er'}[s]||''); $('#syncT').textContent={off:'só neste aparelho',ok:'salvo na nuvem',sync:'salvando…',err:'sem internet · salvo aqui',entrando:'conectando…'}[s]||''; }
 const comPrazo = (p, ms) => Promise.race([p, new Promise((_,r)=>setTimeout(()=>r(new Error('tempo')), ms))]);
 async function carregarFirebase(){
   if (FB.app) return FB;
@@ -450,9 +461,14 @@ async function carregarFirebase(){
 }
 /* traz o que estava no código de sincronização antigo (projeto antigo do treino) */
 async function puxarCodigoAntigo(code){ try{ const r = await comPrazo(fetch(`https://firestore.googleapis.com/v1/projects/treino-60200/databases/(default)/documents/cadernos/${encodeURIComponent(code)}`), 10000); if (!r.ok) return null; const j = await r.json(); return JSON.parse(j.fields.payload.stringValue); }catch(e){ return null; } }
-let pushT, ultimoEnvio = 0;
-function cloudPush(){ if (!nuvemRef) return; setSync('sync'); clearTimeout(pushT);
-  pushT = setTimeout(()=>{ ultimoEnvio = D._u; FB.fsM.setDoc(nuvemRef, {payload: JSON.stringify(D), _u: D._u || Date.now()}).then(()=>setSync('ok')).catch(()=>setSync('err')); }, 700); }
+let pushT = null, ultimoEnvio = 0;
+function enviarNuvem(){ clearTimeout(pushT); pushT = null; if (!nuvemRef) return; ultimoEnvio = D._u; const u = D._u;
+  FB.fsM.setDoc(nuvemRef, {payload: JSON.stringify(D), _u: D._u || Date.now()}).then(()=>{ if (D._u===u) setSync('ok'); }).catch(()=>setSync('err')); }
+function cloudPush(){ if (!nuvemRef) return; setSync(navigator.onLine===false ? 'err' : 'sync'); clearTimeout(pushT); pushT = setTimeout(enviarNuvem, 700); }
+/* app indo para o fundo, tela apagando, aba fechando: grava tudo já */
+function gravarJa(){ try{ if (D) lsSet(KEY, JSON.stringify(D)); }catch(e){} if (pushT) enviarNuvem(); }
+addEventListener('pagehide', gravarJa); document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState==='hidden') gravarJa(); });
+addEventListener('online', ()=>{ if (nuvemRef && D) cloudPush(); }); addEventListener('offline', ()=>{ if (nuvemRef) setSync('err'); });
 </script>
 <script>
 const SEED = {
@@ -560,7 +576,7 @@ const INFO = {
 };
 
 /* ---------- dados ---------- */
-let D=null, plano='A', log={}, swaps={}, notas={}, editP='A';
+let D=null, plano='A', log={}, swaps={}, notas={}, ajustes={}, editP='A';
 function defaults(){
   for(const k in SEED) if(D[k]===undefined) D[k]=structuredClone(SEED[k]);
   if(D._u===undefined) D._u=0;
@@ -569,10 +585,27 @@ function defaults(){
   D.atividades ||= []; D.pesos ||= []; D.sessions ||= []; D.dias ||= {};
   if (D.planNovo && !D.planNovo.metaOk){ D.metaSem = Object.assign({}, metaSemana(), {treinos: SEED.metaTreinos || 4}); D.planNovo.metaOk = true; }
 }
-function persist(){ D.rascunho={data:hoje(),plano,log,swaps,notas}; save(); }
-function restaurarRascunho(){ const r=D.rascunho; if(r && r.data===hoje()){ log=r.log||{}; swaps=r.swaps||{}; notas=r.notas||{}; if(r.plano) plano=r.plano; } else { D.rascunho=null; log={}; swaps={}; notas={}; } }
-let sT;
-function save(){ D._u = Date.now(); clearTimeout(sT); sT=setTimeout(()=>lsSet(KEY,JSON.stringify(D)),150); cloudPush(); }
+function persist(){ D.rascunho={data:hoje(),plano,log,swaps,notas,ajustes,foco:S.foco?{i:S.foco.i,s:S.foco.s}:null,ts:Date.now()}; save(); }
+/* treino que ficou aberto num dia anterior (acabou a bateria, esqueceu de encerrar): vira treino salvo daquele dia */
+function salvarRascunhoAntigo(r){ try{
+  const p = (D.hojeCustom && D.hojeCustom.data===r.data && r.plano==='Hoje') ? D.hojeCustom.plano : D.plans.find(x=>x.id===r.plano); const todos = [...(p?p.ex:[]), ...D.plans.flatMap(x=>x.ex)];
+  const itens = Object.keys(r.log||{}).map(id=>{ const e = todos.find(x=>x.id===id); if (!e) return null; const sets = (r.log[id]||[]).filter(x=>x&&x.ok).map(x=>({kg:e.bw?null:num(x.kg), reps:parseInt(x.reps)||null}));
+    return {nome:(r.swaps||{})[id]||e.nome, bw:!!e.bw, sets, nota:((r.notas||{})[id]||'').trim()}; }).filter(i=>i && (i.sets.length||i.nota));
+  if (!itens.some(i=>i.sets.length)) return; const id = 'r'+r.data+(r.plano||''); if (D.sessions.some(x=>x.id===id)) return;
+  D.sessions.push({id, data:r.data, plano:r.plano||'A', itens, ts:r.ts||Date.now(), auto:true}); S.autoSalvo = `O treino de ${br(r.data)} ficou aberto. ${(n=>n>1?`Salvei as ${n} séries que você marcou.`:'Salvei a série que você marcou.')(sum(itens,i=>i.sets.length))}`;
+}catch(e){} }
+/* séries/reps/descanso valendo hoje (ajuste do dia por cima do plano) */
+const ef = e => ajustes[e.id] ? Object.assign({}, e, ajustes[e.id]) : e;
+function restaurarRascunho(){ const r=D.rascunho; if(r && r.data===hoje()){ log=r.log||{}; swaps=r.swaps||{}; notas=r.notas||{}; ajustes=r.ajustes||{}; if(r.plano) plano=r.plano; } else { if (r && r.data < hoje() && (r.ts||0) > (D.fechadoEm||0)) salvarRascunhoAntigo(r); D.rascunho=null; log={}; swaps={}; notas={}; ajustes={}; } }
+/* grava no aparelho NA HORA (sem esperar), e manda para a nuvem logo em seguida */
+function save(){ D._u = Date.now(); lsSet(KEY, JSON.stringify(D)); cloudPush(); }
+/* junta o que veio da nuvem com o que está aqui: nada feito offline se perde */
+function mesclar(rem, loc){ let mudou = false; const apag = new Set([...(rem.apagados||[]), ...(loc.apagados||[])]);
+  for (const k of ['sessions','atividades']){ const r = rem[k]||[], ids = new Set(r.map(x=>x.id)); const extras = (loc[k]||[]).filter(x=>x && x.id && !ids.has(x.id) && !apag.has(x.id)); const fica = r.filter(x=>!apag.has(x.id)); if (extras.length || fica.length!==r.length) mudou = true; rem[k] = fica.concat(extras); }
+  const rl = loc.rascunho, rr = rem.rascunho, fech = Math.max(rem.fechadoEm||0, loc.fechadoEm||0);
+  if (rl && (rl.ts||0) > fech && (rl.ts||0) > ((rr&&rr.ts)||0)){ rem.rascunho = rl; mudou = true; }
+  rem.fechadoEm = fech; if (apag.size){ rem.apagados = [...apag].slice(-300); }
+  return mudou; }
 async function load(){
   try{ D=JSON.parse(lsGet(KEY)); if(!D) throw 0; }catch(e){ D=structuredClone(SEED); D._u=0; }
   defaults(); restaurarRascunho(); setSync('entrando'); iniciarConta();
@@ -588,7 +621,7 @@ function conectarNuvem(u){
   FB.desl = FB.fsM.onSnapshot(nuvemRef, async snap=>{
     clearTimeout(t);
     if (snap.exists()){ const c = snap.data();
-      if ((c._u||0) > (D._u||0)){ try{ D = JSON.parse(c.payload); defaults(); lsSet(KEY, JSON.stringify(D)); restaurarRascunho(); if (!planosVisiveis().some(p=>p.id===plano)) plano = proximo(); render(); }catch(e){} }
+      if ((c._u||0) > (D._u||0)){ try{ const rem = JSON.parse(c.payload), mudou = mesclar(rem, D); D = rem; defaults(); restaurarRascunho(); if (mudou) save(); else lsSet(KEY, JSON.stringify(D)); if (!planosVisiveis().some(p=>p.id===plano)) plano = proximo(); render(); }catch(e){} }
       else if ((D._u||0) > (c._u||0) && primeira) cloudPush();
       if (!snap.metadata.hasPendingWrites) setSync('ok'); }
     else if (primeira){
@@ -611,7 +644,7 @@ function toast(msg, desfazer, ms){ const t=$('#toast'); $('#toastT').textContent
 const getPlan = id => (D.hojeCustom && D.hojeCustom.data===hoje() && id===D.hojeCustom.plano.id) ? D.hojeCustom.plano : (D.plans.find(p=>p.id===id)||D.plans[0]);
 const planosVisiveis = () => (D.hojeCustom && D.hojeCustom.data===hoje()) ? [D.hojeCustom.plano, ...D.plans] : D.plans;
 function proximo(){ const ult=[...D.sessions].filter(s=>D.plans.some(p=>p.id===s.plano)).sort((a,b)=>a.data===b.data?(a.ts||0)-(b.ts||0):(a.data<b.data?-1:1)).pop(); const ord=D.plans.map(p=>p.id); if(!ult) return ord[0]; return ord[(ord.indexOf(ult.plano)+1)%ord.length]; }
-function nSeries(e){ return Math.max(e.series, (log[e.id]||[]).length); }
+function nSeries(e){ return Math.max(ef(e).series, (log[e.id]||[]).length); }
 function sugSet(nome,s){ for(let i=D.sessions.length-1;i>=0;i--){ const it=D.sessions[i].itens.find(x=>x.nome===nome); if(it&&it.sets.length){ const v=it.sets[s]||it.sets[it.sets.length-1]; return {kg:v.kg,reps:v.reps}; } } return {}; }
 function ultima(nome){ for(let i=D.sessions.length-1;i>=0;i--){ const it=D.sessions[i].itens.find(x=>x.nome===nome); if(it&&it.sets.length) return {txt: it.sets.map(s=>it.bw?`${s.reps??'–'}`:`${s.kg??'–'}×${s.reps??'–'}`).join('  ')+`  (${br(D.sessions[i].data)})`, it, data:D.sessions[i].data}; } return null; }
 const topReps = r => { const m = String(r||'').match(/(\d+)\s*(?:–|-|a)\s*(\d+)/); if (m) return +m[2]; const n = parseInt(r); return isFinite(n) ? n : null; };
@@ -744,6 +777,7 @@ const FORMATO_ACOES = `"acoes" é uma lista (pode ser vazia) de mudanças que o 
 {"tipo":"alterar_plano","plano":"A","nome":"opcional","motivo":"1 frase","exercicios":[...mesmo formato]}  → substitui os exercícios do treino A/B/C de vez
 {"tipo":"novo_plano","plano":"D","nome":"","motivo":"","exercicios":[...]}
 {"tipo":"meta_semana","treinos":4,"km":10,"bola":2,"motivo":""}
+{"tipo":"ajustar_exercicio","exercicio":"nome exato","series":3,"reps":"10–12","descanso":90,"kg":20,"trocar_por":null,"escopo":"hoje|plano","motivo":"1 frase"}  → muda UM exercício (só os campos que mudam): "hoje" vale só no treino de hoje, "plano" muda de vez
 {"tipo":"cargas_hoje","plano":"A","percentual":85,"itens":[{"nome":"nome exato do exercício","kg":20,"reps":"10"}],"motivo":"1 frase"}  → preenche as cargas do treino de hoje (percentual aplicado sobre a última carga de cada exercício; "itens" sobrepõe exercícios específicos; pode mandar só um dos dois)
 SEMPRE que sugerir cargas, percentual ou repetições para hoje, inclua "cargas_hoje" para a pessoa aplicar com um toque. Se sugerir trocar exercícios só hoje, use "treino_hoje" com "kg" em cada exercício.`;
 
@@ -765,6 +799,7 @@ function aplicarAcao(a){
     for (const e of p.ex){ const nome = swaps[e.id]||e.nome; (log[e.id]||[]).forEach(s=>{ if (s && !s.ok){ delete s.kg; delete s.reps; } }); }
     D.rascunho = {data:hoje(), plano, log, swaps, notas};
     return `Cargas de hoje aplicadas${pct?` (${pct}%)`:''} em ${Object.keys(por).length} exercícios`; }
+  if (a.tipo==='ajustar_exercicio'){ const p = getPlan(plano); const e = p.ex.find(x=>norm(swaps[x.id]||x.nome)===norm(a.exercicio)) || p.ex.find(x=>norm(x.nome)===norm(a.exercicio)) || p.ex.find(x=>norm(swaps[x.id]||x.nome).includes(norm(a.exercicio).split(' ')[0])); if (!e) return null; return aplicarAjuste(e.id, a, a.escopo==='plano'?'plano':'hoje'); }
   if (a.tipo==='meta_semana'){ const m = Object.assign({}, metaSemana()); ['treinos','km','bola','agua','prot'].forEach(k=>{ if (a[k]!=null && isFinite(+a[k])) m[k] = +a[k]; }); D.metaSem = m; return 'Plano da semana ajustado'; }
   return null;
 }
@@ -775,10 +810,10 @@ function previaCargas(a){ const alvo = a.plano && D.plans.some(p=>p.id===String(
     return `<li>${esc(nome)}: ${top&&kg!=null?`${f1(top)} → `:''}<b>${kg!=null?f1(kg)+' kg':''}</b>${x&&x.reps?` × ${esc(x.reps)}`:''}</li>`; }).filter(Boolean);
   return linhas.length ? `<div class="note" style="margin-top:4px">Treino ${esc(alvo)}${a.percentual?` · ${a.percentual}% da última carga`:''}</div><ul style="margin:6px 0 0;padding-left:18px">${linhas.join('')}</ul>` : '<div class="note">Sem cargas anteriores para calcular.</div>'; }
 function cartaoAcao(a, i, ci){ const ex = a.exercicios||[];
-  const tit = a.tipo==='cargas_hoje' ? 'Aplicar cargas no treino de hoje' : a.tipo==='treino_hoje' ? `Treino de hoje: ${a.nome||''}` : a.tipo==='alterar_plano' ? `Alterar o treino ${a.plano}${a.nome?` (${a.nome})`:''}` : a.tipo==='novo_plano' ? `Novo treino ${a.plano||''} ${a.nome||''}` : a.tipo==='meta_semana' ? 'Ajustar o plano da semana' : a.tipo;
+  const tit = a.tipo==='cargas_hoje' ? 'Aplicar cargas no treino de hoje' : a.tipo==='treino_hoje' ? `Treino de hoje: ${a.nome||''}` : a.tipo==='alterar_plano' ? `Alterar o treino ${a.plano}${a.nome?` (${a.nome})`:''}` : a.tipo==='novo_plano' ? `Novo treino ${a.plano||''} ${a.nome||''}` : a.tipo==='meta_semana' ? 'Ajustar o plano da semana' : a.tipo==='ajustar_exercicio' ? `Ajustar ${a.exercicio||'exercício'}${a.escopo==='plano'?' (no plano)':' (só hoje)'}` : a.tipo;
   return `<div class="box-i ia"><span class="il">${esc(tit)}</span>${a.motivo?`<div>${esc(a.motivo)}</div>`:''}
     ${ex.length?`<ol style="margin:6px 0 0;padding-left:20px">${ex.map(x=>`<li>${esc(x.nome)} — ${esc(x.series)}×${esc(x.reps)}${x.kg?` · ${esc(x.kg)} kg`:''}${x.nota?` <small style="color:var(--muted)">(${esc(x.nota)})</small>`:''}</li>`).join('')}</ol>`:''}
-    ${a.tipo==='cargas_hoje'?previaCargas(a):''}
+    ${a.tipo==='cargas_hoje'?previaCargas(a):''}${a.tipo==='ajustar_exercicio'?`<div class="exc-ch">${esc(mudancasTxt(a))}</div>`:''}
     ${a.tipo==='meta_semana'?`<div class="note">${['treinos','km','bola','agua','prot'].filter(k=>a[k]!=null).map(k=>`${k} ${a[k]}`).join(' · ')}</div>`:''}
     <div class="btns">${a._ok?`<span class="pill g">Aplicado ✓</span>`:`<button class="btn p sm" data-act="aplicar:${ci}:${i}">Aplicar</button>`}</div></div>`; }
 
@@ -797,6 +832,37 @@ ${FORMATO_ACOES}`, t => { const m = t.match(/"resposta"\s*:\s*"((?:[^"\\]|\\.)*)
   }catch(e){ c.a = S.ia.erro(e); }
   c.busy = false; lsSet('caderno:chat', JSON.stringify(S.chat)); render();
 }
+
+/* ---------- ajustar UM exercício (séries, reps, descanso, carga, troca) ---------- */
+function mudancasTxt(a, e){ const x = []; if (a.series!=null) x.push(`${e?ef(e).series+' → ':''}${a.series} séries`); if (a.reps) x.push(`${e?ef(e).reps+' → ':''}${a.reps} reps`); if (a.descanso!=null||a.rest!=null) x.push(`descanso ${e?ef(e).rest+' → ':''}${a.descanso??a.rest}s`); if (a.kg!=null && a.kg!=='') x.push(`${f1(num(a.kg)||0)} kg`); if (a.trocar_por) x.push(`trocar por ${a.trocar_por}`); return x.join(' · ') || 'sem mudança'; }
+function aplicarAjuste(exId, a, escopo){ const p = getPlan(plano), e = p.ex.find(x=>x.id===exId); if (!e) return null;
+  const v = {}; const se = parseInt(a.series); if (se>0) v.series = Math.min(10, se); if (a.reps) v.reps = String(a.reps).slice(0,12); const r = parseInt(a.descanso??a.rest); if (r>0) v.rest = Math.max(15, Math.min(300, r));
+  const kg = a.kg!=null && a.kg!=='' ? num(a.kg) : null, troca = a.trocar_por ? String(a.trocar_por).trim().slice(0,60) : '';
+  if (!Object.keys(v).length && kg==null && !troca) return null;
+  if (escopo==='plano'){ const base = D.plans.flatMap(x=>x.ex).find(x=>x.id===exId); for (const alvo of new Set([base, e].filter(Boolean))){ Object.assign(alvo, v); if (troca && norm(troca)!==norm(alvo.nome)){ alvo.alts = [alvo.nome, ...(alvo.alts||[]).filter(n=>norm(n)!==norm(troca))].slice(0,6); alvo.nome = troca; } } delete ajustes[exId]; if (troca) delete swaps[exId]; }
+  else { if (Object.keys(v).length) ajustes[exId] = Object.assign({}, ajustes[exId]||{}, v); if (troca) swaps[exId] = troca; }
+  const L = log[exId]; if (L && v.series!=null){ while (L.length > v.series && !(L[L.length-1]&&L[L.length-1].ok)) L.pop(); }
+  if (kg!=null && !e.bw){ log[exId] ||= []; for (let s=0; s<nSeries(e); s++){ log[exId][s] ||= {}; if (!log[exId][s].ok) log[exId][s].kg = String(kg); } }
+  if (S.foco && S.foco.s >= nSeries(e)) S.foco.s = nSeries(e)-1;
+  persist(); return `${swaps[exId]||e.nome}: ${mudancasTxt(a)}${escopo==='plano'?' · mudou no plano':' · só hoje'}`; }
+
+/* ---------- coach dentro do exercício ---------- */
+async function perguntarExercicio(exId, q){
+  q = String(q||'').trim(); if (!q) return; const p = getPlan(plano), e = p.ex.find(x=>x.id===exId); if (!e) return; const nome = swaps[exId]||e.nome, a = ef(e);
+  const lista = (S.exChat[exId] ||= []); const m = {q, a:'', acoes:[], busy:true}; lista.push(m); if (lista.length>4) lista.shift(); S.excAberto = exId; if (S.foco) renderFoco();
+  const series = Array.from({length:nSeries(e)},(_,i)=>{ const v = valorSerie(e,i); return `${i+1}ª ${v.ok?'feita':'a fazer'}: ${e.bw?'':`${v.kg??'?'} kg x `}${v.reps??'?'}`; }).join('; ');
+  const h = historicoEx(nome, e.bw).slice(-8).map(x=>`${x.data}: ${x.sets.map(s=>e.bw?s.reps:`${s.kg}x${s.reps}`).join(' ')}`).join(' | ');
+  const conversa = lista.slice(0,-1).map(x=>`Pessoa: ${x.q}\nCoach: ${x.a}`).join('\n');
+  try{ const r = await S.ia.json(`Você é o coach de treino desta pessoa: preparador físico brasileiro, direto e prático. Ela está NA ACADEMIA, no exercício "${nome}", e perguntou algo sobre ele. Responda curto (até 4 linhas, sem markdown), com números reais.
+EXERCÍCIO HOJE: ${a.series} séries de ${a.reps}${e.tempo?' segundos':''}, descanso ${a.rest}s${e.bw?', peso do corpo':''}. Séries de hoje: ${series}.${notas[exId]?` Comentário dela: "${notas[exId]}".`:''}
+HISTÓRICO NESTE EXERCÍCIO: ${h||'nenhum'}
+CONTEXTO: ${contextoTreino(true).slice(0,2500)}
+${conversa?`CONVERSA SOBRE ESTE EXERCÍCIO:\n${conversa}\n`:''}PERGUNTA: ${q}
+Responda SÓ com JSON: {"resposta":"texto","acoes":[{"tipo":"ajustar_exercicio","series":3,"reps":"10–12","descanso":90,"kg":20,"trocar_por":null,"escopo":"hoje","motivo":"1 frase"}]}
+Em "acoes", só os campos que mudam (no máximo 2 opções). "escopo":"hoje" para ajuste do dia (dor, cansaço, volta, pressa); "plano" para mudança de vez. Pedido de tirar ou pôr série = mude "series" (total de séries). Se for só dúvida, "acoes" vazio.`, t => { const mm = t.match(/"resposta"\s*:\s*"((?:[^"\\]|\\.)*)/); if (mm){ m.a = mm[1].replace(/\\n/g,'\n').replace(/\\"/g,'"'); const box = document.querySelector(`[data-exc="${exId}:${lista.indexOf(m)}"]`); if (box) box.textContent = m.a; } });
+    m.a = r.resposta || m.a || ''; m.acoes = (Array.isArray(r.acoes) ? r.acoes : []).filter(x=>x && x.tipo==='ajustar_exercicio').slice(0,2);
+  }catch(err){ m.a = S.ia.erro(err); }
+  m.busy = false; if (S.foco) renderFoco(); }
 
 /* ---------- insights do dia ---------- */
 async function gerarInsights(forcar){
@@ -933,7 +999,15 @@ function painelEvolucao(e, nome, dica){ const h = historicoEx(nome, e.bw), un = 
       <div class="evo-s"><span>Recorde <b>${f1(rec.top)} ${un}</b></span>${h.length>1?`<span class="${ganho>0?'up':ganho<0?'dn':''}">${ganho>0?'+':''}${f1(ganho)} ${un} <small>desde ${br(prim.data)}</small></span>`:''}<span><small>${h.length} ${h.length>1?'treinos':'treino'}</small></span></div></div>` : ''}
     ${u ? `<div class="evo-u">Última: <b>${esc(u.txt)}</b></div>` : ''}
     ${iaOk ? `<div class="evo-ia"><b>Coach:</b> ${esc(ia.txt)}</div>` : ''}
-    <div class="evo-l">${S.ia && h.length && !iaOk ? (memo.get('exIABusy')===nome ? `<span class="load">o coach está olhando…</span>` : `<button class="lnk" data-act="exVibe:${e.id}">o que o coach acha?</button>`) : ''}<button class="lnk" data-act="info:${e.id}">ver tudo</button></div></div>`; }
+    <div class="evo-l">${S.ia && h.length && !iaOk ? (memo.get('exIABusy')===nome ? `<span class="load">o coach está olhando…</span>` : `<button class="lnk" data-act="exVibe:${e.id}">o que o coach acha?</button>`) : ''}${S.ia && S.excAberto!==e.id && !(S.exChat[e.id]||[]).length ? `<button class="lnk" data-act="excAbre:${e.id}">perguntar ao coach</button>` : ''}<button class="lnk" data-act="info:${e.id}">ver tudo</button></div></div>`; }
+/* conversa com o coach sobre ESTE exercício, com mudanças que aplicam com um toque */
+function blocoExCoach(e){ const msgs = S.exChat[e.id]||[]; if (S.excAberto!==e.id && !msgs.length) return '';
+  const card = (a,k,j)=>{ const outro = a.escopo==='plano' ? 'hoje' : 'plano', pri = outro==='hoje' ? 'plano' : 'hoje';
+    return `<div class="exc-card"><div class="exc-ch">${esc(mudancasTxt(a, e))}</div>${a.motivo?`<div>${esc(a.motivo)}</div>`:''}<div class="btns" style="margin-top:2px">${a._ok ? `<span class="pill g">Aplicado ${a._ok==='plano'?'no plano':'hoje'} ✓</span>` : `<button class="btn o sm" data-act="excAplica:${e.id}:${k}:${j}:${pri}">${pri==='hoje'?'Aplicar hoje':'Mudar no plano'}</button><button class="btn sm" data-act="excAplica:${e.id}:${k}:${j}:${outro}">${outro==='hoje'?'só hoje':'de vez no plano'}</button>`}</div></div>`; };
+  return `<div class="exc"><div class="exc-h"><b>Coach</b><small>sobre este exercício</small>${msgs.length?'':`<button class="fo-ib sm" data-act="excFecha" aria-label="Fechar">${ic('x',16)}</button>`}</div>
+    ${msgs.map((m,k)=>`<div class="exc-q">${esc(m.q)}</div><div class="exc-a" data-exc="${e.id}:${k}">${m.a ? esc(m.a) : m.busy ? '<span class="load">o coach está pensando…</span>' : ''}</div>${(m.acoes||[]).map((a,j)=>card(a,k,j)).join('')}`).join('')}
+    ${msgs.length ? '' : `<div class="exc-chips">${['Quero tirar 1 série','Tá pesado demais','Senti dor','Posso subir a carga?','Tô sem tempo'].map(t=>`<button class="chip" data-act="excPerg:${e.id}:${esc(t)}">${esc(t)}</button>`).join('')}</div>`}
+    <form class="exc-f" id="excF" data-ex="${e.id}"><input class="in" id="excIn" placeholder="Pergunte sobre ${esc(swaps[e.id]||e.nome)}" autocomplete="off"><button class="btn p sm" aria-label="Enviar">${ic('dir',16)}</button></form></div>`; }
 async function exVibe(exId){ const p = getPlan(plano), e = p.ex.find(x=>x.id===exId) || D.plans.flatMap(x=>x.ex).find(x=>x.id===exId); if (!e) return; const nome = swaps[exId]||e.nome;
   if (memo.get('exIABusy')) return; memo.set('exIABusy', nome); if (S.foco) renderFoco();
   const h = historicoEx(nome, e.bw).slice(-8).map(x=>`${x.data}: ${x.sets.map(s=>e.bw?s.reps:`${s.kg}x${s.reps}`).join(' ')}`).join(' | ');
@@ -952,12 +1026,12 @@ const IC = {
   agua:'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
   prot:'<path d="M5 14c0-4 3-8 8-8 3 0 6 2 6 5 0 5-6 9-10 9-2 0-4-2-4-6z"/><circle cx="14" cy="11" r="1.5"/>',
   play:'<path d="M8 5l11 7-11 7z"/>', troca:'<path d="M4 8h13l-3-3M20 16H7l3 3"/>', info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>',
-  x:'<path d="M6 6l12 12M18 6L6 18"/>', esq:'<path d="M15 5l-7 7 7 7"/>', dir:'<path d="M9 5l7 7-7 7"/>', check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', mais:'<path d="M12 5v14M5 12h14"/>', menos:'<path d="M5 12h14"/>'
+  x:'<path d="M6 6l12 12M18 6L6 18"/>', esq:'<path d="M15 5l-7 7 7 7"/>', dir:'<path d="M9 5l7 7-7 7"/>', lixo:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>', check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>', mais:'<path d="M12 5v14M5 12h14"/>', menos:'<path d="M5 12h14"/>'
 };
 const ic = (n, s=18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||''}</svg>`;
 
 /* valor que aparece numa série ainda não feita: o que você mexeu > série anterior de hoje > sugestão > última vez */
-function valorSerie(e, s){ const nome = swaps[e.id]||e.nome, v = (log[e.id]||[])[s]||{}; const ant = (log[e.id]||[])[s-1]; const sg = sugestaoCarga(e, nome), u = sugSet(nome, s);
+function valorSerie(e, s){ const nome = swaps[e.id]||e.nome, v = (log[e.id]||[])[s]||{}; const ant = (log[e.id]||[]).slice(0, Math.max(0,s)).reverse().find(x=>x&&x.ok); const sg = sugestaoCarga(e, nome), u = sugSet(nome, s);
   const ch = D.cargasHoje && D.cargasHoje.data===hoje() ? (D.cargasHoje.por||{})[nome] : null;
   const kg = v.kg!=null && v.kg!=='' ? num(v.kg) : ant && ant.ok && ant.kg!=null ? num(ant.kg) : ch && ch.kg!=null ? ch.kg : e.kgSug!=null ? e.kgSug : sg ? sg.kg : u.kg!=null ? u.kg : null;
   const reps = v.reps!=null && v.reps!=='' ? num(v.reps) : ant && ant.ok && ant.reps!=null ? num(ant.reps) : ch && ch.reps ? ch.reps : u.reps!=null ? u.reps : (topReps(e.reps) || 10);
@@ -973,7 +1047,7 @@ function blocoTreino(){
   const ult = [...D.sessions].reverse().find(s=>s.plano===p.id); const parado = (()=>{ const u = [...D.sessions].sort((a,b)=>a.data<b.data?-1:1).pop(); return u ? Math.round((Date.now()-new Date(u.data+'T12:00:00'))/864e5) : null; })();
   const R = 26, C = 2*Math.PI*R;
   const linhas = p.ex.map((e,i)=>{ const nome = swaps[e.id]||e.nome, pr = progressoEx(e), sg = sugestaoCarga(e, nome), v0 = valorSerie(e, 0);
-    const alvo = `${e.series}×${e.reps}${e.tempo?'s':''}${!e.bw && v0.kg ? ` · ${f1(v0.kg)} kg` : e.bw ? ' · corpo' : ''}`;
+    const ea = ef(e), alvo = `${ea.series}×${ea.reps}${e.tempo?'s':''}${ajustes[e.id]?' (hoje)':''}${!e.bw && v0.kg ? ` · ${f1(v0.kg)} kg` : e.bw ? ' · corpo' : ''}`;
     return `<button class="tr-ex ${pr.n>=pr.ns?'feito':pr.n?'meio':''}" data-act="foco:${i}">
       <span class="tr-n">${pr.n>=pr.ns ? ic('check',16) : i+1}</span>
       <span class="tr-t"><b>${esc(nome)}</b><small>${esc(alvo)}${D.cargasHoje && D.cargasHoje.data===hoje() && (D.cargasHoje.por||{})[nome] && !pr.n ? ` <em class="volta">coach</em>` : sg && !pr.n ? ` <em class="${sg.tipo==='volta'?'volta':''}">${sg.tipo==='volta'?'volta leve':`↑ ${f1(sg.kg)} kg`}</em>` : ''}</small></span>
@@ -996,11 +1070,13 @@ function blocoTreino(){
 
 /* ---------- MODO ACADEMIA: um exercício por vez, números grandes, um toque por série ---------- */
 function abrirFoco(i){ const p = getPlan(plano); i = Math.max(0, Math.min(p.ex.length-1, i)); const e = p.ex[i]; if (!e) return;
-  const pr = progressoEx(e); S.foco = {i, s: Math.min(pr.n, nSeries(e)-1)}; if (pr.n >= pr.ns) S.foco.s = pr.ns-1; document.body.classList.add('focando'); renderFoco(); }
-function fecharFoco(){ S.foco = null; document.body.classList.remove('focando'); $('#foco').innerHTML=''; $('#foco').hidden = true; render(); }
+  const pr = progressoEx(e); S.foco = {i, s: Math.min(pr.n, nSeries(e)-1)}; if (pr.n >= pr.ns) S.foco.s = pr.ns-1; document.body.classList.add('focando'); persist(); renderFoco(); }
+function fecharFoco(){ S.foco = null; S.excAberto = null; persist(); document.body.classList.remove('focando'); $('#foco').innerHTML=''; $('#foco').hidden = true; render(); }
 function renderFoco(){
   const f = S.foco, box = $('#foco'); if (!f){ box.hidden = true; return; } const p = getPlan(plano), e = p.ex[f.i]; if (!e){ fecharFoco(); return; }
-  box.hidden = false; const nome = swaps[e.id]||e.nome, ns = nSeries(e), v = valorSerie(e, f.s), u = ultima(nome), sg = sugestaoCarga(e, nome), pr = progressoEx(e);
+  const ae = document.activeElement, guarda = {exc: $('#excIn')?.value||'', id: ae && box.contains(ae) ? ae.id : '', sc: box.scrollTop};
+  if (f.s >= nSeries(e)) f.s = nSeries(e)-1;
+  box.hidden = false; const ea = ef(e), nome = swaps[e.id]||e.nome, ns = nSeries(e), v = valorSerie(e, f.s), u = ultima(nome), sg = sugestaoCarga(e, nome), pr = progressoEx(e);
   const descansando = tL > 0 && $('#timer').classList.contains('on');
   const best = melhor1rm(nome, hoje());
   box.innerHTML = `<div class="fo">
@@ -1008,10 +1084,11 @@ function renderFoco(){
       <div class="fo-pos">${p.ex.map((x,k)=>{ const q = progressoEx(x); return `<button class="${k===f.i?'cur':''} ${q.n>=q.ns?'ok':q.n?'meio':''}" data-act="focoEx:${k}" aria-label="Exercício ${k+1}"></button>`; }).join('')}</div>
       <a class="fo-ib" href="${yt(nome)}" target="_blank" rel="noopener" aria-label="Ver execução">${ic('play',18)}</a></div>
     <div class="fo-ex"><h2><button data-act="info:${e.id}">${esc(nome)}</button></h2>
-      <div class="fo-alvo"><b>${f.i+1}/${p.ex.length}</b> · ${e.series}×${esc(e.reps)}${e.tempo?' s':''} · descanso ${e.rest}s · <button class="lnk" data-act="swap:${e.id}">trocar</button></div>
+      <div class="fo-alvo"><b>${f.i+1}/${p.ex.length}</b> · <button class="lnk" data-act="ajustarEx:${e.id}">${ea.series}×${esc(ea.reps)}${e.tempo?' s':''} · descanso ${ea.rest}s${ajustes[e.id]?' (hoje)':''}</button> · <button class="lnk" data-act="swap:${e.id}">trocar</button></div>
     </div>
     ${painelEvolucao(e, nome, D.cargasHoje && D.cargasHoje.data===hoje() && (D.cargasHoje.por||{})[nome] ? {cls:'coach', txt:`Carga do coach para hoje${D.cargasHoje.pct?` (${D.cargasHoje.pct}%)`:''}: ${f1(D.cargasHoje.por[nome].kg??0)} kg`} : sg ? {cls: sg.tipo==='sobe'?'up':'volta', txt: sg.txt} : null)}
-    <div class="fo-sets">${Array.from({length:ns},(_,s)=>{ const x = valorSerie(e,s); return `<button class="fo-set ${s===f.s?'cur':''} ${x.ok?'ok':''}" data-act="focoSet:${s}"><small>${s+1}ª</small>${x.ok||s===f.s?`<b>${e.bw?'':f1(x.kg??0)+'×'}${x.reps??'–'}</b>`:'<b>—</b>'}</button>`; }).join('')}<button class="fo-set add" data-act="maisSerie:${e.id}" aria-label="Mais uma série">${ic('mais',16)}</button></div>
+    <div class="fo-sets">${Array.from({length:ns},(_,s)=>{ const x = valorSerie(e,s); return `<button class="fo-set ${s===f.s?'cur':''} ${x.ok?'ok':''}" data-act="focoSet:${s}"><small>${s+1}ª</small>${x.ok||s===f.s?`<b>${e.bw?'':f1(x.kg??0)+'×'}${x.reps??'–'}</b>`:'<b>—</b>'}</button>`; }).join('')}<button class="fo-set add" data-act="maisSerie:${e.id}" aria-label="Mais uma série">${ic('mais',16)}</button>${ns>1?`<button class="fo-set del" data-act="tirarSerie" aria-label="Apagar a ${f.s+1}ª série">${ic('lixo',16)}</button>`:''}</div>
+    ${blocoExCoach(e)}
     ${descansando ? `<div class="fo-desc"><div class="tr-eye" style="color:var(--tang)">Descanso</div><b id="fClock" class="num">${pad(Math.floor(tL/60))}:${pad(tL%60)}</b><div class="btns" style="justify-content:center"><button class="btn" data-act="timerMais">+30s</button><button class="btn o" data-act="timerPara">Pular descanso</button></div><p class="note">Próxima: ${f.s+1}ª série${pr.n>=pr.ns && p.ex[f.i+1] ? ` · ${esc(swaps[p.ex[f.i+1].id]||p.ex[f.i+1].nome)}`:''}</p></div>`
     : `<div class="fo-nums">
         ${e.bw?'':`<div class="fo-num"><label>Carga kg</label><div class="stp"><button data-act="stp:kg:-1" aria-label="Menos carga">${ic('menos',18)}</button><input id="foKg" inputmode="decimal" value="${v.kg!=null?String(v.kg).replace('.',','):''}" aria-label="Carga"><button data-act="stp:kg:1" aria-label="Mais carga">${ic('mais',18)}</button></div></div>`}
@@ -1022,6 +1099,7 @@ function renderFoco(){
       <input class="cmt" placeholder="comentário (dor, faltou força…)" data-cmt="${e.id}" value="${esc(notas[e.id]||'')}">
       ${f.i < p.ex.length-1 ? `<button class="fo-nav" data-act="focoEx:${f.i+1}">próximo ${ic('dir')}</button>` : `<button class="fo-nav fim" data-act="encerrar">encerrar</button>`}</div>
   </div>`;
+  const ei = $('#excIn'); if (ei && guarda.exc) ei.value = guarda.exc; box.scrollTop = guarda.sc; if (guarda.id){ const el = document.getElementById(guarda.id); if (el){ el.focus({preventScroll:true}); } }
 }
 
 function blocoAtividades(){ const at = D.atividades.filter(a=>a.data>=addDias(hoje(),-6)).sort((a,b)=>a.data<b.data?1:-1); if (!D.atividades.some(a=>a.data>=addDias(hoje(),-14))) return '';
@@ -1237,7 +1315,7 @@ async function acao(a, el){
     case 'foco': abrirFoco(Number(arg)); return;
     case 'fecharFoco': fecharFoco(); return;
     case 'focoEx': { const p = getPlan(plano); const i = Number(arg); if (i<0 || i>=p.ex.length) return; abrirFoco(i); return; }
-    case 'focoSet': S.foco.s = Number(arg); renderFoco(); return;
+    case 'focoSet': S.foco.s = Number(arg); persist(); renderFoco(); return;
     case 'stp': { const [campo, d] = arg.split(':'); const e = getPlan(plano).ex[S.foco.i]; const s = S.foco.s; const v = valorSerie(e, s); log[e.id] ||= []; log[e.id][s] ||= {};
       if (campo==='kg'){ const k = v.kg||0; const passo = k>=40 ? 2.5 : k>=12 ? 2 : 1; log[e.id][s].kg = String(Math.max(0, Math.round((k + Number(d)*passo)*2)/2)); }
       else { log[e.id][s].reps = String(Math.max(0, (v.reps||0) + Number(d))); }
@@ -1249,11 +1327,24 @@ async function acao(a, el){
       const nome = swaps[e.id]||e.nome, best = melhor1rm(nome, hoje()), val = e1rm(kg||0, reps||0); if (best && val > best + 0.01) toast(`Recorde em ${nome}! 1RM estimado ${f1(val)} kg`);
       persist();
       const prox = (log[e.id]||[]).findIndex((x,k)=>k<nSeries(e) && !(x&&x.ok)); const n = progressoEx(e);
-      if (n.n < n.ns){ S.foco.s = prox>=0 ? prox : n.n; startTimer(+e.rest||90); }
+      if (n.n < n.ns){ S.foco.s = prox>=0 ? prox : n.n; persist(); startTimer(+ef(e).rest||90); }
       else { const k = p.ex.findIndex(x=>{ const q = progressoEx(x); return q.n < q.ns; });
-        if (k>=0){ startTimer(+e.rest||90); S.foco = {i:k, s: progressoEx(p.ex[k]).n}; toast(`Exercício concluído. Próximo: ${swaps[p.ex[k].id]||p.ex[k].nome}`); }
+        if (k>=0){ startTimer(+ef(e).rest||90); S.foco = {i:k, s: progressoEx(p.ex[k]).n}; toast(`Exercício concluído. Próximo: ${swaps[p.ex[k].id]||p.ex[k].nome}`); }
         else toast('Treino completo! Toque em “encerrar” para salvar.', null, 6000); }
       render(); return; }
+    case 'tirarSerie': { const e = getPlan(plano).ex[S.foco.i], s = S.foco.s, ns = nSeries(e); if (ns<=1){ toast('Precisa ficar pelo menos 1 série.'); return; } persist();
+      comDesfazer(`${s+1}ª série apagada · hoje fica ${ns-1} séries`, ()=>{ const L = (log[e.id] ||= []); if (L.length > s) L.splice(s,1); ajustes[e.id] = Object.assign({}, ajustes[e.id]||{}, {series: ns-1}); S.foco.s = Math.min(s, ns-2); persist(); }); return; }
+    case 'excAbre': S.excAberto = arg; renderFoco(); setTimeout(()=>{ const i = $('#excIn'); if (i){ i.scrollIntoView({block:'nearest'}); } }, 30); return;
+    case 'excFecha': S.excAberto = null; renderFoco(); return;
+    case 'excPerg': { const k = arg.indexOf(':'); perguntarExercicio(arg.slice(0,k), arg.slice(k+1)); return; }
+    case 'excAplica': { const [id, k, j, esc0] = arg.split(':'); const ac = (S.exChat[id]||[])[+k]?.acoes?.[+j]; if (!ac) return; persist();
+      const r = comDesfazer(x => x || 'Nada mudou', ()=>aplicarAjuste(id, ac, esc0)); if (r){ ac._ok = esc0; renderFoco(); } else toast('Não consegui aplicar essa mudança.'); return; }
+    case 'ajustarEx': { const e = getPlan(plano).ex.find(x=>x.id===arg); if (!e) return; const a = ef(e);
+      abrirFolha(`<h3>${esc(swaps[e.id]||e.nome)}</h3><p class="note">Mude aqui, ou pergunte ao coach no exercício.</p>
+        <form id="ajF" data-ex="${e.id}"><div class="row" style="margin-top:6px"><label><span class="note">Séries</span><input class="in" name="series" inputmode="numeric" value="${a.series}"></label><label><span class="note">Reps</span><input class="in" name="reps" value="${esc(a.reps)}"></label><label><span class="note">Descanso s</span><input class="in" name="descanso" inputmode="numeric" value="${a.rest}"></label></div>
+        <div class="btns"><button class="btn o" name="escopo" value="hoje">Só hoje</button><button class="btn p" name="escopo" value="plano">De vez no plano</button></div>
+        ${ajustes[e.id]?`<button type="button" class="lnk" data-act="ajusteVolta:${e.id}">voltar ao que está no plano (${e.series}×${esc(e.reps)})</button>`:''}</form>`); return; }
+    case 'ajusteVolta': fecharFolha(); persist(); comDesfazer('Voltou ao que está no plano', ()=>{ const e = getPlan(plano).ex.find(x=>x.id===arg); delete ajustes[arg]; const L = log[arg]; if (L && e){ while (L.length > e.series && !(L[L.length-1]&&L[L.length-1].ok)) L.pop(); } persist(); }); return;
     case 'focoDesmarca': { const e = getPlan(plano).ex[S.foco.i]; const x = (log[e.id]||[])[S.foco.s]; if (x) x.ok = false; persist(); renderFoco(); toast('Série desmarcada'); return; }
     case 'entrarGoogle': entrarGoogle(); return;
     case 'entrarEmail': abrirFolha(`<h3>Entrar com e-mail</h3><p class="note">Use o mesmo e-mail e senha da Caderneta.</p><form id="loginF"><label class="f">E-mail</label><input class="in" name="email" type="email" autocomplete="email" required><label class="f">Senha</label><input class="in" name="senha" type="password" autocomplete="current-password" required><div class="btns"><button class="btn p">Entrar</button><button type="button" class="btn" data-act="fechar">Cancelar</button></div></form>`); return;
@@ -1274,14 +1365,14 @@ async function acao(a, el){
     case 'troca': { const [id, o] = arg.split(':'); const v = decodeURIComponent(o); const e = getPlan(plano).ex.find(x=>x.id===id); if (v===e.nome) delete swaps[id]; else swaps[id] = v; persist(); fecharFolha(); render(); return; }
     case 'encerrar': { if (S.foco){ S.foco = null; document.body.classList.remove('focando'); $('#foco').hidden = true; } const p = getPlan(plano); const itens = p.ex.map(e=>({nome:swaps[e.id]||e.nome, bw:!!e.bw, sets:(log[e.id]||[]).filter(s=>s&&s.ok).map(s=>({kg:e.bw?null:(num(s.kg)), reps:parseInt(s.reps)||null})), nota:(notas[e.id]||'').trim()})).filter(i=>i.sets.length||i.nota);
       if (!itens.some(i=>i.sets.length)){ toast('Marque pelo menos uma série com o ✓ antes de encerrar.'); return; }
-      const id = uid(); comDesfazer(`Treino salvo: ${itens.length} exercícios, ${Math.round(sum(itens,i=>sum(i.sets,x=>(x.kg||0)*(x.reps||0))))} kg de volume`, ()=>{ D.sessions.push({id, data:hoje(), plano:p.id, itens, ts:Date.now()}); D.rascunho=null; log={}; swaps={}; notas={}; if (p.id==='Hoje') D.hojeCustom = null; plano = proximo(); });
+      const id = uid(); comDesfazer(`Treino salvo: ${itens.length} exercícios, ${Math.round(sum(itens,i=>sum(i.sets,x=>(x.kg||0)*(x.reps||0))))} kg de volume`, ()=>{ D.sessions.push({id, data:hoje(), plano:p.id, itens, ts:Date.now()}); D.rascunho=null; D.fechadoEm=Date.now(); log={}; swaps={}; notas={}; ajustes={}; if (p.id==='Hoje') D.hojeCustom = null; plano = proximo(); });
       setTimeout(()=>revisarSessao(id), 1200); return; }
-    case 'limparHoje': comDesfazer('Marcações de hoje limpas', ()=>{ log={}; swaps={}; notas={}; D.rascunho=null; }); return;
+    case 'limparHoje': comDesfazer('Marcações de hoje limpas', ()=>{ log={}; swaps={}; notas={}; ajustes={}; D.rascunho=null; D.fechadoEm=Date.now(); }); return;
     case 'semanaAbre': case 'semanaFecha': lsSet('caderno:semana', JSON.stringify({w:segunda(), aberto: cmd==='semanaAbre'})); render(); return;
     case 'metaEd': memo.set('edMeta', arg); render(); setTimeout(()=>{ const i=$('#metaIn'); i?.focus(); i?.select(); },0); return;
     case 'metaOk': { const v = num($('#metaIn')?.value); memo.delete('edMeta'); if (v!=null && v>=0){ const m = Object.assign({}, metaSemana()); m[arg] = v; D.metaSem = m; if (arg==='prot') D.protAlvo = v; save(); } render(); return; }
-    case 'delAtiv': comDesfazer('Atividade apagada', ()=>{ D.atividades = D.atividades.filter(x=>x.id!==arg); }); return;
-    case 'delSess': fecharFolha(); comDesfazer('Treino apagado', ()=>{ D.sessions = D.sessions.filter(x=>x.id!==arg); }); return;
+    case 'delAtiv': comDesfazer('Atividade apagada', ()=>{ (D.apagados ||= []).push(arg); D.atividades = D.atividades.filter(x=>x.id!==arg); }); return;
+    case 'delSess': fecharFolha(); comDesfazer('Treino apagado', ()=>{ (D.apagados ||= []).push(arg); D.sessions = D.sessions.filter(x=>x.id!==arg); }); return;
     case 'preencher': { const q = $('#q'); q.value = arg; q.focus(); const i = arg.indexOf('  '); if (i>=0) q.setSelectionRange(i+1, i+1); atualizarPreview(); return; }
     case 'perg': perguntarCoach(arg); return;
     case 'limparChat': S.chat = []; lsSet('caderno:chat','[]'); render(); return;
@@ -1366,6 +1457,11 @@ document.addEventListener('change', e=>{ const t = e.target;
     save(); if (k==='bw') render(); return; }
 });
 document.addEventListener('submit', async e=>{ const f = e.target; e.preventDefault();
+  if (f.id==='excF'){ const i = $('#excIn'), q = i.value; i.value=''; perguntarExercicio(f.dataset.ex, q); return; }
+  if (f.id==='ajF'){ const fd = new FormData(f), id = f.dataset.ex, esc0 = e.submitter?.value==='plano' ? 'plano' : 'hoje'; const ex = getPlan(plano).ex.find(x=>x.id===id); const a0 = ef(ex);
+    const a = {}; const se = parseInt(fd.get('series')), re = String(fd.get('reps')||'').trim(), de = parseInt(fd.get('descanso'));
+    if (se>0 && (se!==a0.series || esc0==='plano')) a.series = se; if (re && (re!==String(a0.reps) || esc0==='plano')) a.reps = re; if (de>0 && (de!==a0.rest || esc0==='plano')) a.descanso = de;
+    fecharFolha(); if (!Object.keys(a).length){ toast('Nada mudou.'); return; } persist(); comDesfazer(x => x || 'Nada mudou', ()=>aplicarAjuste(id, a, esc0)); return; }
   if (f.id==='askF'){ const q = $('#askIn').value; $('#askIn').value=''; perguntarCoach(q); return; }
   if (f.id==='pesoF'){ const v = num($('#pesoIn').value); if (!v){ toast('Digite o peso, ex.: 78,4'); return; } comDesfazer(`Peso ${f1(v)} kg salvo`, ()=>aplicarItens([{tipo:'peso', kg:v}])); return; }
   if (f.id==='swapF'){ const v = $('#swapIn').value.trim(); if (!v) return; const id = f.dataset.ex; const e2 = getPlan(plano).ex.find(x=>x.id===id); swaps[id] = v; if (!(e2.alts||[]).includes(v)){ (e2.alts ||= []).push(v); } persist(); fecharFolha(); render(); return; }
@@ -1412,6 +1508,9 @@ document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState
   $('#view').innerHTML = `<div class="panel"><div class="load">Abrindo seu caderno…</div></div>`;
   await load(); plano = (D.rascunho && D.rascunho.data===hoje() && D.rascunho.plano) || (D.hojeCustom && D.hojeCustom.data===hoje() ? 'Hoje' : proximo());
   render(); setTimeout(()=>procurarVersao(false), 1500);
+  if (S.autoSalvo){ const m = S.autoSalvo; setTimeout(()=>toast(m, null, 8000), 600); S.autoSalvo = null; save(); }
+  /* voltou para o app no meio do treino (fechou, descarregou): reabre no mesmo exercício e série */
+  const rf = D.rascunho && D.rascunho.data===hoje() && D.rascunho.foco; if (rf && Date.now() - (D.rascunho.ts||0) < 3*3600e3 && getPlan(plano).ex[rf.i]){ S.foco = {i: rf.i, s: rf.s||0}; document.body.classList.add('focando'); renderFoco(); }
   setTimeout(()=>gerarInsights(false), 2500);
 })();
 </script>
