@@ -333,6 +333,10 @@ textarea.grow{resize:none;overflow:hidden;font:inherit;line-height:1.35;min-heig
 .eq-d{font-size:13.5px;line-height:1.4}.eq-d .il{display:inline;margin-right:6px}
 .eq-c{font-size:12.5px;color:var(--violet);font-weight:600}
 .eq-b{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px}
+.tr-comb{display:flex;flex-direction:column;gap:6px;margin:10px 0 2px}
+.comb{display:flex;align-items:center;gap:8px;background:var(--violet-soft);color:var(--ink);border-radius:12px;padding:6px 6px 6px 12px;font-size:13px;font-weight:600}
+.comb>span{flex:1;min-width:0}.comb small{color:var(--muted);font-weight:600}.comb.pausa{background:var(--mint-soft)}
+.comb button{width:32px;height:32px;border-radius:9px;color:var(--muted);flex:0 0 auto}
 .fo-set.del{min-width:38px;display:grid;place-items:center;color:var(--danger);border-style:dashed}
 .fo-alvo .lnk{font-size:13px}
 .exc{background:var(--surface);border:1.5px solid var(--violet-soft);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
@@ -434,7 +438,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "13/10 21:20";
+const VERSAO = "15/10 12:10";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -672,7 +676,11 @@ const getPlanBase = id => (D.hojeCustom && D.hojeCustom.data===hoje() && id===D.
 const pulado = e => !!(ajustes[e.id] && ajustes[e.id].pular);
 const getPlan = id => { const p = getPlanBase(id); if (!p || id!==plano || !p.ex.some(pulado)) return p; return Object.assign({}, p, {ex: p.ex.filter(e=>!pulado(e)), pulados: p.ex.filter(pulado)}); };
 const planosVisiveis = () => (D.hojeCustom && D.hojeCustom.data===hoje()) ? [D.hojeCustom.plano, ...D.plans] : D.plans;
-function proximo(){ const ult=[...D.sessions].filter(s=>D.plans.some(p=>p.id===s.plano)).sort((a,b)=>a.data===b.data?(a.ts||0)-(b.ts||0):(a.data<b.data?-1:1)).pop(); const ord=D.plans.map(p=>p.id); if(!ult) return ord[0]; return ord[(ord.indexOf(ult.plano)+1)%ord.length]; }
+/* combinados com o coach: "essa semana sem perna", "pausa até domingo"… */
+const combinadosAtivos = () => (D.combinados||[]).filter(c=>!c.ate || hoje() <= c.ate);
+const planosFora = () => { const f = new Set(combinadosAtivos().flatMap(c=>c.semPlanos||[])); return D.plans.every(p=>f.has(p.id)) ? new Set() : f; };
+function proximo(){ const ult=[...D.sessions].filter(s=>D.plans.some(p=>p.id===s.plano)).sort((a,b)=>a.data===b.data?(a.ts||0)-(b.ts||0):(a.data<b.data?-1:1)).pop(); const ord=D.plans.map(p=>p.id), fora = planosFora();
+  let i = ult ? (ord.indexOf(ult.plano)+1)%ord.length : 0; for (let k=0;k<ord.length && fora.has(ord[i]);k++) i = (i+1)%ord.length; return ord[i]; }
 function nSeries(e){ return Math.max(ef(e).series, (log[e.id]||[]).length); }
 function sugSet(nome,s){ for(let i=D.sessions.length-1;i>=0;i--){ const it=D.sessions[i].itens.find(x=>x.nome===nome); if(it&&it.sets.length){ const v=it.sets[s]||it.sets[it.sets.length-1]; return {kg:v.kg,reps:v.reps}; } } return {}; }
 function ultima(nome){ for(let i=D.sessions.length-1;i>=0;i--){ const it=D.sessions[i].itens.find(x=>x.nome===nome); if(it&&it.sets.length) return {txt: it.sets.map(s=>it.bw?`${s.reps??'–'}`:`${s.kg??'–'}×${s.reps??'–'}`).join('  ')+`  (${br(D.sessions[i].data)})`, it, data:D.sessions[i].data}; } return null; }
@@ -700,7 +708,8 @@ function semanaDados(w){ const fim = addDias(w,6), dentro = k => k>=w && k<=fim;
   const prot = dias.length ? sum(dias, k=>protDia(k))/dias.length : 0;
   return {musc, km, bola, min, agua, prot, dias:dias.length};
 }
-function metaSemana(){ if (D.metaSem) return D.metaSem; const ws = [1,2,3,4].map(k=>semanaDados(addDias(segunda(),-7*k)));
+function metaSemana(){ const c = combinadosAtivos().find(x=>x.treinos!=null && (!x.ate || x.ate <= addDias(segunda(),6))); const m = metaSemanaBase(); return c ? Object.assign({}, m, {treinos: c.treinos}) : m; }
+function metaSemanaBase(){ if (D.metaSem) return D.metaSem; const ws = [1,2,3,4].map(k=>semanaDados(addDias(segunda(),-7*k)));
   const media = f => ws.reduce((s,x)=>s+f(x),0)/ws.length;
   return { treinos: Math.max(3, Math.round(media(x=>x.musc))||3), km: Math.round(media(x=>x.km))||0, bola: Math.round(media(x=>x.bola))||0, agua: 8, prot: D.protAlvo||120 }; }
 
@@ -796,6 +805,7 @@ function contextoTreino(curto){
 Semana atual: musculação ${sd.musc}/${mt.treinos}, corrida ${f1(sd.km)}/${mt.km} km, futebol ${sd.bola}/${mt.bola}. (Alimentação: a pessoa registra só às vezes; não cobre isso.)
 Contexto da pessoa: faz musculação A/B/C (rodízio, nunca dois dias de perna), quer estética, força e pernas recuperadas; corre de vez em quando, joga futebol, já teve canelite. Quer treinar em no máximo ~1 hora. NUNCA mencione EAF, TAF, teste físico, prova ou concurso: isso não faz mais parte dos objetivos (flexão e abdominal no histórico eram de uma fase antiga).
 ${estadoHoje()}
+${combinadosAtivos().length ? `COMBINADOS COM A PESSOA (respeite sempre): ${combinadosAtivos().map(c=>`${c.texto}${c.ate?` (até ${c.ate})`:''}`).join('; ')}\n` : ''}Esta semana vai de ${segunda()} a ${addDias(segunda(),6)}.
 PLANOS:\n${planos}
 TREINOS RECENTES:\n${sess||'nenhum'}
 ATIVIDADES (corrida, futebol…):\n${ativ||'nenhuma'}
@@ -819,6 +829,7 @@ const FORMATO_ACOES = `"acoes" é uma lista (pode ser vazia) de mudanças que o 
 {"tipo":"meta_semana","treinos":4,"km":10,"bola":2,"motivo":""}
 {"tipo":"ajustar_exercicio","exercicio":"nome exato","series":3,"reps":"10–12","descanso":90,"kg":20,"trocar_por":null,"escopo":"hoje|plano","motivo":"1 frase"}  → muda UM exercício (só os campos que mudam; "trocar_por" troca por um equivalente): "hoje" vale só no treino de hoje, "plano" muda de vez
 {"tipo":"remover_exercicios","exercicios":["nome exato"],"escopo":"hoje|plano","motivo":"1 frase"}  → tira exercícios: "hoje" só do treino de hoje (pressa, cansaço, dor, "chega de ombro"); "plano" tira do plano de vez. Se já fez séries de um deles, as feitas ficam salvas.
+{"tipo":"combinado","texto":"frase curta do que foi combinado","ate":"AAAA-MM-DD ou null","sem_planos":["C"],"treinos_semana":null,"pausa":false,"motivo":"1 frase"}  → guarda um combinado que muda a semana: "sem_planos" tira treinos da sequência (ex.: sem perna esta semana por causa do futebol → ["C"]; a sequência vira A, B, A…); "treinos_semana" muda a meta da semana (ex.: parar por dor → o número que ela já fez); "pausa":true = descanso até a data. Use "ate" no fim do período (para "esta semana", o domingo). Também serve para lembrar uma preferência ("texto").
 {"tipo":"encerrar_treino","salvar":true,"nota":"opcional, curta","motivo":"1 frase"}  → termina o treino de hoje AGORA: "salvar":true guarda as séries já feitas (o resto fica de fora); "salvar":false descarta o treino de hoje sem salvar nada. Use quando a pessoa disser que vai parar, abortar, encerrar, terminar, ir embora já, ou "pula o resto".
 Você pode mudar QUALQUER parte do treino, não só o exercício em que a pessoa está. Se ela quiser ir embora, tire o que falta de menos importante e diga o que fazer para fechar.
 {"tipo":"cargas_hoje","plano":"A","percentual":85,"itens":[{"nome":"nome exato do exercício","kg":20,"reps":"10"}],"motivo":"1 frase"}  → preenche as cargas do treino de hoje (percentual aplicado sobre a última carga de cada exercício; "itens" sobrepõe exercícios específicos; pode mandar só um dos dois)
@@ -850,6 +861,13 @@ function aplicarAcao(a){
       if (a.escopo==='plano'){ for (const p of D.plans) p.ex = p.ex.filter(x=>x.id!==e.id); } }
     if (S.foco){ const n = getPlan(plano).ex.length; if (!n) S.foco = null; else if (S.foco.i >= n) S.foco.i = n-1; }
     persist(); return `${a.escopo==='plano'?'Tirado do plano':'Fora de hoje'}: ${nomesOk.join(', ')}`; }
+  if (a.tipo==='combinado'){ const sem = (a.sem_planos||[]).map(x=>String(x).toUpperCase()).filter(x=>D.plans.some(p=>p.id===x)); const tr = a.treinos_semana!=null && isFinite(+a.treinos_semana) ? Math.max(0, Math.min(7, +a.treinos_semana)) : null;
+    const ate = /^\d{4}-\d{2}-\d{2}$/.test(String(a.ate||'')) ? a.ate : null; const texto = String(a.texto||a.motivo||'Combinado').slice(0,120);
+    if (!texto && !sem.length && tr==null) return null;
+    (D.combinados ||= []).push({id:uid(), texto, ate, ...(sem.length?{semPlanos:sem}:{}), ...(tr!=null?{treinos:tr}:{}), ...(a.pausa?{pausa:true}:{}), criado:hoje()});
+    D.combinados = D.combinados.filter(c=>!c.ate || c.ate >= addDias(hoje(),-30)).slice(-20);
+    if (!getPlanBase(plano) || (sem.includes(plano) && !Object.keys(log).length)) plano = proximo(); persist();
+    return `Combinado: ${texto}${ate?` (até ${br(ate)})`:''}`; }
   if (a.tipo==='encerrar_treino') return encerrarTreino(a.salvar!==false, a.nota);
   if (a.tipo==='meta_semana'){ const m = Object.assign({}, metaSemana()); ['treinos','km','bola','agua','prot'].forEach(k=>{ if (a[k]!=null && isFinite(+a[k])) m[k] = +a[k]; }); D.metaSem = m; return 'Plano da semana ajustado'; }
   return null;
@@ -861,10 +879,10 @@ function previaCargas(a){ const alvo = a.plano && D.plans.some(p=>p.id===String(
     return `<li>${esc(nome)}: ${top&&kg!=null?`${f1(top)} → `:''}<b>${kg!=null?f1(kg)+' kg':''}</b>${x&&x.reps?` × ${esc(x.reps)}`:''}</li>`; }).filter(Boolean);
   return linhas.length ? `<div class="note" style="margin-top:4px">Treino ${esc(alvo)}${a.percentual?` · ${a.percentual}% da última carga`:''}</div><ul style="margin:6px 0 0;padding-left:18px">${linhas.join('')}</ul>` : '<div class="note">Sem cargas anteriores para calcular.</div>'; }
 function cartaoAcao(a, i, ci, botoes){ const ex = a.tipo==='remover_exercicios' ? [] : (a.exercicios||[]);
-  const tit = a.tipo==='cargas_hoje' ? 'Aplicar cargas no treino de hoje' : a.tipo==='treino_hoje' ? `Treino de hoje: ${a.nome||''}` : a.tipo==='alterar_plano' ? `Alterar o treino ${a.plano}${a.nome?` (${a.nome})`:''}` : a.tipo==='novo_plano' ? `Novo treino ${a.plano||''} ${a.nome||''}` : a.tipo==='meta_semana' ? 'Ajustar o plano da semana' : a.tipo==='ajustar_exercicio' ? `Ajustar ${a.exercicio||'exercício'}${a.escopo==='plano'?' (no plano)':' (só hoje)'}` : a.tipo==='remover_exercicios' ? `${a.escopo==='plano'?'Tirar do plano':'Tirar do treino de hoje'}: ${(a.exercicios||[]).join(', ')}` : a.tipo==='encerrar_treino' ? (a.salvar===false ? 'Descartar o treino de hoje' : 'Encerrar o treino agora') : a.tipo;
+  const tit = a.tipo==='cargas_hoje' ? 'Aplicar cargas no treino de hoje' : a.tipo==='treino_hoje' ? `Treino de hoje: ${a.nome||''}` : a.tipo==='alterar_plano' ? `Alterar o treino ${a.plano}${a.nome?` (${a.nome})`:''}` : a.tipo==='novo_plano' ? `Novo treino ${a.plano||''} ${a.nome||''}` : a.tipo==='meta_semana' ? 'Ajustar o plano da semana' : a.tipo==='ajustar_exercicio' ? `Ajustar ${a.exercicio||'exercício'}${a.escopo==='plano'?' (no plano)':' (só hoje)'}` : a.tipo==='remover_exercicios' ? `${a.escopo==='plano'?'Tirar do plano':'Tirar do treino de hoje'}: ${(a.exercicios||[]).join(', ')}` : a.tipo==='encerrar_treino' ? (a.salvar===false ? 'Descartar o treino de hoje' : 'Encerrar o treino agora') : a.tipo==='combinado' ? `Combinar: ${a.texto||''}` : a.tipo;
   return `<div class="box-i ia"><span class="il">${esc(tit)}</span>${a.motivo?`<div>${esc(a.motivo)}</div>`:''}
     ${ex.length?`<ol style="margin:6px 0 0;padding-left:20px">${ex.map(x=>`<li>${esc(x.nome)} — ${esc(x.series)}×${esc(x.reps)}${x.kg?` · ${esc(x.kg)} kg`:''}${x.nota?` <small style="color:var(--muted)">(${esc(x.nota)})</small>`:''}</li>`).join('')}</ol>`:''}
-    ${a.tipo==='encerrar_treino'?`<div class="exc-ch">${esc(previaEncerrar(a))}</div>`:''}${a.tipo==='cargas_hoje'?previaCargas(a):''}${a.tipo==='ajustar_exercicio'?`<div class="exc-ch">${esc(mudancasTxt(a))}</div>`:''}
+    ${a.tipo==='combinado'?`<div class="exc-ch">${esc([a.ate?`até ${br(a.ate)}`:'sem data pra acabar', (a.sem_planos||[]).length?`sem treino ${a.sem_planos.join(', ')} (sequência pula)`:'', a.treinos_semana!=null?`meta da semana: ${a.treinos_semana} ${+a.treinos_semana===1?'treino':'treinos'}`:'', a.pausa?'descanso':''].filter(Boolean).join(' · '))}</div>`:''}${a.tipo==='encerrar_treino'?`<div class="exc-ch">${esc(previaEncerrar(a))}</div>`:''}${a.tipo==='cargas_hoje'?previaCargas(a):''}${a.tipo==='ajustar_exercicio'?`<div class="exc-ch">${esc(mudancasTxt(a))}</div>`:''}
     ${a.tipo==='meta_semana'?`<div class="note">${['treinos','km','bola','agua','prot'].filter(k=>a[k]!=null).map(k=>`${k} ${a[k]}`).join(' · ')}</div>`:''}
     <div class="btns">${a._ok?`<span class="pill g">Aplicado ✓</span>`: botoes || `<button class="btn p sm" data-act="aplicar:${ci}:${i}">Aplicar</button>`}</div></div>`; }
 /* encerrar o treino (pelo botão ou pelo coach): salva as séries feitas, o resto fica de fora */
@@ -1135,6 +1153,7 @@ function blocoTreino(){
       <div class="tr-ring" style="--p:${pct};--cc:${corPlano(p.id)}"><b>${pct}%</b></div></div>
     ${custom && D.hojeCustom.motivo ? `<div class="tr-msg">${esc(D.hojeCustom.motivo)}</div>` : parado!=null && parado>14 && !comecou ? `<div class="tr-msg">Faz ${parado} dias do último treino. <button data-act="perg:Voltei depois de ${parado} dias parado. Quais cargas uso hoje?">Pedir as cargas de volta ao coach</button></div>` : ''}
     <div class="tr-seg" role="tablist">${vis.map(x=>`<button role="tab" aria-selected="${x.id===plano}" style="--cc:${corPlano(x.id)}" data-act="plano:${esc(x.id)}" class="${feitos.includes(x.id)?'feito':''}"><b>${x.id==='Hoje'?'★':esc(x.id)}</b><small>${esc(x.id==='Hoje'?'coach':x.nome.split('/')[0].trim())}</small></button>`).join('')}</div>
+    ${combinadosAtivos().length ? `<div class="tr-comb">${combinadosAtivos().map(c=>`<span class="comb ${c.pausa?'pausa':''}"><span>${esc(c.texto)}${c.ate?` <small>até ${br(c.ate)}</small>`:''}</span><button data-act="delComb:${c.id}" aria-label="Desfazer combinado">✕</button></span>`).join('')}</div>` : ''}
     <div class="tr-lista">${linhas || '<p class="note">Sem exercícios neste treino. Ajuste em Treinos.</p>'}</div>
     ${p.pulados && p.pulados.length ? `<div class="tr-pul">Fora de hoje: ${p.pulados.map(x=>`<button class="chip" data-act="voltarEx:${x.id}">${esc(swaps[x.id]||x.nome)} <span aria-hidden="true">↺</span></button>`).join('')}</div>` : ''}
     <div class="tr-acoes">
@@ -1190,7 +1209,7 @@ function blocoCoach(){ const ultimos = S.chat.slice(-4); const base = S.chat.len
       ${c.busy && !c.a ? `<div class="load" style="margin-top:8px">Pensando com os seus dados…</div>` : `<div class="resp" data-chat="${ci}">${fmtCoach(c.a)}</div>`}
       ${(c.acoes||[]).map((a,i)=>cartaoAcao(a,i,ci)).join('')}</div>`; }).join('') : `<p class="note" style="margin-top:0">Pergunte qualquer coisa ou peça mudanças. Ele vê seus treinos, cargas, corridas e comida, e pode montar o treino de hoje ou alterar seu plano.</p>`}
     <form class="ask" id="askF"><textarea class="in grow" id="askIn" rows="1" placeholder="Ex.: voltei depois de um mês, o que faço hoje?"></textarea><button class="btn p">Enviar</button></form>
-    <div class="btns">${['O que faço hoje?','Monta meu treino de hoje em 45 minutos','Como está minha evolução de carga?','Troca um exercício que está me incomodando'].map(s=>`<button class="chip" data-act="perg:${esc(s)}">${esc(s)}</button>`).join('')}</div>
+    <div class="btns">${['O que faço hoje?','Tô com dor de treino, ajusta minha semana','Monta meu treino de hoje em 45 minutos','Como está minha evolução de carga?','Troca um exercício que está me incomodando'].map(s=>`<button class="chip" data-act="perg:${esc(s)}">${esc(s)}</button>`).join('')}</div>
     <div class="claude-row"><span>Decisão grande? Pergunte ao Claude:</span><button class="btn sm" data-act="mandarClaude">Mandar para o Claude</button><button class="btn sm" data-act="colarRapido">Colar resposta</button></div></section>`; }
 
 function blocoInsights(){ const c = D.ia, ok = c && c.itens, busy = memo.get('insBusy'), ic = {alerta:'!',dica:'✦',projecao:'↗',elogio:'✓'};
@@ -1489,6 +1508,7 @@ async function acao(a, el){
     case 'excPerg': { const k = arg.indexOf(':'); perguntarExercicio(arg.slice(0,k), arg.slice(k+1)); return; }
     case 'excAplicaG': { const [id, k, j] = arg.split(':'); const ac = (S.exChat[id]||[])[+k]?.acoes?.[+j]; if (!ac) return; persist();
       const r = comDesfazer(x => x || 'Nada mudou', ()=>aplicarAcao(ac)); if (r){ ac._ok = true; if (S.foco) renderFoco(); } else toast('Não consegui aplicar essa mudança.'); return; }
+    case 'delComb': comDesfazer('Combinado desfeito', ()=>{ D.combinados = (D.combinados||[]).filter(c=>c.id!==arg); if (!Object.keys(log).length) plano = proximo(); persist(); }); return;
     case 'voltarEx': persist(); comDesfazer('Voltou para o treino de hoje', ()=>{ if (ajustes[arg]) delete ajustes[arg].pular; persist(); }); return;
     case 'excAplica': { const [id, k, j, esc0] = arg.split(':'); const ac = (S.exChat[id]||[])[+k]?.acoes?.[+j]; if (!ac) return; persist();
       const eCur = getPlanBase(plano).ex.find(x=>x.id===id); const alvo = eCur ? exAlvo(ac, eCur) : null;
