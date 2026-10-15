@@ -438,7 +438,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "15/10 12:10";
+const VERSAO = "15/10 12:30";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -803,7 +803,8 @@ function contextoTreino(curto){
   const ultimo = [...D.sessions].sort((a,b)=>a.data<b.data?-1:1).pop(); const parado = ultimo ? Math.round((Date.now()-new Date(ultimo.data+'T12:00:00'))/864e5) : null;
   return `Hoje: ${hoje()} (${diaSem(hoje())}). Último treino de musculação: ${ultimo?`${ultimo.data} (há ${parado} dias)`:'nenhum'}. Próximo da sequência: ${proximo()}.
 Semana atual: musculação ${sd.musc}/${mt.treinos}, corrida ${f1(sd.km)}/${mt.km} km, futebol ${sd.bola}/${mt.bola}. (Alimentação: a pessoa registra só às vezes; não cobre isso.)
-Contexto da pessoa: faz musculação A/B/C (rodízio, nunca dois dias de perna), quer estética, força e pernas recuperadas; corre de vez em quando, joga futebol, já teve canelite. Quer treinar em no máximo ~1 hora. NUNCA mencione EAF, TAF, teste físico, prova ou concurso: isso não faz mais parte dos objetivos (flexão e abdominal no histórico eram de uma fase antiga).
+Contexto da pessoa: faz musculação A/B/C (rodízio, nunca dois dias de perna), quer estética, força e pernas recuperadas; corre de vez em quando, joga futebol, já teve canelite. Quer treinar em no máximo ~1 hora. PREFERÊNCIA DELE: mais carga e mais descanso em vez de mais repetições (prefere séries pesadas, poucas reps, descanso longo).
+${CIENCIA} NUNCA mencione EAF, TAF, teste físico, prova ou concurso: isso não faz mais parte dos objetivos (flexão e abdominal no histórico eram de uma fase antiga).
 ${estadoHoje()}
 ${combinadosAtivos().length ? `COMBINADOS COM A PESSOA (respeite sempre): ${combinadosAtivos().map(c=>`${c.texto}${c.ate?` (até ${c.ate})`:''}`).join('; ')}\n` : ''}Esta semana vai de ${segunda()} a ${addDias(segunda(),6)}.
 PLANOS:\n${planos}
@@ -814,6 +815,18 @@ ALIMENTAÇÃO E HÁBITOS (14 dias):\n${dias.join('\n')||'sem registro'}`;
 }
 /* resposta do coach com os rótulos em destaque */
 const fmtCoach = t => esc(t).replace(/^\s*(Veredito|Já garantiu|Fica pra trás|Por quê|Próximo treino)\s*:/gm, (m, r) => `<b class="cl ${r==='Veredito'?'v':''}">${r}:</b>`);
+/* base científica do coach (revisões e meta-análises mais recentes) */
+const CIENCIA = `BASE CIENTÍFICA (siga isto; quando ajudar, cite em 1 linha, ex.: "uma meta-análise de 2024 mostrou…"; nunca invente estudo, autor ou número):
+- Volume: a hipertrofia cresce com as séries semanais por músculo, com retornos decrescentes (Pelland e cols., 2024, meta-regressão): mínimo eficaz ~4 séries/semana; a maior parte do ganho vem até ~10–20 séries; acima disso o custo de recuperação sobe mais que o ganho. A força estabiliza cedo no volume (poucas séries pesadas já bastam) e se beneficia mais de carga alta e de treinar o movimento ~2x/semana.
+- Proximidade da falha: hipertrofia melhora chegando perto da falha (0–3 repetições na reserva); a força quase não depende disso (Robinson e cols., 2024). Na prática: séries pesadas a 1–3 reps da falha; falha real só na última série de isoladores.
+- Carga e repetições: hipertrofia parecida de ~5 a 30 reps se perto da falha; força cresce mais com carga pesada (Schoenfeld e cols., 2017; Lopez e cols., 2021). Para ele: compostos em ~5–8 reps, isoladores ~8–12.
+- Descanso: mais de 60–90 s dá pequena vantagem pra hipertrofia (Singer e cols., 2024, meta-análise bayesiana); nos compostos pesados, 2–3 min preservam carga e reps na série seguinte (Schoenfeld e cols., 2016). Descanso longo não é "perder tempo": é o que deixa a próxima série pesada de verdade.
+- Progressão: dupla progressão (fechou o topo das reps em todas as séries → sobe a carga e volta pro início da faixa).
+- Volta após pausa: força e massa voltam rápido (memória muscular); 1ª semana com ~80–85% da carga e 1 série a menos, subindo em 2–3 semanas.
+- Amplitude: amplitude completa, enfatizando a posição alongada do músculo, tende a dar mais hipertrofia.
+- Corrida e futebol: o treino concorrente quase não atrapalha a hipertrofia, mas perna pesada perto do futebol derruba desempenho e aumenta risco; separe perna e futebol por pelo menos 48 h.
+- Dor muscular tardia não é sinal de treino bom; dor leve permite treinar, dor forte pede descanso ou outro grupo muscular.
+- Com 1 hora de treino, priorize menos exercícios com séries de qualidade a muitos exercícios corridos.`;
 /* jeito de explicar: didático, sempre com o porquê */
 const DIDATICO = `JEITO DE RESPONDER (obrigatório): seja um professor didático, em português simples, sem jargão (se usar um termo técnico, explique em poucas palavras). Use os números reais dela. Para qualquer pedido de mudança (pular, encerrar, tirar série, trocar, ir embora), NÃO só obedeça: avalie e responda em linhas curtas, cada uma começando com o rótulo:
 Veredito: tudo bem fazer isso hoje / ok com uma ressalva / melhor não, em 1 frase.
