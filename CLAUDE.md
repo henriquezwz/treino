@@ -101,3 +101,10 @@ Publique só neste repositório (henriquezwz/treino). Nunca mexa em outros repos
 - Diga em uma ou duas frases o que mudou e onde ele toca para usar.
 - Se algo depende de ele fazer um passo (abrir um link, importar um arquivo), diga exatamente o passo.
 - Sem jargão: nada de "service worker" ou "Firestore" na conversa com ele, a menos que ele pergunte.
+
+## App para qualquer pessoa
+
+- Quem abre pela primeira vez vê "Monte seu treino": criar com a IA, colar/upar a ficha (texto, foto, PDF) ou usar um modelo (ABC, corpo inteiro, superior/inferior). Código em `montar.js`.
+- O que o coach sabe da pessoa fica em `D.perfil.texto` (editável em Treinos → "Sobre você"), nunca escrito no código. O perfil do Paulo foi migrado uma vez de `PERFIL_LEGADO`.
+- "Compartilhar meu treino" gera um link `#t=` com os planos compactados (sem registros nem cargas). Quem abre vê a prévia e usa com um toque.
+- Login: Google ou e-mail (entrar, criar conta, esqueci a senha). Mesmo projeto Firebase da Caderneta; cada pessoa grava em `caderneta/{uid}/treino/caderno`.

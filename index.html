@@ -337,6 +337,15 @@ textarea.grow{resize:none;overflow:hidden;font:inherit;line-height:1.35;min-heig
 .comb{display:flex;align-items:center;gap:8px;background:var(--violet-soft);color:var(--ink);border-radius:12px;padding:6px 6px 6px 12px;font-size:13px;font-weight:600}
 .comb>span{flex:1;min-width:0}.comb small{color:var(--muted);font-weight:600}.comb.pausa{background:var(--mint-soft)}
 .comb button{width:32px;height:32px;border-radius:9px;color:var(--muted);flex:0 0 auto}
+.boas{border:1.5px solid var(--tang);background:linear-gradient(180deg,var(--tang-soft),var(--surface) 70%)}
+.boas-op{display:grid;gap:8px;margin-top:12px}
+.boas-b{display:grid;gap:2px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;min-height:56px}
+.boas-b b{display:flex;align-items:center;gap:8px;font-size:15.5px;color:var(--ink)}.boas-b b svg{color:var(--tang)}.boas-b small{color:var(--muted);font-size:13px;font-weight:500}
+.mt-abas{display:flex;gap:4px;background:var(--sunk);border-radius:12px;padding:4px;margin:8px 0 6px}
+.mt-abas button{flex:1;border-radius:9px;padding:8px 6px;font-size:12.5px;font-weight:700;color:var(--muted);min-height:40px}
+.mt-abas button[aria-pressed="true"]{background:var(--surface);color:var(--tang);box-shadow:0 1px 3px rgba(20,27,52,.12)}
+.mt-c{margin:6px 0 2px}.mt-busy{padding:24px 0}
+.mt-ex{margin:4px 0 0;padding-left:20px;font-size:13.5px;display:grid;gap:2px}.mt-ex .num{color:var(--blue);font-size:12.5px}.mt-ex small{color:var(--muted)}
 .fo-set.del{min-width:38px;display:grid;place-items:center;color:var(--danger);border-style:dashed}
 .fo-alvo .lnk{font-size:13px}
 .exc{background:var(--surface);border:1.5px solid var(--violet-soft);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
@@ -438,7 +447,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "15/10 12:30";
+const VERSAO = "16/10 13:00";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -613,8 +622,11 @@ function defaults(){
   if((D.refVer||0) < SEED.refVer){ D.refeicoes=structuredClone(SEED.refeicoes); D.refVer=SEED.refVer; }
   if((D.planVer||0) < SEED.planVer){ if (D.planVer && D.plans?.length){ if (D.planVer < 5 || !D.plansAnteriores) D.plansAnteriores = D.plans; D.planNovo = {dia:hoje(), de:D.planVer, txt:SEED.planMsg}; } D.plans=structuredClone(SEED.plans); D.planVer=SEED.planVer; if (!D.plans.some(p=>p.id===plano)) plano = 'A'; }
   D.atividades ||= []; D.pesos ||= []; D.sessions ||= []; D.dias ||= {};
+  /* quem já usava antes de o app virar de todo mundo: guarda o perfil que o coach usava */
+  if (!D.perfil && !D.novo && D.sessions.length && D.planVer) D.perfil = {texto: PERFIL_LEGADO, legado:true};
   if (D.planNovo && !D.planNovo.metaOk){ D.metaSem = Object.assign({}, metaSemana(), {treinos: SEED.metaTreinos || 4}); D.planNovo.metaOk = true; }
 }
+const PERFIL_LEGADO = 'Faz musculação A/B/C em rodízio, nunca dois dias de perna. Objetivo: estética, força e pernas recuperadas. Corre de vez em quando e joga futebol; já teve canelite. Quer treinar em no máximo 1 hora. Prefere mais carga e mais descanso a mais repetições.';
 function persist(){ D.rascunho={data:hoje(),plano,log,swaps,notas,ajustes,relogio,foco:S.foco?{i:S.foco.i,s:S.foco.s}:null,ts:Date.now()}; save(); }
 /* treino que ficou aberto num dia anterior (acabou a bateria, esqueceu de encerrar): vira treino salvo daquele dia */
 function salvarRascunhoAntigo(r){ try{
@@ -637,7 +649,7 @@ function mesclar(rem, loc){ let mudou = false; const apag = new Set([...(rem.apa
   rem.fechadoEm = fech; if (apag.size){ rem.apagados = [...apag].slice(-300); }
   return mudou; }
 async function load(){
-  try{ D=JSON.parse(lsGet(KEY)); if(!D) throw 0; }catch(e){ D=structuredClone(SEED); D._u=0; }
+  try{ D=JSON.parse(lsGet(KEY)); if(!D) throw 0; }catch(e){ D=structuredClone(SEED); D._u=0; D.novo=true; }
   defaults(); restaurarRascunho(); setSync('entrando'); iniciarConta();
 }
 async function iniciarConta(){
@@ -803,8 +815,9 @@ function contextoTreino(curto){
   const ultimo = [...D.sessions].sort((a,b)=>a.data<b.data?-1:1).pop(); const parado = ultimo ? Math.round((Date.now()-new Date(ultimo.data+'T12:00:00'))/864e5) : null;
   return `Hoje: ${hoje()} (${diaSem(hoje())}). Último treino de musculação: ${ultimo?`${ultimo.data} (há ${parado} dias)`:'nenhum'}. Próximo da sequência: ${proximo()}.
 Semana atual: musculação ${sd.musc}/${mt.treinos}, corrida ${f1(sd.km)}/${mt.km} km, futebol ${sd.bola}/${mt.bola}. (Alimentação: a pessoa registra só às vezes; não cobre isso.)
-Contexto da pessoa: faz musculação A/B/C (rodízio, nunca dois dias de perna), quer estética, força e pernas recuperadas; corre de vez em quando, joga futebol, já teve canelite. Quer treinar em no máximo ~1 hora. PREFERÊNCIA DELE: mais carga e mais descanso em vez de mais repetições (prefere séries pesadas, poucas reps, descanso longo).
-${CIENCIA} NUNCA mencione EAF, TAF, teste físico, prova ou concurso: isso não faz mais parte dos objetivos (flexão e abdominal no histórico eram de uma fase antiga).
+SOBRE A PESSOA (o que ela contou; respeite sempre): ${(D.perfil && D.perfil.texto) || 'ainda não contou objetivo, dias e limitações; quando fizer sentido, pergunte.'}
+${CIENCIA}
+NUNCA mencione EAF, TAF, teste físico, prova ou concurso: isso não faz mais parte dos objetivos (flexão e abdominal no histórico eram de uma fase antiga).
 ${estadoHoje()}
 ${combinadosAtivos().length ? `COMBINADOS COM A PESSOA (respeite sempre): ${combinadosAtivos().map(c=>`${c.texto}${c.ate?` (até ${c.ate})`:''}`).join('; ')}\n` : ''}Esta semana vai de ${segunda()} a ${addDias(segunda(),6)}.
 PLANOS:\n${planos}
@@ -819,12 +832,12 @@ const fmtCoach = t => esc(t).replace(/^\s*(Veredito|Já garantiu|Fica pra trás|
 const CIENCIA = `BASE CIENTÍFICA (siga isto; quando ajudar, cite em 1 linha, ex.: "uma meta-análise de 2024 mostrou…"; nunca invente estudo, autor ou número):
 - Volume: a hipertrofia cresce com as séries semanais por músculo, com retornos decrescentes (Pelland e cols., 2024, meta-regressão): mínimo eficaz ~4 séries/semana; a maior parte do ganho vem até ~10–20 séries; acima disso o custo de recuperação sobe mais que o ganho. A força estabiliza cedo no volume (poucas séries pesadas já bastam) e se beneficia mais de carga alta e de treinar o movimento ~2x/semana.
 - Proximidade da falha: hipertrofia melhora chegando perto da falha (0–3 repetições na reserva); a força quase não depende disso (Robinson e cols., 2024). Na prática: séries pesadas a 1–3 reps da falha; falha real só na última série de isoladores.
-- Carga e repetições: hipertrofia parecida de ~5 a 30 reps se perto da falha; força cresce mais com carga pesada (Schoenfeld e cols., 2017; Lopez e cols., 2021). Para ele: compostos em ~5–8 reps, isoladores ~8–12.
+- Carga e repetições: hipertrofia parecida de ~5 a 30 reps se perto da falha; força cresce mais com carga pesada (Schoenfeld e cols., 2017; Lopez e cols., 2021). Se a pessoa prefere mais carga e mais descanso: compostos em ~5–8 reps, isoladores ~8–12.
 - Descanso: mais de 60–90 s dá pequena vantagem pra hipertrofia (Singer e cols., 2024, meta-análise bayesiana); nos compostos pesados, 2–3 min preservam carga e reps na série seguinte (Schoenfeld e cols., 2016). Descanso longo não é "perder tempo": é o que deixa a próxima série pesada de verdade.
 - Progressão: dupla progressão (fechou o topo das reps em todas as séries → sobe a carga e volta pro início da faixa).
 - Volta após pausa: força e massa voltam rápido (memória muscular); 1ª semana com ~80–85% da carga e 1 série a menos, subindo em 2–3 semanas.
 - Amplitude: amplitude completa, enfatizando a posição alongada do músculo, tende a dar mais hipertrofia.
-- Corrida e futebol: o treino concorrente quase não atrapalha a hipertrofia, mas perna pesada perto do futebol derruba desempenho e aumenta risco; separe perna e futebol por pelo menos 48 h.
+- Se a pessoa corre ou joga bola: o treino concorrente quase não atrapalha a hipertrofia, mas perna pesada perto do futebol derruba desempenho e aumenta risco; separe perna e futebol por pelo menos 48 h.
 - Dor muscular tardia não é sinal de treino bom; dor leve permite treinar, dor forte pede descanso ou outro grupo muscular.
 - Com 1 hora de treino, priorize menos exercícios com séries de qualidade a muitos exercícios corridos.`;
 /* jeito de explicar: didático, sempre com o porquê */
@@ -849,7 +862,7 @@ Você pode mudar QUALQUER parte do treino, não só o exercício em que a pessoa
 SEMPRE que sugerir cargas, percentual ou repetições para hoje, inclua "cargas_hoje" para a pessoa aplicar com um toque. Se sugerir trocar exercícios só hoje, use "treino_hoje" com "kg" em cada exercício.`;
 
 /* ---------- aplicar ações vindas do coach (IA do app ou do Claude) ---------- */
-function exDeIA(x, velhos){ const v = (velhos||[]).find(e=>norm(e.nome)===norm(x.nome)); return {id: v?.id || 'x'+uid(), nome: String(x.nome||'Exercício').slice(0,60), series: Math.max(1, Math.min(10, parseInt(x.series)||3)), reps: String(x.reps||'8–12'), rest: Math.max(15, Math.min(300, parseInt(x.descanso||x.rest)||90)), nota: String(x.nota||'').slice(0,200), alts: v?.alts||[], ...(x.bw||v?.bw?{bw:true}:{}), ...(x.kg?{kgSug:num(x.kg)}:{})}; }
+function exDeIA(x, velhos){ const v = (velhos||[]).find(e=>norm(e.nome)===norm(x.nome)); const altsX = Array.isArray(x.alts) ? x.alts.filter(Boolean).map(a=>String(a).slice(0,60)).slice(0,6) : []; return {id: v?.id || 'x'+uid(), nome: String(x.nome||'Exercício').slice(0,60), series: Math.max(1, Math.min(10, parseInt(x.series)||3)), reps: String(x.reps||'8–12'), rest: Math.max(15, Math.min(300, parseInt(x.descanso||x.rest)||90)), nota: String(x.nota||'').slice(0,200), alts: altsX.length ? altsX : (v?.alts||[]), ...(x.tempo?{tempo:true}:{}), ...(x.bw||v?.bw?{bw:true}:{}), ...(x.kg?{kgSug:num(x.kg)}:{})}; }
 function aplicarAcao(a){
   if (!a || !a.tipo) return null;
   if (a.tipo==='treino_hoje'){ const p = {id:'Hoje', nome: String(a.nome||'Treino de hoje').slice(0,50), ex:(a.exercicios||[]).map(x=>exDeIA(x, D.plans.flatMap(p=>p.ex)))}; if (!p.ex.length) return null;
@@ -922,7 +935,7 @@ async function perguntarCoach(q){
   try{
     const hist = S.chat.slice(-5,-1).map(x=>`Pessoa: ${x.q}\nCoach: ${x.a}`).join('\n');
     const r = await S.ia.json(`Você é o coach de treino pessoal desta pessoa: um preparador físico brasileiro experiente, direto, prático, que explica a fisiologia quando ajuda. Use os dados reais abaixo.
-${DIDATICO} Se a pessoa pedir para montar, trocar ou ajustar treino, PROPONHA as mudanças em "acoes" (o app aplica com um toque). Considere tempo parado (destreino: reduzir volume e carga ~20–40% na volta), dores, canelite e futebol.
+${DIDATICO} Se a pessoa pedir para montar, trocar ou ajustar treino, PROPONHA as mudanças em "acoes" (o app aplica com um toque). Considere tempo parado (destreino: reduzir volume e carga ~20–40% na volta), dores, lesões e esportes que ela contou.
 ${contextoTreino()}
 ${hist?`CONVERSA ATÉ AGORA:\n${hist}\n`:''}
 PERGUNTA: ${q}
@@ -971,7 +984,7 @@ ${FORMATO_ACOES}`, t => { const mm = t.match(/"resposta"\s*:\s*"((?:[^"\\]|\\.)*
 /* ---------- insights do dia ---------- */
 async function gerarInsights(forcar){
   if (!forcar && D.ia && D.ia.dia===hoje()) return; if (memo.get('insBusy')) return; memo.set('insBusy', true); render();
-  try{ const r = await S.ia.json(`Você é um preparador físico brasileiro muito bom. Gere de 4 a 6 insights PROFUNDOS e ESPECÍFICOS sobre o treino desta pessoa, com números reais dos dados (nunca genéricos): consistência da semana vs plano, progressão de carga (o que subiu, o que estagnou e por quê), recordes, equilíbrio entre treinos A/B/C, corrida e futebol vs recuperação e canelite, e o que fazer hoje. Explique o porquê de cada um em linguagem simples.
+  try{ const r = await S.ia.json(`Você é um preparador físico brasileiro muito bom. Gere de 4 a 6 insights PROFUNDOS e ESPECÍFICOS sobre o treino desta pessoa, com números reais dos dados (nunca genéricos): consistência da semana vs plano, progressão de carga (o que subiu, o que estagnou e por quê), recordes, equilíbrio entre treinos A/B/C, atividades extras (corrida, esportes) vs recuperação e lesões que ela contou, e o que fazer hoje. Explique o porquê de cada um em linguagem simples.
 ${contextoTreino()}
 Responda só JSON: [{"tipo":"alerta|dica|projecao|elogio","titulo":"até 8 palavras","texto":"1 a 3 frases com números","acao":"opcional, ação concreta curta"}]`);
     const itens = (Array.isArray(r) ? r : (r.insights||r.itens||[])).filter(x=>x && x.titulo).slice(0,7);
@@ -1038,7 +1051,8 @@ function render(){
 }
 
 /* ---------- HOJE ---------- */
-function viewHoje(){ return `<div class="grid two"><div class="col">${blocoSemana()}${blocoConta()}${blocoPlanoNovo()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}</div></div>`; }
+function viewHoje(){ if (D.novo) return `<div class="grid two"><div class="col">${blocoBoasVindas()}${blocoConta()}</div><div class="col">${blocoCoach()}</div></div>`;
+  return `<div class="grid two"><div class="col">${blocoSemana()}${blocoConta()}${blocoPlanoNovo()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}</div></div>`; }
 
 function blocoPlanoNovo(){ const n = D.planNovo; if (!n || n.visto) return '';
   return `<section class="panel novo"><div class="sm-eye" style="color:var(--violet)">Treino ajustado pelo Claude</div><b style="font-size:17px">${D.plans.map(p=>esc(p.id)).join(' → ')} girando · ${metaSemana().treinos}× por semana</b>
@@ -1049,8 +1063,8 @@ function blocoProteina(){ const k = hoje(); const usa = Object.keys(D.dias).some
   return `<section class="panel"><div class="ph"><h2 style="--hc:var(--violet)">Proteína hoje</h2><span class="num"><b>${p}</b> / ${alvo} g</span></div><div class="bar" style="--cc:var(--violet)"><i style="width:${Math.min(100,p/alvo*100)}%"></i></div>
     ${itens.map(x=>`<div class="li"><span class="t">${esc(x.t)}</span><span class="v">${+x.p?x.p+' g':''}</span><button class="x" data-act="delEat:${x.r}:${x.id}" aria-label="Apagar">✕</button></div>`).join('')}
     <p class="note">Escreva na barra: “almocei frango 200g”. Sem o número, a IA estima.</p></section>`; }
-function blocoConta(){ if (S.user || !S.authPronto) return S.contaErro==='permissao' ? `<section class="panel aviso"><b>A nuvem recusou salvar o treino.</b><p class="note">Seus treinos estão salvos neste aparelho. Me avise no chat do Claude que eu libero o espaço do treino na sua conta.</p></section>` : '';
-  return `<section class="panel conta"><div><b>Seus treinos estão só neste aparelho</b><p class="note" style="margin:2px 0 0">Entre com a mesma conta da Caderneta e tudo fica salvo na nuvem, no celular e no PC.</p></div>
+function blocoConta(){ if (S.user || !S.authPronto) return S.contaErro==='permissao' ? `<section class="panel aviso"><b>A nuvem recusou salvar o treino.</b><p class="note">Seus treinos estão salvos neste aparelho. Tente sair e entrar de novo; se continuar, avise quem te passou o app.</p></section>` : '';
+  return `<section class="panel conta"><div><b>Seus treinos estão só neste aparelho</b><p class="note" style="margin:2px 0 0">Entre com Google ou e-mail e tudo fica salvo na nuvem, no celular e no PC.</p></div>
     <div class="btns"><button class="btn p" data-act="entrarGoogle">Entrar com Google</button><button class="btn" data-act="entrarEmail">Entrar com e-mail</button></div></section>`; }
 /* ---------- topo no padrão da Caderneta: número grande da semana ---------- */
 const COR_PLANO = {A:'var(--blue)', B:'var(--tang)', C:'var(--mint)', D:'var(--violet)', E:'var(--amber)', Hoje:'var(--pink)'};
@@ -1343,6 +1357,12 @@ function viewTreinos(){
   if (!D.plans.find(p=>p.id===editP)) editP = D.plans[0]?.id; const p = D.plans.find(x=>x.id===editP);
   const ehApp = matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
   return `<div class="grid two"><div class="col">
+    <section class="panel"><div class="ph"><h2 style="--hc:var(--tang)">Seu treino</h2></div>
+      <div class="btns" style="margin-top:0"><button class="btn o" data-act="montar:ia">Montar ou trocar treino</button><button class="btn" data-act="compartilhar">Compartilhar meu treino</button></div>
+      <p class="note">Compartilhar gera um link: quem abrir vê seus treinos A, B, C… e usa com um toque, com o próprio coach. Seus registros e cargas não vão junto.</p>
+      ${D.plansAnteriores && D.plansAnteriores.length ? `<button class="lnk" data-act="voltarAnterior">voltar para o treino anterior (${esc(D.plansAnteriores.map(p=>p.id).join(', '))})</button>` : ''}
+      <label class="f">Sobre você <small style="font-weight:500;color:var(--muted)">o coach lê isto em toda resposta</small></label>
+      <textarea class="in grow" data-perfil rows="3" placeholder="Objetivo, dias por semana, tempo, lesões, esportes, preferências…">${esc((D.perfil && D.perfil.texto)||'')}</textarea></section>
     <section class="panel"><div class="ph"><h2 style="--hc:var(--violet)">Claude</h2></div>
       <p class="note" style="margin-top:0">Um toque abre o Claude já com seus treinos. Depois copie a resposta dele e toque em “Colar resposta”: as mudanças viram cartões com “Aplicar”.</p>
       <div class="btns"><button class="btn p" data-act="mandarClaude">Mandar para o Claude</button><button class="btn" data-act="colarRapido">Colar resposta do Claude</button><button class="btn" data-act="exportClaude">Baixar arquivo completo</button></div></section>
@@ -1361,8 +1381,8 @@ function viewTreinos(){
       ${ehApp?`<p class="note">Você está usando o app instalado.</p>`:`<div class="btns"><button class="btn o" data-act="instalarApp">Instalar app</button></div><p class="note">Se instalou e não achou o ícone, procure “Treino” na lista de todos os apps. Ou: Chrome → ⋮ → Instalar app.</p>`}
       <div class="btns"><button class="chip" data-act="tema:claro">☀ Claro</button><button class="chip" data-act="tema:escuro">☾ Escuro</button><button class="chip" data-act="tema:auto">Automático</button></div></section>
     <section class="panel"><div class="ph"><h2 style="--hc:var(--mint)">Sua conta</h2><span class="pill ${S.user?'g':''}">${S.user?'salvando na nuvem':'só neste aparelho'}</span></div>
-      ${S.user?`<p class="note" style="margin-top:0">Conectado como <b>${esc(S.user.email||S.user.displayName||'você')}</b>, a mesma conta da Caderneta. Tudo salva sozinho na nuvem.</p><div class="btns"><button class="btn" data-act="sair">Sair</button></div>`
-        :`<p class="note" style="margin-top:0">Entre com a mesma conta da Caderneta para salvar na nuvem.</p><div class="btns"><button class="btn p" data-act="entrarGoogle">Entrar com Google</button><button class="btn" data-act="entrarEmail">Entrar com e-mail</button></div>`}</section>
+      ${S.user?`<p class="note" style="margin-top:0">Conectado como <b>${esc(S.user.email||S.user.displayName||'você')}</b>. Tudo salva sozinho na nuvem.</p><div class="btns"><button class="btn" data-act="sair">Sair</button></div>`
+        :`<p class="note" style="margin-top:0">Entre com Google ou e-mail para salvar na nuvem.</p><div class="btns"><button class="btn p" data-act="entrarGoogle">Entrar com Google</button><button class="btn" data-act="entrarEmail">Entrar com e-mail</button></div>`}</section>
     <section class="panel"><div class="ph"><h2 style="--hc:var(--amber)">Backup</h2></div><div class="btns" style="margin-top:0"><button class="btn" data-act="backup">Baixar backup</button><button class="btn" data-act="importBackup">Importar backup</button></div><p class="note">${S.user?'Seus dados já ficam na nuvem; o backup é só uma cópia extra.':'Sem login, os dados ficam só neste aparelho.'}</p></section>
   </div></div>`;
 }
@@ -1405,6 +1425,131 @@ function folhaRelogio(){ const ativo = !!relogio, st = ativo ? estadoRelogio() :
     <div class="chips" style="justify-content:center;margin-top:8px">${[40,45,50,60,75,90].map(x=>`<button class="chip ${x===m?'on':''}" data-act="relMeta:${x}">${x} min</button>`).join('')}</div>
     ${ativo && st.resto > 0 && st.folga < -60 ? `<div class="box-i" style="border-color:var(--amber)"><span class="il">Não cabe tudo em ${m} min</span>${Object.keys(en.cortes).length ? `Tirando estas séries, você ganha ~${Math.round(en.ganho/60)} min:<ul style="margin:6px 0 0;padding-left:18px">${p.ex.filter(e=>en.cortes[e.id]!=null).map(e=>`<li>${esc(swaps[e.id]||e.nome)}: ${progressoEx(e).ns} → ${en.cortes[e.id]} séries</li>`).join('')}</ul>${en.sobra > 60 ? `<div class="note">Ainda passa ~${Math.ceil(en.sobra/60)} min. Descanse menos ou encerre antes.</div>` : ''}<div class="btns"><button class="btn o" data-act="enxugar">Enxugar e caber</button></div>` : 'Já está no mínimo de séries. Descanse menos ou encerre antes.'}</div>` : ativo && st.resto > 0 ? `<div class="box-i" style="border-color:var(--mint)"><span class="il">Tá no ritmo</span>Termina por volta de ${st.fim.toTimeString().slice(0,5)}, com ${Math.max(0, Math.round(st.folga/60))} min de folga.</div>` : ''}
     <div class="btns">${ativo ? `<button class="btn" data-act="relZera">Zerar relógio</button><button class="btn" data-act="relPara">Parar relógio</button>` : `<button class="btn o" data-act="relInicia">Começar relógio agora</button>`}<button class="btn" data-act="fechar">Fechar</button></div>`); }
+/* ================= MONTAR, UPAR E COMPARTILHAR TREINO (para qualquer pessoa) ================= */
+const X = (nome, series, reps, rest, alts, extra) => Object.assign({nome, series, reps, rest, alts: alts||[]}, extra||{});
+const MODELOS = {
+  abc: {nome:'ABC clássico', sub:'3 a 5 dias · cada grupo 1–2× por semana · girando A → B → C', dias:'3–5', planos:[
+    {id:'A', nome:'Peito / Ombro / Tríceps', ex:[X('Supino inclinado com halteres',4,'8–12',150,['Supino inclinado máquina','Supino reto com barra']), X('Elevação lateral',4,'12–15',75,['Elevação lateral na polia']), X('Desenvolvimento com halteres sentado',3,'8–12',120,['Desenvolvimento máquina']), X('Crucifixo máquina / cross over',3,'12–15',90,['Peck deck','Crucifixo com halteres']), X('Tríceps na polia com corda',3,'10–12',90,['Tríceps testa']), X('Tríceps testa (barra W)',3,'10–12',90,['Tríceps francês'])]},
+    {id:'B', nome:'Costas / Bíceps / Core', ex:[X('Puxada na frente',4,'8–12',120,['Barra fixa assistida','Puxada supinada']), X('Remada curvada',3,'8–10',150,['Remada com apoio no peito']), X('Remada baixa na polia',3,'10–12',90,['Remada máquina']), X('Face pull',3,'15–20',60,['Crucifixo invertido']), X('Rosca direta (barra W)',3,'10–12',90,['Rosca com halteres']), X('Rosca martelo',3,'10–12',90,['Rosca martelo na corda']), X('Prancha',3,'40',60,['Prancha lateral'],{bw:true, tempo:true})]},
+    {id:'C', nome:'Pernas', ex:[X('Agachamento livre ou Smith',3,'8–10',180,['Hack machine','Agachamento goblet']), X('Leg press 45',3,'10–12',120,['Leg press horizontal']), X('Mesa flexora',3,'10–12',90,['Stiff com halteres','Cadeira flexora']), X('Afundo com halteres',2,'10 por perna',90,['Búlgaro','Passada']), X('Cadeira extensora',3,'12–15',75,['Agachamento sissy']), X('Panturrilha em pé',4,'12–15',60,['Panturrilha sentado'])]}]},
+  fb: {nome:'Corpo inteiro', sub:'2 a 3 dias · ótimo pra começar ou pra quem tem pouco tempo', dias:'2–3', planos:[
+    {id:'A', nome:'Corpo inteiro A', ex:[X('Agachamento goblet ou livre',3,'8–12',150,['Leg press 45']), X('Supino reto com halteres',3,'8–12',120,['Supino máquina']), X('Puxada na frente',3,'8–12',120,['Barra fixa assistida']), X('Stiff com halteres',3,'10–12',120,['Mesa flexora']), X('Desenvolvimento com halteres',2,'10–12',90,['Desenvolvimento máquina']), X('Prancha',3,'40',60,[],{bw:true, tempo:true})]},
+    {id:'B', nome:'Corpo inteiro B', ex:[X('Leg press 45',3,'10–12',120,['Hack machine']), X('Remada baixa na polia',3,'10–12',90,['Remada máquina']), X('Supino inclinado máquina',3,'8–12',120,['Supino inclinado com halteres']), X('Mesa flexora',3,'10–12',90,['Cadeira flexora']), X('Elevação lateral',3,'12–15',60,[]), X('Rosca direta',2,'10–12',75,['Rosca com halteres']), X('Tríceps na polia',2,'10–12',75,['Tríceps corda'])]}]},
+  ul: {nome:'Superior / Inferior', sub:'4 dias · cada músculo 2× por semana, ótimo pra força', dias:'4', planos:[
+    {id:'A', nome:'Superior (força)', ex:[X('Supino reto com barra',4,'5–8',180,['Supino com halteres']), X('Remada curvada',4,'6–8',180,['Remada com apoio no peito']), X('Desenvolvimento com halteres',3,'6–10',150,['Desenvolvimento máquina']), X('Puxada na frente',3,'8–10',120,['Barra fixa']), X('Rosca direta',2,'8–10',90,[]), X('Tríceps testa',2,'8–10',90,[])]},
+    {id:'B', nome:'Inferior (força)', ex:[X('Agachamento livre',4,'5–8',180,['Agachamento no Smith']), X('Levantamento terra romeno',3,'6–8',180,['Stiff com halteres']), X('Leg press 45',3,'8–10',150,[]), X('Mesa flexora',3,'10–12',90,[]), X('Panturrilha em pé',3,'10–12',60,[])]},
+    {id:'C', nome:'Superior (volume)', ex:[X('Supino inclinado com halteres',3,'8–12',120,['Supino inclinado máquina']), X('Remada baixa na polia',3,'10–12',90,[]), X('Elevação lateral',3,'12–15',60,[]), X('Crucifixo máquina',2,'12–15',75,[]), X('Rosca martelo',3,'10–12',75,[]), X('Tríceps na polia com corda',3,'10–12',75,[])]},
+    {id:'D', nome:'Inferior (volume)', ex:[X('Hack machine ou agachamento',3,'8–12',150,['Leg press 45']), X('Afundo com halteres',3,'10 por perna',90,['Búlgaro']), X('Cadeira extensora',3,'12–15',75,[]), X('Cadeira flexora',3,'12–15',75,[]), X('Prancha',3,'40',60,[],{bw:true, tempo:true})]}]}
+};
+
+/* aplica planos novos (de modelo, da IA, de arquivo ou de link) guardando os antigos */
+function planosDe(lista){ return (lista||[]).map((p,i)=>({id: String(p.id || String.fromCharCode(65+i)).toUpperCase().slice(0,3), nome: String(p.nome||`Treino ${String.fromCharCode(65+i)}`).slice(0,60), ex:(p.ex||p.exercicios||[]).map(x=>exDeIA(Object.assign({}, x, {descanso: x.descanso ?? x.rest}), []))})).filter(p=>p.ex.length); }
+function usarPlanos(lista, opts={}){ const novos = planosDe(lista); if (!novos.length) return null;
+  if (D.plans && D.plans.length && !D.novo) D.plansAnteriores = D.plans;
+  D.plans = novos; D.novo = false; D.planNovo = null; D.hojeCustom = null; D.cargasHoje = null;
+  if (opts.perfil) D.perfil = Object.assign({}, D.perfil||{}, {texto: String(opts.perfil).slice(0,1500)});
+  if (opts.dias) D.metaSem = Object.assign({}, metaSemanaBase(), {treinos: Math.max(1, Math.min(7, +opts.dias))});
+  log = {}; swaps = {}; notas = {}; ajustes = {}; D.rascunho = null; plano = novos[0].id; editP = novos[0].id; persist();
+  return `Treino pronto: ${novos.map(p=>p.id).join(', ')} (${sum(novos, p=>p.ex.length)} exercícios)`; }
+
+/* ---------- folha "Montar meu treino" ---------- */
+const MT = { aba:'ia', form:{obj:['Ganhar massa'], dias:3, tempo:60, nivel:'Intermediário', onde:'Academia completa', extra:''}, previa:null, busy:false, arquivo:null };
+function abrirMontar(aba){ if (aba) MT.aba = aba; const f = MT.form;
+  const chip = (grupo, v, on) => `<button type="button" class="chip ${on?'on':''}" data-act="mtSet:${grupo}:${encodeURIComponent(v)}">${esc(v)}</button>`;
+  const abas = `<div class="seg mt-abas">${[['ia','Criar com a IA'],['upar','Já tenho um treino'],['modelo','Modelos prontos']].map(([k,n])=>`<button type="button" aria-pressed="${MT.aba===k}" data-act="mtAba:${k}">${n}</button>`).join('')}</div>`;
+  let corpo = '';
+  if (MT.previa) corpo = previaPlanos(MT.previa);
+  else if (MT.busy) corpo = `<div class="mt-busy"><div class="load">${MT.aba==='upar' ? 'Lendo o seu treino e organizando os dias…' : 'Montando um treino pra você, com base nas evidências mais recentes…'}</div></div>`;
+  else if (MT.aba==='ia') corpo = `<p class="note">Responda rapidinho. A IA monta seus treinos e explica o porquê de cada escolha.</p>
+    <label class="f">Objetivo</label><div class="chips mt-c">${['Ganhar massa','Força','Emagrecer','Condicionamento','Saúde'].map(v=>chip('obj', v, f.obj.includes(v))).join('')}</div>
+    <label class="f">Dias por semana</label><div class="chips mt-c">${[2,3,4,5,6].map(v=>chip('dias', v, f.dias==v)).join('')}</div>
+    <label class="f">Tempo por treino</label><div class="chips mt-c">${[30,45,60,75,90].map(v=>chip('tempo', v+' min', f.tempo==v)).join('')}</div>
+    <label class="f">Experiência</label><div class="chips mt-c">${['Iniciante','Intermediário','Avançado'].map(v=>chip('nivel', v, f.nivel===v)).join('')}</div>
+    <label class="f">Onde treina</label><div class="chips mt-c">${['Academia completa','Academia pequena','Em casa com halteres','Só peso do corpo'].map(v=>chip('onde', v, f.onde===v)).join('')}</div>
+    <label class="f">Algo mais? <small style="font-weight:500;color:var(--muted)">lesões, esportes, preferências</small></label>
+    <textarea class="in grow" id="mtExtra" rows="2" placeholder="Ex.: jogo futebol no sábado, dor no joelho, prefiro mais carga e mais descanso">${esc(f.extra)}</textarea>
+    <div class="btns"><button type="button" class="btn o w big" data-act="mtCriar">${S.ia ? 'Montar meu treino com a IA' : 'Montar meu treino'}</button></div>`;
+  else if (MT.aba==='upar') corpo = `<p class="note">Cole o treino do seu personal, de um print, do WhatsApp ou de uma planilha. Ou mande a foto ou o PDF.</p>
+    <textarea class="in grow" id="mtTexto" rows="5" placeholder="Treino A - Peito e tríceps&#10;Supino reto 4x10&#10;Crucifixo 3x12&#10;&#10;Treino B - Costas e bíceps&#10;Puxada 4x10…">${esc(MT.texto||'')}</textarea>
+    <div class="btns"><label class="btn" style="cursor:pointer">${ic('mais',16)} Foto, PDF ou arquivo<input type="file" id="mtArq" accept="image/*,.pdf,.txt,.csv" hidden></label>${MT.arquivo?`<span class="pill b">${esc(MT.arquivo.nome)}</span>`:''}</div>
+    <div class="btns"><button type="button" class="btn o w big" data-act="mtLer">Ler meu treino</button></div>
+    ${S.ia ? '' : '<p class="note">Sem a IA agora, eu leio só texto, um exercício por linha (ex.: “Supino 4x10”).</p>'}`;
+  else corpo = Object.entries(MODELOS).map(([k,m])=>`<div class="eq"><div class="eq-h"><b>${esc(m.nome)}</b><span class="pill b">${esc(m.dias)} dias</span></div><div class="eq-m">${esc(m.sub)}</div><div class="eq-d">${m.planos.map(p=>`<b>${esc(p.id)}</b> ${esc(p.nome)}`).join(' · ')}</div><div class="eq-b"><button type="button" class="btn o sm" data-act="mtModelo:${k}">Ver e usar</button></div></div>`).join('');
+  abrirFolha(`<h3>${D.novo ? 'Monte seu treino' : 'Montar ou trocar meu treino'}</h3>${MT.previa ? '' : abas}${corpo}<div class="btns"><button type="button" class="btn w" data-act="fechar">Fechar</button></div>`); }
+
+function previaPlanos(pv){ return `<div class="mt-prev">${pv.explicacao ? `<div class="box-i ia"><span class="il">Por que esse treino</span>${fmtCoach(pv.explicacao)}</div>` : ''}
+    ${pv.planos.map(p=>`<div class="eq"><div class="eq-h"><b>${esc(p.id)} · ${esc(p.nome)}</b><span class="pill">${(p.ex||p.exercicios||[]).length} exercícios</span></div>
+      <ol class="mt-ex">${(p.ex||p.exercicios||[]).map(x=>`<li>${esc(x.nome)} <span class="num">${esc(x.series)}×${esc(x.reps)}</span>${(x.descanso??x.rest)?` <small>${esc(x.descanso??x.rest)}s</small>`:''}</li>`).join('')}</ol></div>`).join('')}
+    ${pv.dias ? `<p class="note">Meta: ${pv.dias} treinos por semana, girando ${pv.planos.map(p=>p.id).join(' → ')}.</p>` : ''}
+    <div class="btns"><button type="button" class="btn o w big" data-act="mtUsar">Usar este treino</button></div>
+    <div class="btns"><button type="button" class="btn w" data-act="mtVolta">Voltar e mudar</button></div>
+    ${D.novo ? '' : '<p class="note">Seu treino atual fica guardado. Dá pra desfazer depois.</p>'}</div>`; }
+
+function perfilDoForm(){ const f = MT.form; return `Objetivo: ${f.obj.join(', ')||'não disse'}. Treina ${f.dias} dias por semana, até ${f.tempo} min. Experiência: ${f.nivel}. Onde: ${f.onde}.${f.extra?` Observações: ${f.extra}`:''}`; }
+async function mtCriar(){ const f = MT.form; f.extra = ($('#mtExtra')?.value||'').trim();
+  if (!S.ia){ const k = f.dias<=3 ? 'fb' : f.dias==4 ? 'ul' : 'abc'; MT.previa = {planos: clone(MODELOS[k].planos), dias:f.dias, explicacao:`Sem a IA agora, escolhi o modelo “${MODELOS[k].nome}”, que combina com ${f.dias} dias por semana. Depois o coach ajusta com você.`, perfil: perfilDoForm()}; abrirMontar(); return; }
+  MT.busy = true; abrirMontar();
+  try{ const r = await S.ia.json(`Você é um preparador físico brasileiro, baseado em evidências. Monte o treino de musculação desta pessoa.
+PESSOA: ${perfilDoForm()}
+${CIENCIA}
+Regras: divida em treinos com letras (A, B, C…) que giram em sequência; respeite os dias e o tempo (conte ~2–3 min por série com descanso); escolha exercícios que dá pra fazer onde ela treina; inclua 1–3 alternativas por exercício; nada de dois dias seguidos do mesmo grupo grande; se houver lesão, evite o que agrava. Nunca mencione testes físicos de concurso.
+Responda só JSON: {"explicacao":"até 6 linhas curtas, didático, com o porquê das escolhas (divisão, volume, reps, descanso)","dias":${f.dias},"planos":[{"id":"A","nome":"curto","exercicios":[{"nome":"","series":3,"reps":"8–12","descanso":120,"bw":false,"nota":"dica curta de execução","alts":[""]}]}]}`);
+    const planos = (r.planos||[]).filter(p=>(p.exercicios||[]).length); if (!planos.length) throw Object.assign(new Error('json'), {code:'invalid_json'});
+    MT.previa = {planos, dias: r.dias || f.dias, explicacao: r.explicacao||'', perfil: perfilDoForm()}; }
+  catch(e){ toast(S.ia.erro(e)); }
+  MT.busy = false; if ($('#layer').classList.contains('on')) abrirMontar(); }
+
+/* ---------- ler treino colado ou de arquivo ---------- */
+function lerTreinoLocal(t){ const planos = []; let atual = null;
+  for (let l of String(t||'').split(/\n/)){ l = l.replace(/^[\s\-•*·\d.)]+(?=[A-Za-zÀ-ú])/,'').trim(); if (!l) continue;
+    const cab = l.match(/^(?:treino|dia|ficha)\s*([A-Za-z0-9]+)\s*[-–:)]?\s*(.*)$/i) || l.match(/^([A-F])\s*[-–:)]\s*(.+)$/);
+    const ex = l.match(/^(.+?)[\s:–-]+(\d{1,2})\s*[x×]\s*([\d–\-a\/ ]+?(?:\s*(?:reps?|repetições|s|seg|segundos))?)\s*$/i);
+    if (cab && !ex){ atual = {id: /^\d+$/.test(cab[1]) ? String.fromCharCode(64 + +cab[1]) : cab[1].toUpperCase().slice(0,2), nome: cab[2] || `Treino ${cab[1]}`, exercicios:[]}; planos.push(atual); continue; }
+    if (ex){ if (!atual){ atual = {id:'A', nome:'Treino A', exercicios:[]}; planos.push(atual); } atual.exercicios.push({nome: ex[1].trim(), series: +ex[2], reps: ex[3].replace(/\s*(reps?|repetições)$/i,'').trim().replace('-', '–'), descanso: 90}); } }
+  return planos.filter(p=>p.exercicios.length); }
+const lerArquivo = f => new Promise((ok, erro) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = erro; if (/^text\/|\.csv$|\.txt$/i.test(f.type+f.name)) r.readAsText(f); else r.readAsDataURL(f); });
+async function mtLer(){ const texto = ($('#mtTexto')?.value||'').trim(), arq = MT.arquivo;
+  if (!texto && !arq){ toast('Cole o treino ou escolha um arquivo.'); return; }
+  if (!S.ia || (!arq && !texto)){ const planos = lerTreinoLocal(texto); if (!planos.length){ toast('Não consegui ler. Coloque um exercício por linha, ex.: “Supino 4x10”.'); return; } MT.previa = {planos, explicacao:'', dias: planos.length>=4 ? 4 : planos.length+1}; abrirMontar(); return; }
+  MT.busy = true; abrirMontar();
+  const pedido = `Transcreva o treino de musculação abaixo (pode ser texto, foto ou PDF de uma ficha). NÃO invente exercícios: mantenha os que estão lá, com séries, repetições e descanso como escritos. Se faltar descanso, use 90 s (120–180 s em exercícios pesados multiarticulares). Se não houver divisão por dias, agrupe em um treino A. Corrija nomes óbvios e padronize em português do Brasil. Sugira 1–2 alternativas por exercício.
+Responda só JSON: {"explicacao":"1 a 3 linhas: o que você entendeu e qualquer dúvida (ex.: descanso não informado)","dias":número sugerido de treinos por semana,"planos":[{"id":"A","nome":"curto","exercicios":[{"nome":"","series":3,"reps":"10–12","descanso":90,"bw":false,"nota":"","alts":[""]}]}]}
+${texto ? `TEXTO:\n${texto.slice(0,6000)}` : ''}`;
+  try{ let conteudo = pedido;
+    if (arq){ if (arq.texto) conteudo = pedido + `\nARQUIVO:\n${arq.texto.slice(0,8000)}`; else conteudo = [pedido, {inlineData:{mimeType: arq.mime, data: arq.b64}}]; }
+    const r = await S.ia.json(conteudo); const planos = (r.planos||[]).filter(p=>(p.exercicios||[]).length);
+    if (!planos.length) throw Object.assign(new Error('json'), {code:'invalid_json'});
+    MT.previa = {planos, dias: r.dias, explicacao: r.explicacao||''}; }
+  catch(e){ const loc = lerTreinoLocal(texto); if (loc.length){ MT.previa = {planos: loc, explicacao:'Li direto do texto, sem a IA.', dias: loc.length+1}; } else toast(S.ia.erro(e)); }
+  MT.busy = false; if ($('#layer').classList.contains('on')) abrirMontar(); }
+
+/* ---------- compartilhar treino por link ---------- */
+const b64url = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const deB64url = s => Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')), c=>c.charCodeAt(0));
+async function comprimir(txt){ const bytes = new TextEncoder().encode(txt); if (!window.CompressionStream) return 'j' + b64url(bytes);
+  const cs = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw')); return 'z' + b64url(new Uint8Array(await new Response(cs).arrayBuffer())); }
+async function descomprimir(s){ const tipo = s[0], bytes = deB64url(s.slice(1)); if (tipo==='j') return new TextDecoder().decode(bytes);
+  const ds = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw')); return await new Response(ds).text(); }
+async function linkDoTreino(){ const pac = {v:1, de: (S.user && (S.user.displayName||'').split(' ')[0]) || '', p: D.plans.map(p=>[p.id, p.nome, p.ex.map(e=>[e.nome, e.series, e.reps, e.rest, e.bw?1:0, e.tempo?1:0, (e.alts||[]).slice(0,3)])])};
+  return location.origin + location.pathname + '#t=' + await comprimir(JSON.stringify(pac)); }
+async function compartilharTreino(){ try{ const url = await linkDoTreino(); const txt = `Meu treino no Caderno de Treino: ${D.plans.map(p=>`${p.id} ${p.nome}`).join(' · ')}. Abre e toca em “Usar este treino”:`;
+    if (navigator.share){ try{ await navigator.share({title:'Meu treino', text: txt, url}); return; }catch(e){ if (e && e.name==='AbortError') return; } }
+    await navigator.clipboard.writeText(`${txt} ${url}`); toast('Link copiado. É só colar no WhatsApp.'); }
+  catch(e){ toast('Não consegui gerar o link agora.'); } }
+async function treinoDoLink(){ const m = location.hash.match(/#t=([A-Za-z0-9_-]+)/); if (!m) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  try{ const pac = JSON.parse(await descomprimir(m[1])); const planos = (pac.p||[]).map(([id,nome,ex])=>({id, nome, exercicios: ex.map(([n,s,r,d,bw,tp,alts])=>({nome:n, series:s, reps:r, descanso:d, bw:!!bw, tempo:!!tp, alts}))}));
+    if (!planos.length) return; MT.previa = {planos, explicacao: `${pac.de ? `${pac.de} te mandou` : 'Te mandaram'} este treino. Se gostar, toque em “Usar este treino”. Depois o coach ajusta pra você.`, dias: planos.length>=4 ? 4 : planos.length+1, origem:'link'}; abrirMontar(); }
+  catch(e){ toast('Esse link de treino não abriu. Peça pra mandarem de novo.'); } }
+
+/* ---------- boas-vindas na tela inicial (pessoa nova) ---------- */
+function blocoBoasVindas(){ return `<section class="panel boas"><div class="sm-eye" style="color:var(--tang)">Bem-vindo</div><h3 style="margin:4px 0 2px;font-size:21px">Vamos montar o seu treino</h3>
+  <p class="note" style="margin-top:0">Leva 1 minuto. Depois é só abrir e treinar: o coach de IA acompanha e ajusta com você.</p>
+  <div class="boas-op">
+    <button class="boas-b" data-act="montar:ia"><b>${ic('mais',18)} Criar com a IA</b><small>Você responde 5 perguntas e ela monta</small></button>
+    <button class="boas-b" data-act="montar:upar"><b>${ic('troca',18)} Já tenho um treino</b><small>Cole o texto, mande foto ou PDF da ficha</small></button>
+    <button class="boas-b" data-act="montar:modelo"><b>${ic('halter',18)} Usar um modelo pronto</b><small>ABC, corpo inteiro ou superior/inferior</small></button>
+  </div></section>`; }
 
 /* ================= FOLHAS ================= */
 function exInfo(exId){
@@ -1522,6 +1667,18 @@ async function acao(a, el){
     case 'excAplicaG': { const [id, k, j] = arg.split(':'); const ac = (S.exChat[id]||[])[+k]?.acoes?.[+j]; if (!ac) return; persist();
       const r = comDesfazer(x => x || 'Nada mudou', ()=>aplicarAcao(ac)); if (r){ ac._ok = true; if (S.foco) renderFoco(); } else toast('Não consegui aplicar essa mudança.'); return; }
     case 'delComb': comDesfazer('Combinado desfeito', ()=>{ D.combinados = (D.combinados||[]).filter(c=>c.id!==arg); if (!Object.keys(log).length) plano = proximo(); persist(); }); return;
+    case 'montar': MT.previa = null; MT.busy = false; abrirMontar(arg||'ia'); return;
+    case 'mtAba': MT.aba = arg; abrirMontar(); return;
+    case 'mtSet': { const [g, v0] = arg.split(':'); const v = decodeURIComponent(v0); const f = MT.form; f.extra = ($('#mtExtra')?.value ?? f.extra);
+      if (g==='obj') f.obj = f.obj.includes(v) ? f.obj.filter(x=>x!==v) : [...f.obj, v]; else if (g==='dias' || g==='tempo') f[g] = parseInt(v); else f[g] = v; abrirMontar(); return; }
+    case 'mtCriar': mtCriar(); return;
+    case 'mtLer': mtLer(); return;
+    case 'mtModelo': { const m = MODELOS[arg]; MT.previa = {planos: clone(m.planos), explicacao: m.sub, dias: parseInt(m.dias.slice(-1))||3}; abrirMontar(); return; }
+    case 'mtVolta': MT.previa = null; abrirMontar(); return;
+    case 'mtUsar': { const pv = MT.previa; if (!pv) return; fecharFolha(); MT.previa = null; MT.arquivo = null;
+      const r = comDesfazer(x => x || 'Não consegui usar esse treino.', ()=>usarPlanos(pv.planos, {perfil: pv.perfil, dias: pv.dias})); if (r) S.view = 'hoje'; render(); scrollTo(0,0); return; }
+    case 'compartilhar': compartilharTreino(); return;
+    case 'voltarAnterior': comDesfazer('Voltou para o treino anterior', ()=>{ const a = D.plans; D.plans = D.plansAnteriores; D.plansAnteriores = a; plano = proximo(); editP = D.plans[0].id; log = {}; swaps = {}; notas = {}; ajustes = {}; D.rascunho = null; persist(); }); return;
     case 'voltarEx': persist(); comDesfazer('Voltou para o treino de hoje', ()=>{ if (ajustes[arg]) delete ajustes[arg].pular; persist(); }); return;
     case 'excAplica': { const [id, k, j, esc0] = arg.split(':'); const ac = (S.exChat[id]||[])[+k]?.acoes?.[+j]; if (!ac) return; persist();
       const eCur = getPlanBase(plano).ex.find(x=>x.id===id); const alvo = eCur ? exAlvo(ac, eCur) : null;
@@ -1534,7 +1691,7 @@ async function acao(a, el){
     case 'ajusteVolta': fecharFolha(); persist(); comDesfazer('Voltou ao que está no plano', ()=>{ const e = getPlan(plano).ex.find(x=>x.id===arg); delete ajustes[arg]; const L = log[arg]; if (L && e){ while (L.length > e.series && !(L[L.length-1]&&L[L.length-1].ok)) L.pop(); } persist(); }); return;
     case 'focoDesmarca': { const e = getPlan(plano).ex[S.foco.i]; const x = (log[e.id]||[])[S.foco.s]; if (x) x.ok = false; persist(); renderFoco(); toast('Série desmarcada'); return; }
     case 'entrarGoogle': entrarGoogle(); return;
-    case 'entrarEmail': abrirFolha(`<h3>Entrar com e-mail</h3><p class="note">Use o mesmo e-mail e senha da Caderneta.</p><form id="loginF"><label class="f">E-mail</label><input class="in" name="email" type="email" autocomplete="email" required><label class="f">Senha</label><input class="in" name="senha" type="password" autocomplete="current-password" required><div class="btns"><button class="btn p">Entrar</button><button type="button" class="btn" data-act="fechar">Cancelar</button></div></form>`); return;
+    case 'entrarEmail': abrirFolha(`<h3>Entrar com e-mail</h3><p class="note">Primeira vez? Escreva e-mail e uma senha e toque em “Criar conta”. Se usa a Caderneta, é a mesma conta.</p><form id="loginF"><label class="f">E-mail</label><input class="in" name="email" type="email" autocomplete="email" required><label class="f">Senha</label><input class="in" name="senha" type="password" autocomplete="current-password" required><div class="btns"><button class="btn p" value="entrar">Entrar</button><button class="btn o" value="criar">Criar conta</button></div><div class="btns"><button class="lnk" value="senha" formnovalidate>esqueci a senha</button><button type="button" class="lnk" data-act="fechar">cancelar</button></div></form>`); return;
     case 'sair': if (el.dataset.sure!=='1'){ el.dataset.sure='1'; el.textContent='Toque de novo para sair'; return; } await FB.authM.signOut(FB.auth); toast('Você saiu. Os dados ficam neste aparelho até entrar de novo.'); return;
     case 'plano': plano = arg; persist(); render(); return;
     case 'tirarCustom': comDesfazer('Voltou para o treino normal', ()=>{ D.hojeCustom = null; plano = proximo(); log={}; swaps={}; notas={}; D.rascunho=null; }); return;
@@ -1632,11 +1789,15 @@ document.addEventListener('input', e=>{ const t = e.target;
   if (t.id==='foKg' || t.id==='foReps'){ const e = getPlan(plano).ex[S.foco.i]; log[e.id] ||= []; log[e.id][S.foco.s] ||= {}; log[e.id][S.foco.s][t.id==='foKg'?'kg':'reps'] = t.value.replace(',','.'); persist(); return; }
   if (t.dataset.in){ const [id, s, f] = t.dataset.in.split(':'); log[id] ||= []; log[id][s] ||= {}; log[id][s][f] = t.value; persist(); return; }
   if (t.classList.contains('grow')){ t.style.height = 'auto'; t.style.height = Math.min(160, t.scrollHeight+2)+'px'; return; }
+  if (t.dataset.perfil!==undefined){ D.perfil = Object.assign({}, D.perfil||{}, {texto: t.value.slice(0,1500)}); delete D.perfil.legado; save(); return; }
+  if (t.id==='mtTexto'){ MT.texto = t.value; return; } if (t.id==='mtExtra'){ MT.form.extra = t.value; return; }
   if (t.dataset.cmt){ notas[t.dataset.cmt] = t.value; persist(); return; }
   if (t.id==='comidaIn'){ const v = t.value.trim(); const el = $('#comidaPrev'); if (!el) return; if (!v){ el.textContent = 'Peso da comida (o app calcula) ou a proteína direto: “picanha 65g prot”.'; return; } const c = calcProt(v); el.textContent = c.p!=null ? `≈ ${c.p} g de proteína · ${c.como}` : 'Não conheço essa ainda: a IA estima ao adicionar.'; return; }
   if (t.id==='notaDia'){ diaDe(memo.get('dia')||hoje()).nota = t.value; save(); return; }
 });
 document.addEventListener('change', e=>{ const t = e.target;
+  if (t.id==='mtArq' && t.files && t.files[0]){ const f = t.files[0]; if (f.size > 8e6){ toast('Arquivo grande demais (máx. 8 MB). Tente uma foto.'); return; }
+    lerArquivo(f).then(r=>{ MT.arquivo = typeof r==='string' && r.startsWith('data:') ? {nome:f.name, mime: f.type || 'application/octet-stream', b64: r.split(',')[1]} : {nome:f.name, texto:String(r)}; abrirMontar(); toast('Arquivo pronto. Toque em “Ler meu treino”.'); }).catch(()=>toast('Não consegui abrir esse arquivo.')); return; }
   if (t.id==='exSel'){ memo.set('exSel', t.value); desenharGraficos(); return; }
   if (t.dataset.pn){ const p = D.plans.find(x=>x.id===t.dataset.pn); if (p && t.value.trim()){ p.nome = t.value.trim(); save(); render(); } return; }
   if (t.dataset.e){ const [id, k] = t.dataset.e.split(':'); const p = D.plans.find(x=>x.id===editP), ex = p?.ex.find(x=>x.id===id); if (!ex) return;
@@ -1655,6 +1816,11 @@ document.addEventListener('submit', async e=>{ const f = e.target; e.preventDefa
   if (f.id==='metaF'){ const v = $('#metaNova').value.trim(); if (!v) return; D.metas.push({id:uid(), t:v, s:''}); save(); render(); return; }
   if (f.id==='refF'){ const r = D.refeicoes.find(x=>x.id===f.dataset.id); const fd = new FormData(f); r.hora = String(fd.get('h')).trim(); r.nome = String(fd.get('n')).trim()||'Refeição'; r.itens = String(fd.get('i')).split('\n').map(s=>s.trim()).filter(Boolean); D.refeicoes.sort((a,b)=>(a.hora||'').localeCompare(b.hora||'')); save(); fecharFolha(); render(); return; }
   if (f.id==='comidaF'){ const v = $('#comidaIn').value; $('#comidaIn').value=''; memo.delete('prevComida'); adicionarComida(v, memo.get('dia')||hoje()); return; }
+  if (f.id==='loginF' && e.submitter && e.submitter.value==='criar'){ const fd = new FormData(f); const em = String(fd.get('email')).trim(), se = String(fd.get('senha')); if (se.length<6){ toast('A senha precisa de pelo menos 6 caracteres.'); return; }
+    try{ await carregarFirebase(); await comPrazo(FB.authM.createUserWithEmailAndPassword(FB.auth, em, se), 15000); fecharFolha(); toast('Conta criada. Seus treinos agora ficam salvos na nuvem.'); }
+    catch(err){ toast(/email-already/i.test(err.code||'') ? 'Esse e-mail já tem conta. Toque em “Entrar”.' : /invalid-email/i.test(err.code||'') ? 'Esse e-mail não parece certo.' : /weak/i.test(err.code||'') ? 'Senha fraca. Use pelo menos 6 caracteres.' : 'Não consegui criar a conta agora.', null, 6000); } return; }
+  if (f.id==='loginF' && e.submitter && e.submitter.value==='senha'){ const em = String(new FormData(f).get('email')).trim(); if (!em){ toast('Escreva seu e-mail primeiro.'); return; }
+    try{ await carregarFirebase(); await FB.authM.sendPasswordResetEmail(FB.auth, em); toast('Te mandei um e-mail para criar uma senha nova.', null, 6000); }catch(err){ toast('Não consegui mandar o e-mail agora.'); } return; }
   if (f.id==='loginF'){ const fd = new FormData(f); const b = f.querySelector('button.p'); b.disabled = true; b.textContent = 'Entrando…'; await entrarEmail(String(fd.get('email')).trim(), String(fd.get('senha'))); b.disabled = false; b.textContent = 'Entrar'; return; }
   if (f.dataset.eatf){ const rid = f.dataset.eatf, t = f.querySelector('[data-et]').value.trim(); let p = parseInt(f.querySelector('[data-ep]').value)||0; if (!t){ toast('Escreva o que comeu.'); return; }
     const k = memo.get('dia')||hoje(); const id = uid(); comDesfazer(`Registrado: ${t}`, ()=>{ (diaDe(k).mealEat[rid] ||= []).push({id, t, p}); });
@@ -1694,7 +1860,7 @@ document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState
   aplicarTema(lsGet('caderno:tema') || 'claro');
   $('#view').innerHTML = `<div class="panel"><div class="load">Abrindo seu caderno…</div></div>`;
   await load(); plano = (D.rascunho && D.rascunho.data===hoje() && D.rascunho.plano) || (D.hojeCustom && D.hojeCustom.data===hoje() ? 'Hoje' : proximo());
-  render(); setTimeout(()=>procurarVersao(false), 1500);
+  render(); setTimeout(()=>procurarVersao(false), 1500); treinoDoLink(); addEventListener('hashchange', treinoDoLink);
   if (S.autoSalvo){ const m = S.autoSalvo; setTimeout(()=>toast(m, null, 8000), 600); S.autoSalvo = null; save(); }
   /* voltou para o app no meio do treino (fechou, descarregou): reabre no mesmo exercício e série */
   const rf = D.rascunho && D.rascunho.data===hoje() && D.rascunho.foco; if (rf && Date.now() - (D.rascunho.ts||0) < 3*3600e3 && getPlan(plano).ex[rf.i]){ S.foco = {i: rf.i, s: rf.s||0}; document.body.classList.add('focando'); renderFoco(); }
