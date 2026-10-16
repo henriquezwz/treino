@@ -346,6 +346,8 @@ textarea.grow{resize:none;overflow:hidden;font:inherit;line-height:1.35;min-heig
 .mt-abas button[aria-pressed="true"]{background:var(--surface);color:var(--tang);box-shadow:0 1px 3px rgba(20,27,52,.12)}
 .mt-c{margin:6px 0 2px}.mt-busy{padding:24px 0}
 .mt-ex{margin:4px 0 0;padding-left:20px;font-size:13.5px;display:grid;gap:2px}.mt-ex .num{color:var(--blue);font-size:12.5px}.mt-ex small{color:var(--muted)}
+.boas-app{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;min-height:44px;border-radius:12px;border:1.5px dashed var(--tang);color:var(--tang);font-weight:700;font-size:14px;background:transparent}
+.panel.inst{border:1.5px solid var(--blue);background:linear-gradient(180deg,var(--blue-soft),var(--surface) 80%)}
 .fo-set.del{min-width:38px;display:grid;place-items:center;color:var(--danger);border-style:dashed}
 .fo-alvo .lnk{font-size:13px}
 .exc{background:var(--surface);border:1.5px solid var(--violet-soft);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
@@ -447,7 +449,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "16/10 13:30";
+const VERSAO = "16/10 13:45";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -1059,7 +1061,7 @@ function render(){
 
 /* ---------- HOJE ---------- */
 function viewHoje(){ if (D.novo) return `<div class="grid two"><div class="col">${blocoBoasVindas()}${blocoConta()}</div><div class="col">${blocoCoach()}</div></div>`;
-  return `<div class="grid two"><div class="col">${blocoSemana()}${blocoConta()}${blocoPlanoNovo()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}</div></div>`; }
+  return `<div class="grid two"><div class="col">${blocoSemana()}${blocoInstalar()}${blocoConta()}${blocoPlanoNovo()}${blocoTreino()}${blocoAtividades()}</div><div class="col">${blocoCoach()}${blocoInsights()}</div></div>`; }
 
 function blocoPlanoNovo(){ const n = D.planNovo; if (!n || n.visto) return '';
   return `<section class="panel novo"><div class="sm-eye" style="color:var(--violet)">Treino ajustado pelo Claude</div><b style="font-size:17px">${D.plans.map(p=>esc(p.id)).join(' → ')} girando · ${metaSemana().treinos}× por semana</b>
@@ -1557,7 +1559,11 @@ function blocoBoasVindas(){ return `<section class="panel boas"><div class="sm-e
     <button class="boas-b" data-act="montar:ia"><b>${ic('mais',18)} Criar com a IA</b><small>Você responde 5 perguntas e ela monta</small></button>
     <button class="boas-b" data-act="montar:upar"><b>${ic('troca',18)} Já tenho um treino</b><small>Cole o texto, mande foto ou PDF da ficha</small></button>
     <button class="boas-b" data-act="montar:modelo"><b>${ic('halter',18)} Usar um modelo pronto</b><small>ABC, corpo inteiro ou superior/inferior</small></button>
-  </div></section>`; }
+  </div>${ehAppInstalado() ? '' : `<button class="boas-app" data-act="instalarApp">${ic('mais',16)} Salvar como app na tela inicial</button>`}</section>`; }
+const ehAppInstalado = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
+/* convite fixo pra quem acabou de começar: some quando instala ou diz que não quer */
+function blocoInstalar(){ if (ehAppInstalado() || ['feito','nao'].includes(lsGet('caderno:instalar')) || D.sessions.length >= 3) return '';
+  return `<section class="panel inst"><div><b>Salve o Treino como app</b><p class="note" style="margin:2px 0 0">Fica na tela inicial do celular, abre direto e funciona até sem internet.</p></div><div class="btns" style="margin-top:8px"><button class="btn o" data-act="instalarApp">Salvar como app</button><button class="btn" data-act="naoInstalar">Agora não</button></div></section>`; }
 
 /* ================= FOLHAS ================= */
 function exInfo(exId){
@@ -1760,7 +1766,7 @@ async function acao(a, el){
     case 'timerPara': stopTimer(false); if (relogio){ relogio.mov = Date.now(); persist(); } return;
     case 'iaBarra': iaBarra(); return;
     case 'instalarApp': instalarApp(); return;
-    case 'naoInstalar': $('#convApp')?.remove(); lsSet('caderno:instalar','nao'); toast('Combinado, não pergunto mais. Está em Treinos → App no celular.'); return;
+    case 'naoInstalar': $('#convApp')?.remove(); lsSet('caderno:instalar','nao'); render(); toast('Combinado, não pergunto mais. Está em Treinos → App no celular.'); return;
     case 'procurarVersao': procurarVersao(true); return;
     case 'atualizarApp': atualizarAgora(); return;
   }
@@ -1848,7 +1854,7 @@ if ('serviceWorker' in navigator && /github\.io$/.test(location.hostname)) navig
 addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); pedidoInstalar = e;
   if (!lsGet('caderno:instalar') && !matchMedia('(display-mode: standalone)').matches) setTimeout(()=>{ if (!pedidoInstalar || $('#convApp')) return; const d = document.createElement('div'); d.id='convApp'; d.className='conv'; d.innerHTML = `<span><b>Quer o Treino como app?</b> Abre direto da tela inicial.</span><button data-act="instalarApp">Instalar</button><button class="x" data-act="naoInstalar">Agora não</button>`; document.body.appendChild(d); }, 4000); });
 addEventListener('appinstalled', ()=>{ lsSet('caderno:instalar','feito'); $('#convApp')?.remove(); toast('Pronto: o Treino está na sua tela inicial.'); });
-async function instalarApp(){ $('#convApp')?.remove(); if (pedidoInstalar){ pedidoInstalar.prompt(); const r = await pedidoInstalar.userChoice.catch(()=>({})); lsSet('caderno:instalar', r.outcome==='accepted'?'feito':'nao'); pedidoInstalar = null; }
+async function instalarApp(){ $('#convApp')?.remove(); if (pedidoInstalar){ pedidoInstalar.prompt(); const r = await pedidoInstalar.userChoice.catch(()=>({})); lsSet('caderno:instalar', r.outcome==='accepted'?'feito':'nao'); pedidoInstalar = null; render(); }
   else abrirFolha(/iphone|ipad/i.test(navigator.userAgent) ? `<h3>Pôr na tela inicial</h3><ol class="passos"><li>No Safari, toque em <b>Compartilhar</b> (quadrado com seta).</li><li>Toque em <b>Adicionar à Tela de Início</b>.</li><li>Confirme em <b>Adicionar</b>.</li></ol><div class="btns"><button class="btn p w" data-act="fechar">Entendi</button></div>`
     : `<h3>Pôr na tela inicial</h3><ol class="passos"><li>Abra este endereço no <b>Chrome</b> (não dentro do WhatsApp ou do Instagram).</li><li>Toque nos <b>3 pontinhos ⋮</b> no canto de cima.</li><li>Toque em <b>Instalar app</b>. Se não aparecer, toque em <b>Adicionar à tela inicial</b> e depois em <b>Instalar</b>.</li><li>O ícone laranja e azul aparece na tela inicial e na lista de apps, com o nome <b>Treino</b>.</li></ol><p class="note">Se já tinha um atalho antigo do Treino, apague-o antes e instale de novo.</p><div class="btns"><button class="btn p w" data-act="fechar">Entendi</button></div>`); }
 const abertoEm = Date.now(); let avisouVersao = false;
