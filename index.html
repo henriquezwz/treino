@@ -447,7 +447,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "16/10 13:00";
+const VERSAO = "16/10 13:30";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -626,6 +626,8 @@ function defaults(){
   if (!D.perfil && !D.novo && D.sessions.length && D.planVer) D.perfil = {texto: PERFIL_LEGADO, legado:true};
   if (D.planNovo && !D.planNovo.metaOk){ D.metaSem = Object.assign({}, metaSemana(), {treinos: SEED.metaTreinos || 4}); D.planNovo.metaOk = true; }
 }
+/* caderno em branco para uma pessoa nova: modelo genérico, nada de treino de outra pessoa */
+function dadosNovos(){ const d = structuredClone(SEED); d._u = 0; d.novo = true; d.plans = planosDe(MODELOS.abc.planos); delete d.plansAnteriores; return d; }
 const PERFIL_LEGADO = 'Faz musculação A/B/C em rodízio, nunca dois dias de perna. Objetivo: estética, força e pernas recuperadas. Corre de vez em quando e joga futebol; já teve canelite. Quer treinar em no máximo 1 hora. Prefere mais carga e mais descanso a mais repetições.';
 function persist(){ D.rascunho={data:hoje(),plano,log,swaps,notas,ajustes,relogio,foco:S.foco?{i:S.foco.i,s:S.foco.s}:null,ts:Date.now()}; save(); }
 /* treino que ficou aberto num dia anterior (acabou a bateria, esqueceu de encerrar): vira treino salvo daquele dia */
@@ -649,7 +651,7 @@ function mesclar(rem, loc){ let mudou = false; const apag = new Set([...(rem.apa
   rem.fechadoEm = fech; if (apag.size){ rem.apagados = [...apag].slice(-300); }
   return mudou; }
 async function load(){
-  try{ D=JSON.parse(lsGet(KEY)); if(!D) throw 0; }catch(e){ D=structuredClone(SEED); D._u=0; D.novo=true; }
+  try{ D=JSON.parse(lsGet(KEY)); if(!D) throw 0; }catch(e){ D=dadosNovos(); }
   defaults(); restaurarRascunho(); setSync('entrando'); iniciarConta();
 }
 async function iniciarConta(){
@@ -658,7 +660,12 @@ async function iniciarConta(){
   FB.authM.onAuthStateChanged(FB.auth, u=>{ clearTimeout(t); S.user = u||null; S.authPronto = true; S.contaErro = null; if (u) conectarNuvem(u); else { FB.desl?.(); nuvemRef = null; setSync('off'); } render(); });
 }
 function conectarNuvem(u){
-  FB.desl?.(); nuvemRef = FB.fsM.doc(FB.db, `caderneta/${u.uid}/treino/caderno`); setSync('sync');
+  FB.desl?.();
+  /* outra pessoa entrou neste aparelho: começa do zero, nunca leva os dados de quem estava antes */
+  const outroDono = !!(D._dono && D._dono !== u.uid);
+  if (outroDono){ D = dadosNovos(); defaults(); restaurarRascunho(); S.foco = null; plano = D.plans[0].id; render(); }
+  D._dono = u.uid;
+  nuvemRef = FB.fsM.doc(FB.db, `caderneta/${u.uid}/treino/caderno`); setSync('sync');
   let primeira = true; const t = setTimeout(()=>{ if (primeira){ setSync('err'); toast('A nuvem não respondeu ainda. Seus treinos ficam salvos aqui e sobem quando a conexão voltar.'); } }, 12000);
   FB.desl = FB.fsM.onSnapshot(nuvemRef, async snap=>{
     clearTimeout(t);
@@ -667,7 +674,7 @@ function conectarNuvem(u){
       else if ((D._u||0) > (c._u||0) && primeira) cloudPush();
       if (!snap.metadata.hasPendingWrites) setSync('ok'); }
     else if (primeira){
-      if (sync.code){ const velho = await puxarCodigoAntigo(sync.code); if (velho && (velho._u||0) > (D._u||0)){ D = velho; defaults(); restaurarRascunho(); render(); } }
+      if (sync.code && !outroDono){ const velho = await puxarCodigoAntigo(sync.code); if (velho && (velho._u||0) > (D._u||0)){ D = velho; defaults(); restaurarRascunho(); render(); } }
       D._u = Date.now(); lsSet(KEY, JSON.stringify(D)); cloudPush(); toast('Pronto: seus treinos agora ficam salvos na sua conta.'); }
     primeira = false;
   }, err=>{ clearTimeout(t); setSync('err'); S.contaErro = /permission/i.test(String(err.code||err.message)) ? 'permissao' : 'rede'; render(); });
@@ -815,7 +822,7 @@ function contextoTreino(curto){
   const ultimo = [...D.sessions].sort((a,b)=>a.data<b.data?-1:1).pop(); const parado = ultimo ? Math.round((Date.now()-new Date(ultimo.data+'T12:00:00'))/864e5) : null;
   return `Hoje: ${hoje()} (${diaSem(hoje())}). Último treino de musculação: ${ultimo?`${ultimo.data} (há ${parado} dias)`:'nenhum'}. Próximo da sequência: ${proximo()}.
 Semana atual: musculação ${sd.musc}/${mt.treinos}, corrida ${f1(sd.km)}/${mt.km} km, futebol ${sd.bola}/${mt.bola}. (Alimentação: a pessoa registra só às vezes; não cobre isso.)
-SOBRE A PESSOA (o que ela contou; respeite sempre): ${(D.perfil && D.perfil.texto) || 'ainda não contou objetivo, dias e limitações; quando fizer sentido, pergunte.'}
+${D.novo ? 'ATENÇÃO: a pessoa acabou de chegar e ainda não escolheu o treino dela (o plano abaixo é só um modelo). Se ela pedir, monte o treino dela com "novo_plano"/"alterar_plano".\n' : ''}SOBRE A PESSOA (o que ela contou; respeite sempre): ${(D.perfil && D.perfil.texto) || 'ainda não contou objetivo, dias e limitações; quando fizer sentido, pergunte.'}
 ${CIENCIA}
 NUNCA mencione EAF, TAF, teste físico, prova ou concurso: isso não faz mais parte dos objetivos (flexão e abdominal no histórico eram de uma fase antiga).
 ${estadoHoje()}
@@ -1354,6 +1361,7 @@ function viewComida(){
 }
 
 function viewTreinos(){
+  if (D.novo) return `<div class="grid two"><div class="col">${blocoBoasVindas()}${blocoConta()}</div></div>`;
   if (!D.plans.find(p=>p.id===editP)) editP = D.plans[0]?.id; const p = D.plans.find(x=>x.id===editP);
   const ehApp = matchMedia('(display-mode: standalone)').matches || navigator.standalone===true;
   return `<div class="grid two"><div class="col">
@@ -1692,7 +1700,7 @@ async function acao(a, el){
     case 'focoDesmarca': { const e = getPlan(plano).ex[S.foco.i]; const x = (log[e.id]||[])[S.foco.s]; if (x) x.ok = false; persist(); renderFoco(); toast('Série desmarcada'); return; }
     case 'entrarGoogle': entrarGoogle(); return;
     case 'entrarEmail': abrirFolha(`<h3>Entrar com e-mail</h3><p class="note">Primeira vez? Escreva e-mail e uma senha e toque em “Criar conta”. Se usa a Caderneta, é a mesma conta.</p><form id="loginF"><label class="f">E-mail</label><input class="in" name="email" type="email" autocomplete="email" required><label class="f">Senha</label><input class="in" name="senha" type="password" autocomplete="current-password" required><div class="btns"><button class="btn p" value="entrar">Entrar</button><button class="btn o" value="criar">Criar conta</button></div><div class="btns"><button class="lnk" value="senha" formnovalidate>esqueci a senha</button><button type="button" class="lnk" data-act="fechar">cancelar</button></div></form>`); return;
-    case 'sair': if (el.dataset.sure!=='1'){ el.dataset.sure='1'; el.textContent='Toque de novo para sair'; return; } await FB.authM.signOut(FB.auth); toast('Você saiu. Os dados ficam neste aparelho até entrar de novo.'); return;
+    case 'sair': if (el.dataset.sure!=='1'){ el.dataset.sure='1'; el.textContent='Toque de novo para sair'; return; } if (navigator.onLine===false){ toast('Conecte à internet antes de sair, para não perder o que ainda não subiu.'); return; } gravarJa(); await new Promise(r=>setTimeout(r,800)); await FB.authM.signOut(FB.auth); D = dadosNovos(); defaults(); restaurarRascunho(); S.foco = null; S.chat = []; lsSet('caderno:chat','[]'); plano = D.plans[0].id; lsSet(KEY, JSON.stringify(D)); render(); toast('Você saiu. Seus treinos continuam salvos na sua conta.'); return;
     case 'plano': plano = arg; persist(); render(); return;
     case 'tirarCustom': comDesfazer('Voltou para o treino normal', ()=>{ D.hojeCustom = null; plano = proximo(); log={}; swaps={}; notas={}; D.rascunho=null; }); return;
     case 'ok': { const [id, s] = arg.split(':'); const p = getPlan(plano), e = p.ex.find(x=>x.id===id); log[id] ||= []; log[id][s] ||= {}; const on = !log[id][s].ok; log[id][s].ok = on; if (on){ iniciarRelogio(); relogio.mov = Date.now(); }
