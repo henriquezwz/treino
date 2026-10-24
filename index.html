@@ -349,7 +349,7 @@ textarea.grow{resize:none;overflow:hidden;font:inherit;line-height:1.35;min-heig
 .boas-app{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;min-height:44px;border-radius:12px;border:1.5px dashed var(--tang);color:var(--tang);font-weight:700;font-size:14px;background:transparent}
 .panel.inst{border:1.5px solid var(--blue);background:linear-gradient(180deg,var(--blue-soft),var(--surface) 80%)}
 .fo-set.del{min-width:38px;display:grid;place-items:center;color:var(--danger);border-style:dashed}
-.fo-alvo .lnk{font-size:13px}
+.fo-alvo .lnk{font-size:13px}.fo-prox{color:var(--muted);font-size:12px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .exc{background:var(--surface);border:1.5px solid var(--violet-soft);border-radius:14px;padding:10px 12px;display:grid;gap:8px}
 .exc-h{display:flex;align-items:center;gap:8px}.exc-h b{color:var(--violet);font-size:14px}.exc-h small{color:var(--muted);font-size:12px;flex:1}
 .fo-ib.sm{width:30px;height:30px;border-radius:9px}
@@ -449,7 +449,7 @@ body.focando #timer{display:none!important}
   <button data-tab="treinos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="16" r="3"/></svg>Treinos</button>
 </div></nav>
 <script>
-const VERSAO = "16/10 13:45";
+const VERSAO = "24/10 16:30";
 /* sincronização do caderno (projeto do treino) */
 const firebaseConfig = {
   apiKey:"AIzaSyBy12iMFKD31bj9fZ4oxpiWspQqm1OOhWs", authDomain:"treino-60200.firebaseapp.com", projectId:"treino-60200",
@@ -1042,7 +1042,9 @@ function fecharFolha(){ $('#layer').classList.remove('on'); $('#sheet').innerHTM
 
 /* ---------- timer de descanso ---------- */
 let tI=null, tL=0;
-function startTimer(s){ tL=s; $('#timer').classList.add('on'); tick(); if (S.foco) renderFoco(); clearInterval(tI); tI=setInterval(()=>{ tL--; tick(); if(tL<=0) stopTimer(true); },1000); }
+let tFim = 0;
+function startTimer(s){ tL=s; tFim=Date.now()+s*1000; $('#timer').classList.add('on'); tick(); if (S.foco) renderFoco(); clearInterval(tI); tI=setInterval(()=>{ tL=Math.max(0,Math.ceil((tFim-Date.now())/1000)); tick(); if(tL<=0) stopTimer(true); },1000); }
+document.addEventListener('visibilitychange', ()=>{ if (document.visibilityState==='visible' && tI && tFim){ tL=Math.max(0,Math.ceil((tFim-Date.now())/1000)); tick(); if(tL<=0) stopTimer(true); } });
 function tick(){ const m=Math.max(0,Math.floor(tL/60)), s=Math.max(0,tL%60); $('#tClock').textContent=`${pad(m)}:${pad(s)}`; const fc = $('#fClock'); if (fc) fc.textContent=`${pad(m)}:${pad(s)}`; }
 function stopTimer(b){ clearInterval(tI); tL = 0; $('#timer').classList.remove('on'); if (S.foco) renderFoco(); if(b){ try{ const c=new (window.AudioContext||window.webkitAudioContext)(), o=c.createOscillator(), g=c.createGain(); o.connect(g); g.connect(c.destination); o.frequency.value=880; g.gain.setValueAtTime(.25,c.currentTime); g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.6); o.start(); o.stop(c.currentTime+.6); if(navigator.vibrate) navigator.vibrate([200,80,200]); }catch(e){} } }
 
@@ -1217,6 +1219,7 @@ function renderFoco(){
       <a class="fo-ib" href="${yt(nome)}" target="_blank" rel="noopener" aria-label="Ver execução">${ic('play',18)}</a></div>
     <div class="fo-ex"><h2><button data-act="info:${e.id}">${esc(nome)}</button></h2>
       <div class="fo-alvo"><b>${f.i+1}/${p.ex.length}</b> · <button class="lnk" data-act="ajustarEx:${e.id}">${ea.series}×${esc(ea.reps)}${e.tempo?' s':''} · descanso ${ea.rest}s${ajustes[e.id]?' (hoje)':''}</button> · <button class="lnk" data-act="swap:${e.id}">trocar</button></div>
+      ${p.ex.length>f.i+1 ? `<div class="fo-prox">Depois: ${p.ex.slice(f.i+1,f.i+4).map(x=>esc(swaps[x.id]||x.nome)).join(' → ')}${p.ex.length>f.i+4?' …':''}</div>` : ''}
     </div>
     ${painelEvolucao(e, nome, D.cargasHoje && D.cargasHoje.data===hoje() && (D.cargasHoje.por||{})[nome] ? {cls:'coach', txt:`Carga do coach para hoje${D.cargasHoje.pct?` (${D.cargasHoje.pct}%)`:''}: ${f1(D.cargasHoje.por[nome].kg??0)} kg`} : sg ? {cls: sg.tipo==='sobe'?'up':'volta', txt: sg.txt} : null)}
     <div class="fo-sets">${Array.from({length:ns},(_,s)=>{ const x = valorSerie(e,s); return `<button class="fo-set ${s===f.s?'cur':''} ${x.ok?'ok':''}" data-act="focoSet:${s}"><small>${s+1}ª</small>${x.ok||s===f.s?`<b>${e.bw?'':f1(x.kg??0)+'×'}${x.reps??'–'}</b>`:'<b>—</b>'}</button>`; }).join('')}<button class="fo-set add" data-act="maisSerie:${e.id}" aria-label="Mais uma série">${ic('mais',16)}</button>${ns>1?`<button class="fo-set del" data-act="tirarSerie" aria-label="Apagar a ${f.s+1}ª série">${ic('lixo',16)}</button>`:''}</div>
